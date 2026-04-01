@@ -1,3 +1,5 @@
+from importlib.resources import path
+
 import pytest
 from playwright.sync_api import sync_playwright
 from config.config import BASE_URL, BROWSER, HEADLESS, USERNAME, PASSWORD
@@ -17,7 +19,7 @@ def browser(playwright_instance):
     browser = browser_type.launch(
         headless=HEADLESS,
         args=["--start-maximized"],
-        downloads_path={DOWNLOADS_PATH},
+        downloads_path=DOWNLOADS_PATH,
         )
     yield browser
     browser.close()
