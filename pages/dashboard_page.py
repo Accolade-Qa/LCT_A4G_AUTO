@@ -1,38 +1,40 @@
 from pages.base_page import BasePage
 
+
 class Dashboard(BasePage):
     def __init__(self, page):
         super().__init__(page)
 
-    def validate_page_title(self):
-        return self.page.get_by_text("Device Dashboard", exact=True)
+    def is_page_title_visible(self):
+        return self.page.get_by_text("Device Dashboard", exact=True).is_visible()
 
     def go_to_dashboard(self, dashboard_url: str):
         self.navigate_to(dashboard_url)
-        self.validate_page_title().wait_for(state="visible")
-        
-    def validate_page_url(self):
-        return self.page.url
-    
+        self.page.wait_for_load_state("networkidle")
+
+    def validate_page_url(self, expected_url):
+        self.page.wait_for_url(expected_url)
+        return self.page.url == expected_url
+
     def validate_dashboard_cards_visibility(self, timeout=5000):
         card_titles = [
-            "Total Production Devices".capitalize(),
-            "Total Dispatched Devices".capitalize(),
-            "Total Installed Devices".capitalize(),
-            "Total Discarded Devices".capitalize()
+            "Total Production Devices",
+            "Total Dispatched Devices",
+            "Total Installed Devices",
+            "Total Discarded Devices"
         ]
+
         missing = []
 
         for title in card_titles:
             locator = self.page.get_by_text(title, exact=True)
-            print(f"Checking visibility for card: '{title}' : Locators {locator.text_content()}")  # Debugging line
+            print(f"Checking visibility for card: '{title}'")
             try:
                 locator.wait_for(state="visible", timeout=timeout)
             except Exception:
                 missing.append(title)
 
         if missing:
-            # For debugging, keep the original boolean behavior but include details
             raise AssertionError(f"Missing or hidden dashboard cards: {', '.join(missing)}")
 
         return True

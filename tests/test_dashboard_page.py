@@ -1,21 +1,17 @@
-import pytest
-
 from pages.dashboard_page import Dashboard
 from config.config import DASHBOARD_URL
 
 
-@pytest.mark.usefixtures("login_page")
 def test_dashboard_page_title(login_page):
     dashboard = Dashboard(login_page)
-    assert dashboard.validate_page_title().text_content() == "Device Dashboard", "Dashboard page title is not visible"
-    
-@pytest.mark.usefixtures("login_page")
+    assert dashboard.is_page_title_visible(), "Dashboard page title is not visible"
+
+
 def test_dashboard_url(login_page):
     dashboard = Dashboard(login_page)
-    assert dashboard.validate_page_url() == DASHBOARD_URL, "Dashboard page URL is incorrect"
-    
-# validate all 4 dashboard cards are visible
-@pytest.mark.usefixtures("login_page")
+    assert dashboard.validate_page_url(DASHBOARD_URL), "Dashboard page URL is incorrect"
+
+
 def test_dashboard_cards_visibility(login_page):
     dashboard = Dashboard(login_page)
     assert dashboard.validate_dashboard_cards_visibility(), "One or more dashboard cards are not visible"

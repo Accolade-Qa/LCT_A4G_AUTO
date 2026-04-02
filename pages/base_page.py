@@ -10,4 +10,6 @@ class BasePage:
         self.page.wait_for_load_state("networkidle")
 
     def wait_for_text(self, text: str):
-        return self.page.get_by_text(text, exact=True).wait_for(state="visible")
+        locator = self.page.get_by_text(text, exact=True)
+        locator.wait_for(state="visible")
+        return locator

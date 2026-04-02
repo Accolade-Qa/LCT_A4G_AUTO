@@ -1,18 +1,16 @@
-from importlib.resources import path
-
 import pytest
 from playwright.sync_api import sync_playwright
 from config.config import BASE_URL, BROWSER, HEADLESS, USERNAME, PASSWORD
-from config.global_var import DOWNLOADS_PATH
+from config.global_var import DOWNLOADS_PATH, SCREENSHOT_PATH
 from pages.login_page import LoginPage
 
-# 🔹 Playwright instance
+
 @pytest.fixture(scope="session")
 def playwright_instance():
     with sync_playwright() as p:
         yield p
 
-# 🔹 Browser (one per session)
+
 @pytest.fixture(scope="session")
 def browser(playwright_instance):
     browser_type = getattr(playwright_instance, BROWSER)
@@ -20,11 +18,11 @@ def browser(playwright_instance):
         headless=HEADLESS,
         args=["--start-maximized"],
         downloads_path=DOWNLOADS_PATH,
-        )
+    )
     yield browser
     browser.close()
 
-# 🔹 Page (new per test)
+
 @pytest.fixture(scope="function")
 def page(browser):
     context = browser.new_context()
@@ -32,19 +30,16 @@ def page(browser):
     yield page
     context.close()
 
-# 🔹 Login Fixture
+
 @pytest.fixture(scope="function")
 def login_page(page):
     login = LoginPage(page)
     login.load(BASE_URL)
     login.login(USERNAME, PASSWORD)
-
     page.wait_for_load_state("networkidle")
-
     return page
 
 
-# 🔹 Screenshot on Failure
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
@@ -53,4 +48,4 @@ def pytest_runtest_makereport(item, call):
     if report.when == "call" and report.failed:
         page = item.funcargs.get("page", None)
         if page:
-            page.screenshot(path=f"screenshots/{item.name}.png")
+            page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png")
