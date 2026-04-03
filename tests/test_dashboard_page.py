@@ -1,50 +1,31 @@
+import pytest
+
 from pages.dashboard_page import Dashboard
 from config.config import DASHBOARD_URL
 
+@pytest.fixture(scope="function")
+def dashboard(page):
+    dashboard = Dashboard(page)
+    dashboard.go_to_dashboard(DASHBOARD_URL)
+    return dashboard
 
-def test_dashboard_page_title(login_page):
-    dashboard = Dashboard(login_page)
+def test_dashboard_page_title(dashboard):
     assert dashboard.is_page_title_visible(), "Dashboard page title is not visible"
 
 
-def test_dashboard_url(login_page):
-    dashboard = Dashboard(login_page)
+def test_dashboard_url(dashboard):
     assert dashboard.validate_page_url(DASHBOARD_URL), "Dashboard page URL is incorrect"
 
 
-def test_dashboard_cards_visibility(login_page):
-    dashboard = Dashboard(login_page)
+def test_dashboard_cards_visibility(dashboard):
     assert dashboard.validate_dashboard_cards_visibility(), "One or more dashboard cards are not visible"
 
 
+def test_dashboard_card_counts(dashboard):
+    counts = dashboard.validate_dashboard_card_counts()
+    for title, value in counts.items():
+        assert value > 0, f"{title} count should be greater than 0, got {value}"
 
 
-
-
-# validate the 1st card is titled "Total production Devices"
-# validate the total devices count is a number
-# validate the total devices count is visible and greater than 0 
-
-# validate the 2nd card is titled "Total Dispatched Devices"
-# validate the dispatched devices count is a number
-# validate the dispatched devices count is visible and greater than 0
-
-# validate the 3rd card is titled "Total Installed Devices"
-# validate the installed devices count is a number
-# validate the installed devices count is visible and greater than 0
-
-# validate the 4th card is titled "Total Discarded Devices"
-# validate the discarded devices count is a number
-# validate the discarded devices count is visible and greater than 0
-
-# validate the 2 graphs are visible on the dashboard page
-# validate the 1st graph is titled "Device Activity Overview"
-
-# Verify "Device Activity Overview" graph is visible
-# Verify "Firmware Wise Devices" graph is visible
-# Verify no broken UI or blank graph area
-# Verify graphs load within acceptable time
-# Verify bar values match API/backend response
-# Verify total count of devices matches expected sum
-# Verify each category count is correct (e.g., Today = 0, Five Days = 1, etc.)
-# Verify firmware counts match expected values
+def test_dashboard_graphs_visible(dashboard):
+    assert dashboard.validate_dashboard_graphs(), "Dashboard graphs are not visible"

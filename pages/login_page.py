@@ -1,6 +1,13 @@
 import re
+
 from pages.base_page import BasePage
-from config.config import USERNAME, PASSWORD,INVALID_USERNAME,INVALID_PASSWORD
+from config.config import (
+    DASHBOARD_URL,
+    INVALID_PASSWORD,
+    INVALID_USERNAME,
+    PASSWORD,
+    USERNAME,
+)
  
 class LoginPage(BasePage):
  
@@ -24,6 +31,8 @@ class LoginPage(BasePage):
         self.username.fill(username)
         self.password.fill(password)
         self.login_btn.click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_url(DASHBOARD_URL, timeout=60000)
  
 # 🔹 New Method 2: Invalid Login Method
     def login_with_invalid_credentials(self, username=INVALID_USERNAME, password=INVALID_PASSWORD):

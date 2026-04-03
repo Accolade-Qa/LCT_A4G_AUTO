@@ -24,19 +24,28 @@ def browser(playwright_instance):
 
 
 @pytest.fixture(scope="function")
-def page(browser):
+def page(auth_context):
+    page = auth_context.new_page()
+    yield page
+    page.close()
+
+
+@pytest.fixture(scope="session")
+def auth_context(browser):
     context = browser.new_context()
     page = context.new_page()
-    yield page
+
+    login = LoginPage(page)
+    login.load(BASE_URL)
+    login.login(USERNAME, PASSWORD)
+    page.close()
+
+    yield context
     context.close()
 
 
 @pytest.fixture(scope="function")
 def login_page(page):
-    login = LoginPage(page)
-    login.load(BASE_URL)
-    login.login(USERNAME, PASSWORD)
-    page.wait_for_load_state("networkidle")
     return page
 
 
