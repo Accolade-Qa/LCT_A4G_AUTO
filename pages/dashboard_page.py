@@ -1,38 +1,37 @@
-from pages.base_page import BasePage
-
-class Dashboard(BasePage):
+class DashboardPage:
     def __init__(self, page):
-        super().__init__(page)
-
-    def validate_page_title(self):
-        return self.page.get_by_text("Device Dashboard", exact=True)
-
-    def go_to_dashboard(self, dashboard_url: str):
-        self.navigate_to(dashboard_url)
-        self.validate_page_title().wait_for(state="visible")
+        self.page = page
         
-    def validate_page_url(self):
-        return self.page.url
+    def go_to_dashboard(self, url):
+        self.page.goto(url)
     
-    def validate_dashboard_cards_visibility(self, timeout=5000):
-        card_titles = [
-            "Total Production Devices".capitalize(),
-            "Total Dispatched Devices".capitalize(),
-            "Total Installed Devices".capitalize(),
-            "Total Discarded Devices".capitalize()
-        ]
-        missing = []
+    def _is_cards_visible(self):
+        cards_locator = self.page.locator(".kpi-section.ng-star-inserted")
+        cards_locator.wait_for(state="visible")
+        return cards_locator.is_visible()
+    
+    def _cards_parent(self):
+        cards_parent = self.page.locator("div.kpi-section.ng-star-inserted")
+        cards_parent.wait_for(state="visible")
+        return cards_parent
 
-        for title in card_titles:
-            locator = self.page.get_by_text(title, exact=True)
-            print(f"Checking visibility for card: '{title}' : Locators {locator.text_content()}")  # Debugging line
-            try:
-                locator.wait_for(state="visible", timeout=timeout)
-            except Exception:
-                missing.append(title)
+    def _card_elements(self):
+        return self._cards_parent().locator(":scope > div")
 
-        if missing:
-            # For debugging, keep the original boolean behavior but include details
-            raise AssertionError(f"Missing or hidden dashboard cards: {', '.join(missing)}")
+    def get_cards_count(self):
+        return self._card_elements().count()
 
-        return True
+    def get_card_element(self, index):
+        return self._card_elements().nth(index)
+    
+    def get_cards_title_text(self, index):
+        card = self.get_card_element(index)
+        card_title_locator = card.locator("div.kpi-details span").nth(0)
+        card_title_locator.wait_for(state="visible")
+        return card_title_locator.inner_text()
+    
+    def get_cards_inner_count(self, index):
+        card = self.get_card_element(index)
+        card_count_locator = card.locator("div.kpi-details span").nth(1)
+        card_count_locator.wait_for(state="visible")
+        return card_count_locator.inner_text()

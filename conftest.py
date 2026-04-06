@@ -1,8 +1,9 @@
 import pytest
 from playwright.sync_api import sync_playwright
-from config.config import BASE_URL, BROWSER, HEADLESS, USERNAME, PASSWORD, DASHBOARD_URL
-from config.global_var import DOWNLOADS_PATH, SCREENSHOT_PATH
+from config.config import BASE_URL, BROWSER, HEADLESS, USERNAME, PASSWORD,DASHBOARD_URL
+from config.global_var import SCREENSHOT_PATH
 from pages.login_page import LoginPage
+
 
 # 🔹 Playwright instance
 @pytest.fixture(scope="session")
@@ -10,32 +11,27 @@ def playwright_instance():
     with sync_playwright() as p:
         yield p
 
-# 🔹 Browser (one per session)
+
+# 🔹 Browser
 @pytest.fixture(scope="session")
 def browser(playwright_instance):
     browser_type = getattr(playwright_instance, BROWSER)
+
     browser = browser_type.launch(
         headless=HEADLESS,
-        args=["--start-maximized"],
-        downloads_path=DOWNLOADS_PATH,
-        )
+        args=["--start-maximized"]
+    )
+
     yield browser
     browser.close()
 
-# 🔹 Page (new per test)
-@pytest.fixture(scope="function")
-def page(browser):
-    context = browser.new_context(
-        viewport={'width': 1280, 'height': 720}
-    )
-    page = context.new_page()
-    page.evaluate("document.body.style.zoom = '0.67'")
-    yield page
-    context.close()
 
-# 🔹 Login Fixture
-@pytest.fixture(scope="function")
-def login_page(page):
+# 🔥 Authenticated Context (BEST PRACTICE)
+@pytest.fixture(scope="session")
+def auth_context(browser):
+    context = browser.new_context(accept_downloads=True)
+    page = context.new_page()
+
     login = LoginPage(page)
     login.load(BASE_URL)
     login.login(USERNAME, PASSWORD)
@@ -43,16 +39,41 @@ def login_page(page):
     page.wait_for_url(DASHBOARD_URL, timeout=15000)
     page.wait_for_load_state("networkidle")
 
-    return page
+    # Save login state
+    context.storage_state(path="auth.json")
+    context.close()
+
+    # Reuse logged-in session
+    auth_context = browser.new_context(storage_state="auth.json", accept_downloads=True)
+    yield auth_context
+    auth_context.close()
 
 
-# 🔹 Screenshot on Failure
+# 🔹 Page per test
+@pytest.fixture(scope="function")
+def page(auth_context):
+    page = auth_context.new_page()
+    yield page
+    page.close()
+
+
+# 🔹 Screenshot on failure
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
 
     if report.when == "call" and report.failed:
-        page = item.funcargs.get("page", None)
+        page = item.funcargs.get("page")
         if page:
-            page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png")
+            page.screenshot(
+                path=f"{SCREENSHOT_PATH}/{item.name}.png",
+                full_page=True
+            )
+            
+            
+            
+@pytest.fixture
+def dashboard_page(page):
+    from pages.dashboard_page import DashboardPage
+    return DashboardPage(page)

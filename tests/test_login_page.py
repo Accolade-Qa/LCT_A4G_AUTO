@@ -10,7 +10,8 @@ def test_login(page):
     login_page.login(USERNAME, PASSWORD)
     page.wait_for_load_state("networkidle")
     expect(page).to_have_url(DASHBOARD_URL)   # ✅ FIX    
-   
+
+
 def test_invalid_login(page):
     login_page = LoginPage(page)
     login_page.load(BASE_URL)
