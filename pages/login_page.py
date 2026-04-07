@@ -30,6 +30,8 @@ class LoginPage(BasePage):
         self.username.fill(username)
         self.password.fill(password)
         self.login_btn.click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_url(DASHBOARD_URL, timeout=60000)
  
 # 🔹 New Method 2: Invalid Login Method
     def login_with_invalid_credentials(self, username=INVALID_USERNAME, password=INVALID_PASSWORD):
