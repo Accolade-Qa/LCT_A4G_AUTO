@@ -26,10 +26,16 @@ def browser(playwright_instance):
     browser.close()
 
 
+def _new_context_with_zoom(browser, **kwargs):
+    context = browser.new_context(**kwargs)
+    context.add_init_script("() => document.body.style.zoom = '0.75'")
+    return context
+
+
 # 🔥 Authenticated Context (BEST PRACTICE)
 @pytest.fixture(scope="session")
 def auth_context(browser):
-    context = browser.new_context(accept_downloads=True)
+    context = _new_context_with_zoom(browser, viewport={"width": 1920, "height": 1080})
     page = context.new_page()
 
     login = LoginPage(page)
@@ -43,7 +49,11 @@ def auth_context(browser):
     context.close()
 
     # Reuse logged-in session
-    auth_context = browser.new_context(storage_state="auth.json", accept_downloads=True)
+    auth_context = _new_context_with_zoom(
+        browser,
+        storage_state="auth.json",
+        accept_downloads=True,
+    )
     yield auth_context
     auth_context.close()
 
@@ -54,7 +64,6 @@ def page(auth_context):
     page = auth_context.new_page()
     yield page
     page.close()
-
 
 # 🔹 Screenshot on failure
 @pytest.hookimpl(hookwrapper=True)
