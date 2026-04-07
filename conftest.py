@@ -79,9 +79,7 @@ def pytest_runtest_makereport(item, call):
                 path=f"{SCREENSHOT_PATH}/{item.name}.png",
                 full_page=True
             )
-            
-            
-            
+                
 @pytest.fixture
 def dashboard_page(page):
     from pages.dashboard_page import DashboardPage
