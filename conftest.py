@@ -37,13 +37,29 @@ def _new_context_with_zoom(browser, **kwargs):
 def auth_context(browser):
     context = _new_context_with_zoom(browser, viewport={"width": 1920, "height": 1080})
     page = context.new_page()
+    page.evaluate("document.body.style.zoom = '0.67'")
+    yield page
+    context.close()
+    
+@pytest.fixture(scope="function")
+def login_page(page):
+    login = LoginPage(page)
+    login.load(BASE_URL)
+    login.login(USERNAME, PASSWORD)
+
+    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_timeout(1000)
+
+    page.locator("text=Dashboard").wait_for(timeout=20000)
+
+    return page 
 
     login = LoginPage(page)
     login.load(BASE_URL)
     login.login(USERNAME, PASSWORD)
 
-    page.wait_for_url(DASHBOARD_URL, timeout=15000)
-    page.wait_for_load_state("networkidle")
+    # page.wait_for_url(DASHBOARD_URL, timeout=15000)
+    # page.wait_for_load_state("networkidle")
 
     # Save login state
     context.storage_state(path="auth.json")
@@ -58,6 +74,9 @@ def auth_context(browser):
     yield auth_context
     auth_context.close()
 
+    page.wait_for_url("**/dashboard**", timeout=20000)
+    page.wait_for_load_state("domcontentloaded")
+    return page
 
 # 🔹 Page per test
 @pytest.fixture(scope="function")
@@ -66,23 +85,59 @@ def page(auth_context):
     yield page
     page.close()
 
-# 🔹 Screenshot on failure
+# 🔹 Screenshot on Failure
+# @pytest.hookimpl(hookwrapper=True)
+# def pytest_runtest_makereport(item, call):
+#     outcome = yield
+#     report = outcome.get_result()
+
+#     if report.when == "call" and report.failed:
+#         page = item.funcargs.get("page", None)
+#         if page:
+#             page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png")
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
 
     if report.when == "call" and report.failed:
-        page = item.funcargs.get("page")
+        page = item.funcargs.get("page", None)
+
         if page:
-            page.screenshot(
-                path=f"{SCREENSHOT_PATH}/{item.name}.png",
-                full_page=True
-            )
-            
-            
-            
-@pytest.fixture
-def dashboard_page(page):
-    from pages.dashboard_page import DashboardPage
-    return DashboardPage(page)
+            try:
+                # ✅ Fast + no font wait
+                page.screenshot(
+                    path=f"{SCREENSHOT_PATH}/{item.name}.png",
+                    timeout=2000,
+                    animations="disabled"
+                )
+            except Exception as e:
+                print("Screenshot failed (ignored):", e)
+ 
+ 
+                
+# @pytest.fixture(scope="function")
+# def page(browser):
+#     context = browser.new_context(
+#         viewport={'width': 1280, 'height': 720}
+#     )
+
+#     # 🚀 BLOCK FONTS (PERMANENT FIX)
+#     def handle_route(route, request):
+#         if request.resource_type == "font":
+#             route.abort()
+#         else:
+#             route.continue_()
+
+#     context.route("**/*", handle_route)
+
+#     page = context.new_page()
+
+#     try:
+#         page.evaluate("document.body.style.zoom = '0.67'")
+#     except:
+#         pass
+
+#     yield page
+#     context.close()
