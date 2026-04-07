@@ -1,6 +1,10 @@
 import re
+
+from playwright.async_api import expect
+from streamlit import title
+# from conftest import page
 from pages.base_page import BasePage
-from config.config import USERNAME, PASSWORD,INVALID_USERNAME,INVALID_PASSWORD
+from config.config import BASE_URL, PAGE_TITLE, USERNAME, PASSWORD,INVALID_USERNAME,INVALID_PASSWORD
  
 class LoginPage(BasePage):
  
@@ -14,10 +18,12 @@ class LoginPage(BasePage):
         self.errormsg = page.get_by_text("Minimum 6 characters required.")
         self.wrongusername = page.locator("//div[@class='cdk-overlay-container']")
         self.emptyusername = page.locator("//mat-error[@id='mat-mdc-error-1']")
+        self.page_title1 = page.locator("div.site-name-text-section:visible")
  
     # 🔹 Open Login Page
-    def load(self, url):
-        self.navigate_to(url)   # ✅ FIX
+    def load(self, url=BASE_URL):
+        self.page.goto(url, timeout=60000)
+        self.page.wait_for_load_state("domcontentloaded")
  
     # 🔹New Method 1: Perform Login
     def login(self, username=USERNAME, password=PASSWORD):
@@ -49,3 +55,9 @@ class LoginPage(BasePage):
         # 🔹 Wait for error message
         self.wrongusername.wait_for(state="visible", timeout=5000)
         return self.wrongusername.text_content()
+    
+  # 🔹 Verify Page Title
+    def verify_page_title(self, name=PAGE_TITLE):
+        self.page.wait_for_load_state("load")   # ✅ ensure page is loaded
+        title = self.get_page_title()           # ✅ calling BasePage method
+        print("Page Title:", title)

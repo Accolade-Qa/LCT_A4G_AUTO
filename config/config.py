@@ -14,3 +14,4 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 VIDEO_RECORDING = os.getenv("VIDEO_RECORDING", "false").lower() == "true"
 INVALID_USERNAME = os.getenv("INVALID_USERNAME", "ABCD")
 INVALID_PASSWORD = os.getenv("INVALID_PASSWORD", "12345")
+PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")

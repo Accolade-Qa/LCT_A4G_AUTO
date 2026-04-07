@@ -37,3 +37,13 @@ def test_password(page):
     print("Error Message:", error_msg)
     # 🔹 Validate error message
     assert " " in error_msg
+    
+def test_page_title(page):
+    login_page = LoginPage(page)
+    login_page.load(BASE_URL)
+    login_page.verify_page_title()
+    
+def test_page_title(page):
+    login_page = LoginPage(page)
+    login_page.load(BASE_URL)
+    login_page.verify_page_title()   # uses default PAGE_TITLE
