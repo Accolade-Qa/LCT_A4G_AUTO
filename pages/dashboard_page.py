@@ -77,7 +77,7 @@ class DashboardPage:
     def check_pagination(self):
         PAGE_INPUT = "input.page-input"
         NEXT_BUTTON = "button:has(mat-icon:has-text('chevron_right'))"
-        CONTENT_CONTAINER = "table"  # 🔁 update if needed
+        CONTENT_CONTAINER = "table"  
 
         result = {
             "success": True,
@@ -90,17 +90,17 @@ class DashboardPage:
             self.page.wait_for_selector(PAGE_INPUT)
             self.page.wait_for_selector(CONTENT_CONTAINER)
 
-            print("Pagination detected ✅")
+            print("Pagination detected")
 
             visited_pages = set()
 
             while True:
                 current_page = self.page.locator(PAGE_INPUT).input_value()
-                print(f"\n📄 Current page: {current_page}")
+                print(f"\nCurrent page: {current_page}")
 
                 # Prevent infinite loop
                 if current_page in visited_pages:
-                    print("⚠️ Loop detected. Stopping.")
+                    print("Loop detected. Stopping.")
                     break
 
                 visited_pages.add(current_page)
@@ -116,10 +116,10 @@ class DashboardPage:
                     break
 
                 if next_btn.is_disabled():
-                    print("✅ Reached last page.")
+                    print("Reached last page.")
                     break
 
-                print("➡️ Clicking Next...")
+                print("Clicking Next...")
                 next_btn.scroll_into_view_if_needed()
                 next_btn.click()
 
@@ -129,7 +129,7 @@ class DashboardPage:
                         const el = document.querySelector('input.page-input');
                         return el && el.value !== prev;
                     }""",
-                    current_page
+                    arg=current_page
                 )
 
                 new_page = self.page.locator(PAGE_INPUT).input_value()
@@ -155,5 +155,37 @@ class DashboardPage:
             result["success"] = False
             result["error"] = str(e)
 
-        print("\n🎉 Pagination test completed.")
+        print("\nPagination test completed.")
+        return result
+
+
+    def check_export_button(self):
+        export_btn = self.page.get_by_text("Export download")
+
+        result = {
+            "success": True,
+            "file_downloaded": False,
+            "file_format": None,
+            "error": None
+        }
+
+        try:
+            export_btn.wait_for(state="visible")
+
+            with self.page.expect_download() as download_info:
+                export_btn.click()
+
+            download = download_info.value
+
+            result["file_downloaded"] = True
+            result["file_format"] = download.suggested_filename.split(".")[-1]
+
+            if result["file_format"] != "csv":
+                result["success"] = False
+                result["error"] = f"Expected file format 'csv', got '{result['file_format']}'"
+
+        except Exception as e:
+            result["success"] = False
+            result["error"] = str(e)
+
         return result

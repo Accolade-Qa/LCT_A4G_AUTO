@@ -6,11 +6,6 @@ from config.config import API_BASE_URL, API_PASSWORD, API_USERNAME
 class DashboardAPI:
     @staticmethod
     def _fetch_dashboard_cards_from_api(page):
-        """
-        Authenticate with the dashboard backend, then call each card-specific
-        endpoint to return a map of the expected titles (in upper case) to counts.
-        """
-
         if not API_USERNAME or not API_PASSWORD:
             raise ValueError(
                 "API_USERNAME / API_PASSWORD must be set in the environment "

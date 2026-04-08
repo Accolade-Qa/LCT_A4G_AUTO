@@ -1,6 +1,6 @@
 import pytest
 from playwright.sync_api import sync_playwright
-from config.config import BASE_URL, BROWSER, HEADLESS, USERNAME, PASSWORD
+from config.config import BASE_URL, BROWSER, DASHBOARD_URL, HEADLESS, USERNAME, PASSWORD
 from config.global_var import SCREENSHOT_PATH
 from pages.login_page import LoginPage
 
@@ -33,37 +33,23 @@ def _new_context_with_zoom(browser, **kwargs):
 
 
 # 🔥 Authenticated Context (BEST PRACTICE)
-@pytest.fixture(scope="session")
-def auth_context(browser):
-    context = _new_context_with_zoom(browser, viewport={"width": 1920, "height": 1080})
+@pytest.fixture(scope="function")
+def page(browser):
+    context = _new_context_with_zoom(
+        browser,
+        viewport={"width": 1920, "height": 1080},
+        accept_downloads=True,
+    )
     page = context.new_page()
 
     login = LoginPage(page)
     login.load(BASE_URL)
     login.login(USERNAME, PASSWORD)
-
     page.wait_for_load_state("networkidle")
 
-    # Save login state
-    context.storage_state(path="auth.json")
-    context.close()
-
-    # Reuse logged-in session
-    auth_context = _new_context_with_zoom(
-        browser,
-        storage_state="auth.json",
-        accept_downloads=True,
-    )
-    yield auth_context
-    auth_context.close()
-
-
-# 🔹 Page per test
-@pytest.fixture(scope="function")
-def page(auth_context):
-    page = auth_context.new_page()
     yield page
     page.close()
+    context.close()
 
 # 🔹 Screenshot on failure
 @pytest.hookimpl(hookwrapper=True)
@@ -84,4 +70,6 @@ def pytest_runtest_makereport(item, call):
 @pytest.fixture
 def dashboard_page(page):
     from pages.dashboard_page import DashboardPage
-    return DashboardPage(page)
+    dashboard = DashboardPage(page)
+    dashboard.go_to_dashboard(DASHBOARD_URL)
+    return dashboard
