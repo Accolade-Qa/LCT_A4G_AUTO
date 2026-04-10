@@ -1,6 +1,9 @@
 import json
 
 from config.config import API_BASE_URL, API_PASSWORD, API_USERNAME
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class DashboardAPI:
@@ -19,6 +22,7 @@ class DashboardAPI:
             "password": API_PASSWORD,
         }
 
+        logger.info("Logging in to API user %s", API_USERNAME)
         login_response = page.request.post(
             login_url,
             data=json.dumps(login_payload),
@@ -29,6 +33,7 @@ class DashboardAPI:
             raise Exception(
                 f"API login failed: {login_response.status} {login_response.text()}"
             )
+        logger.info("API login succeeded with status %s", login_response.status)
 
         login_data = login_response.json()
         token = login_data.get("data", {}).get("token")
@@ -41,30 +46,30 @@ class DashboardAPI:
             "Content-Type": "application/json",
         }
 
-        api_endpoints = {
-            "TOTAL PRODUCTION DEVICES": "/device/getProductionDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
-            "TOTAL DISPATCHED DEVICES": "/device/getDispatchDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
-            "TOTAL INSTALLED DEVICES": "/device/getInstalledDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
-            "TOTAL DISCARDED DEVICES": "/device/getDiscardedDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
-        }
+        api_endpoints = [
+            ("TOTAL PRODUCTION DEVICES", "/device/getProductionDeviceCount?selectedDeviceModelId=&selectedCustomerId="),
+            ("TOTAL DISPATCHED DEVICES", "/device/getDispatchDeviceCount?selectedDeviceModelId=&selectedCustomerId="),
+            ("TOTAL INSTALLED DEVICES", "/device/getInstalledDeviceCount?selectedDeviceModelId=&selectedCustomerId="),
+            ("TOTAL DISCARDED DEVICES", "/device/getDiscardedDeviceCount?selectedDeviceModelId=&selectedCustomerId="),
+        ]
 
         result = {}
 
-        for title, endpoint in api_endpoints.items():
-            response = page.request.get(
-                f"{API_BASE_URL}{endpoint}",
-                headers=headers,
-            )
-
+        for title, endpoint in api_endpoints:
+            logger.info("Calling API for %s (%s)", title, endpoint)
+            response = page.request.get(f"{API_BASE_URL}{endpoint}", headers=headers)
             if response.ok:
                 data = response.json()
                 count = data.get("data")
-                print(f"API response for '{title}': {data}")  # Debugging line to check API response
+                logger.debug("API response for '%s': %s", title, data)
                 if count is None:
                     count = data.get("count")
-                    print(f"API response for '{title}' using 'count' field: {data}")  # Debugging line to check alternative count field
+                    logger.debug("API alternative count field for '%s': %s", title, data)
                 result[title] = int(count)
+                logger.info("API count for '%s': %s", title, result[title])
             else:
+                logger.warning("API endpoint %s returned %s", endpoint, response.status)
                 result[title] = 0
 
+        logger.info("Fetched dashboard card counts sequentially: %s", result)
         return result
