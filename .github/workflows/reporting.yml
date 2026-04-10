@@ -1,0 +1,67 @@
+name: Test and Report Workflow
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 10 * * *'
+
+env:
+  REPORT_HTML: reports/pytests/report.html
+  REPORT_JSON: reports/json/report.json
+  REPORT_EXCEL: reports/excel/pytest-results.xlsx
+
+jobs:
+  test-and-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: playwright install
+
+      - name: Execute report generator
+        run: python scripts/generate_reports.py
+
+      - name: Prepare email metadata
+        run: |
+          echo "BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "RUN_TYPE=${{ github.event_name }}" >> $GITHUB_ENV
+
+      - name: Send report email
+        uses: dawidd6/action-send-mail@v4
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: |
+            ${{ github.ref_name == 'master' && github.event_name == 'push' && format('Master Suite Report - run #{0}', github.run_number) || format('Scheduled Report: {0} - run #{1}', github.ref_name, github.run_number) }}
+          body: |
+            Hello Team,
+
+            The pytest suite has completed on branch `${{ github.ref_name }}` with trigger `${{ github.event_name }}`.
+
+            HTML and Excel reports are attached for your review.
+
+            Regards,
+            Automation Bot
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_FROM }}
+          content_type: text/plain
+          attachments: |
+            ${{ env.REPORT_HTML }}
+            ${{ env.REPORT_EXCEL }}

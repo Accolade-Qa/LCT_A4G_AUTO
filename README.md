@@ -330,3 +330,7 @@ Install the reporting dependencies first (`pip install -r requirements.txt`). Se
 
 
 **Happy Testing! 🚀**
+
+## 📬 CI Reporting
+
+A GitHub Actions workflow (`.github/workflows/reporting.yml`) now runs `scripts/generate_reports.py` on every push to `master` and every day at 10:00 UTC on `develop`. It emails the HTML/Excel reports via `dawidd6/action-send-mail`, so define the repository secrets `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_TO`, and `MAIL_FROM`. The emails use branch-specific subjects so recipients can distinguish the manual run from the scheduled one.
