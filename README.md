@@ -322,4 +322,11 @@ playwright install
 
 ---
 
+## 📊 Auto-generated Reports
+
+Use `python scripts/generate_reports.py` to run pytest with `--html`, `--self-contained-html`, and `--json-report` so that the HTML report lands at `reports/pytests/report.html`, the JSON payload resides in `reports/json/report.json`, and pandas converts that JSON into `reports/excel/pytest-results.xlsx`.
+
+Install the reporting dependencies first (`pip install -r requirements.txt`). Set `SUITE_NAME` in the environment if you want the log file prefix (defaults to `LCT_A4G_AUTO`). Attach the generated HTML and Excel files when sending results to stakeholders.
+
+
 **Happy Testing! 🚀**
