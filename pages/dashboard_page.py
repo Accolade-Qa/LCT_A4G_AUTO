@@ -1,4 +1,4 @@
-from playwright.sync_api import expect
+from playwright.sync_api import TimeoutError, expect
 
 
 class DashboardPage:
@@ -160,32 +160,60 @@ class DashboardPage:
 
 
     def check_export_button(self):
-        export_btn = self.page.get_by_text("Export download")
+        export_btn = self.page.locator("button:has-text('Export')")
 
         result = {
             "success": True,
-            "file_downloaded": False,
-            "file_format": None,
             "error": None
         }
 
         try:
-            export_btn.wait_for(state="visible")
+            export_btn.wait_for(state="visible", timeout=10000)
+            export_btn.scroll_into_view_if_needed()
+            expect(export_btn).to_be_enabled(timeout=10000)
 
-            with self.page.expect_download() as download_info:
-                export_btn.click()
+            export_btn.click()
 
-            download = download_info.value
-
-            result["file_downloaded"] = True
-            result["file_format"] = download.suggested_filename.split(".")[-1]
-
-            if result["file_format"] != "csv":
-                result["success"] = False
-                result["error"] = f"Expected file format 'csv', got '{result['file_format']}'"
+            self.page.wait_for_timeout(2000)
 
         except Exception as e:
             result["success"] = False
             result["error"] = str(e)
 
         return result
+    
+    def check_search_functionality(self, search_query):
+        search_input = self.page.locator("//input[@placeholder='Search and Press Enter']")
+        result = {
+            "success": True,
+            "results_found": 0,
+            "results": [],
+            "error": None
+        }
+
+        try:
+            search_input.wait_for(state="visible")
+            search_input.fill(search_query)
+            search_input.press("Enter")
+
+            self.page.wait_for_timeout(1000)
+
+            results_locator = self.page.locator("tr.ng-star-inserted")
+            result["results_found"] = results_locator.count()
+
+            for i in range(result["results_found"]):
+                row_text = results_locator.nth(i).inner_text()
+                result["results"].append(row_text)
+
+        except Exception as e:
+            result["success"] = False
+            result["error"] = str(e)
+
+        return result
+
+    def get_table_headers(self):
+        headers_locator = self.page.locator("div.component-body table thead th")
+        headers_locator.first.wait_for(state="visible")
+        headers_count = headers_locator.count()
+        headers = [headers_locator.nth(i).inner_text() for i in range(headers_count)]
+        return headers

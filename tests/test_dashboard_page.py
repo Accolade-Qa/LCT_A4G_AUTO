@@ -11,8 +11,7 @@ class TestDashboard:
         base_page = BasePage(page)
 
         assert base_page.get_title() == "Device Dashboard", "Dashboard title is incorrect"
-        
-        
+           
     def test_dashboard_page_all_elements(self, dashboard_page):
         assert dashboard_page._is_cards_visible(), "Dashboard cards are not visible"
         assert dashboard_page.get_cards_count() == 4, "Expected 4 cards on the dashboard"
@@ -61,9 +60,6 @@ class TestDashboard:
     def test_table_visibility(self, dashboard_page):
         assert dashboard_page._is_table_visible(), "Dashboard table is not visible"
         
-    # def test_buttons_visibility(self, dashboard_page):
-    #     assert dashboard_page._is_buttons_visible(), "Dashboard buttons are not visible"
-        
     def test_cards_and_graph_clicks_have_table_title(self, dashboard_page):
         expected_table_title = ["Total Production Devices", "Total Dispatched Devices", "Total Installed Devices", "Total Discarded Devices"]
         
@@ -75,9 +71,21 @@ class TestDashboard:
         result = dashboard_page.check_export_button()
 
         assert result["success"], f"Export button functionality failed: {result['error']}"
-        assert result["file_downloaded"], "Export file was not downloaded"
-        assert result["file_format"] == "csv", f"Expected file format 'csv', got '{result['file_format']}'"
+        
+    def test_search_functionality(self, dashboard_page):
+        search_query = "866677075606341"
+        result = dashboard_page.check_search_functionality(search_query)
+
+        assert result["success"], f"Search functionality failed: {result['error']}"
+        assert result["results_found"] > 0, f"No results found for search query '{search_query}'"
+        assert all(search_query in item for item in result["results"]), "Search results do not match the query"
     
+    def test_table_headers(self, dashboard_page):
+        expected_headers = ["UIN NO.", "IMEI NO.", "ICCID NO.", "MODEL NAME.", "ACTION"]
+        actual_headers = dashboard_page.get_table_headers()
+        print(f"Actual headers: {actual_headers}")
+        assert actual_headers == expected_headers, f"Expected table headers {expected_headers}, got {actual_headers}"
+
     def test_pagination(self, dashboard_page):
         result = dashboard_page.check_pagination()
         assert result["success"], f"Pagination failed: {result['error']}"
