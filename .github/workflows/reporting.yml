@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - master
+      - developement
+
   schedule:
     - cron: '0 10 * * *'
-
 env:
   REPORT_HTML: reports/pytests/report.html
   REPORT_JSON: reports/json/report.json
