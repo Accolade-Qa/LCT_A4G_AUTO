@@ -8,6 +8,11 @@ DASHBOARD_URL = os.getenv(
     "DASHBOARD_URL",
     "http://lct-a4g-qa.accoladeelectronics.com/device-dashboard-page"
 )
+SIM_DATA_DETAILS_URL = os.getenv(
+    "SIM_DATA_DETAILS_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/sensorise-sim-data-details"
+)
+
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")
 BROWSER = os.getenv("BROWSER", "chromium")
