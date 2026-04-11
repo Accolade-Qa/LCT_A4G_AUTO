@@ -8,3 +8,4 @@ pandas
 pytest-html
 pytest-json-report
 openpyxl
+jinja2
