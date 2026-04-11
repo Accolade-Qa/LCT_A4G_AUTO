@@ -7,7 +7,8 @@ on:
       - developement
 
   schedule:
-    - cron: '0 10 * * *'
+  - cron: '30 4 * * 1-5'
+
 env:
   REPORT_HTML: Reports/pytests/report.html
   REPORT_JSON: Reports/json/report.json
@@ -100,11 +101,25 @@ jobs:
           source venv/bin/activate
           RUN_PYTEST=false python scripts/generate_reports.py
 
+      # 🔥 Extract real test summary from JSON
+      - name: Extract test summary
+        run: |
+          PASSED=$(jq '.summary.passed // 0' $REPORT_JSON)
+          FAILED=$(jq '.summary.failed // 0' $REPORT_JSON)
+          SKIPPED=$(jq '.summary.skipped // 0' $REPORT_JSON)
+          TOTAL=$(jq '.summary.total // 0' $REPORT_JSON)
+
+          echo "TESTS_PASSED=$PASSED" >> $GITHUB_ENV
+          echo "TESTS_FAILED=$FAILED" >> $GITHUB_ENV
+          echo "TESTS_SKIPPED=$SKIPPED" >> $GITHUB_ENV
+          echo "TESTS_TOTAL=$TOTAL" >> $GITHUB_ENV
+
       - name: Prepare email metadata
         run: |
           echo "BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
           echo "RUN_TYPE=${{ github.event_name }}" >> $GITHUB_ENV
 
+      # 🚀 Upgraded Email Step
       - name: Send report email
         uses: dawidd6/action-send-mail@v4
         with:
@@ -112,20 +127,81 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: |
-            ${{ github.ref_name == 'master' && github.event_name == 'push' && format('Master Suite Report - run #{0}', github.run_number) || format('Scheduled Report: {0} - run #{1}', github.ref_name, github.run_number) }}
+
+          subject: >
+            ${{ github.ref_name == 'master' && github.event_name == 'push'
+              && format('Master Automation Report | Run #{0}', github.run_number)
+              || format('Automation Report [{0}] | Run #{1}', github.ref_name, github.run_number) }}
+
+          content_type: text/html
+
           body: |
-            Hello Team,
+            <html>
+            <body style="font-family: Arial, sans-serif; color:#333;">
 
-            The pytest suite has completed on branch `${{ github.ref_name }}` with trigger `${{ github.event_name }}`.
+              <h2 style="color:#2E86C1;">Automation Test Report</h2>
 
-            HTML and Excel reports are attached for your review.
+              <p>Hello Team,</p>
 
-            Regards,
-            Automation Bot
+              <p>The automated <b>pytest execution</b> has completed successfully.</p>
+
+              <hr>
+
+              <h3> ---:Execution Details:---</h3>
+              <table style="border-collapse: collapse;">
+                <tr><td><b>Repository:</b></td><td>${{ github.repository }}</td></tr>
+                <tr><td><b>Branch:</b></td><td>${{ github.ref_name }}</td></tr>
+                <tr><td><b>Trigger:</b></td><td>${{ github.event_name }}</td></tr>
+                <tr><td><b>Run #:</b></td><td>${{ github.run_number }}</td></tr>
+                <tr><td><b>Workflow:</b></td><td>${{ github.workflow }}</td></tr>
+              </table>
+
+              <br>
+
+              <h3>Test Summary</h3>
+              <p>
+                ✅ Passed: <b>${{ env.TESTS_PASSED }}</b><br>
+                ❌ Failed: <b>${{ env.TESTS_FAILED }}</b><br>
+                ⏭ Skipped: <b>${{ env.TESTS_SKIPPED }}</b><br>
+                📈 Total: <b>${{ env.TESTS_TOTAL }}</b>
+              </p>
+
+              <br>
+
+              <h3>Reports</h3>
+              <ul>
+                <li>HTML Report (Attached)</li>
+                <li>Excel Report (Attached)</li>
+              </ul>
+
+              <br>
+
+              <h3>Workflow Link</h3>
+              <p>
+                <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+                  View Full Run Details
+                </a>
+              </p>
+
+              <br>
+              <hr>
+
+              <p>
+                Please review the attached reports for detailed insights.<br>
+                Investigate failures (if any) and take necessary action.
+              </p>
+
+              <p>
+                Regards,<br>
+                <b>Automation Bot</b>
+              </p>
+
+            </body>
+            </html>
+
           to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_FROM }}
-          content_type: text/plain
+
           attachments: |
             ${{ env.REPORT_HTML }}
             ${{ env.REPORT_EXCEL }}
