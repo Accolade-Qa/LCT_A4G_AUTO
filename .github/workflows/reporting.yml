@@ -7,7 +7,7 @@ on:
       - developement
 
   schedule:
-    - cron: '30 4 * * 1-5'  # 10:00 AM IST (Mon–Fri)
+    - cron: '30 4 * * 1-5'  # 10 AM IST weekdays
 
 env:
   REPORT_HTML: Reports/pytests/report.html
@@ -22,30 +22,23 @@ jobs:
       HEADLESS: 'true'
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Create virtual environment
-        run: python -m venv venv
+      - run: python -m venv venv
 
-      - name: Install dependencies
-        run: |
+      - run: |
           source venv/bin/activate
-          pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Playwright
-        run: |
+      - run: |
           source venv/bin/activate
           playwright install
           npx playwright install-deps
@@ -60,8 +53,7 @@ jobs:
             --json-report --json-report-file=$REPORT_JSON \
             --junitxml=$REPORT_JUNIT tests
 
-      - name: Upload Reports
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: test-reports
           path: Reports
@@ -71,39 +63,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Download reports
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: test-reports
           path: Reports
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Create virtual environment
-        run: python -m venv venv
+      - run: python -m venv venv
 
-      - name: Install dependencies
-        run: |
+      - run: |
           source venv/bin/activate
-          pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Generate Excel report
+      - name: Generate Excel
         run: |
           source venv/bin/activate
           RUN_PYTEST=false python scripts/generate_reports.py
 
-      # ✅ Ensure jq exists
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # 🔥 Extract metrics + status + failed tests
+      # 🔥 Extract insights
       - name: Extract test insights
         run: |
           PASSED=$(jq '.summary.passed // 0' $REPORT_JSON)
@@ -130,74 +115,65 @@ jobs:
           echo "$FAILED_TESTS" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # 📧 Send Email
-      - name: Send report email
-        uses: dawidd6/action-send-mail@v4
+      # 📉 Trend
+      - name: Calculate trend
+        run: |
+          CURRENT=${{ env.TESTS_FAILED }}
+          TREND="No previous data"
+
+          if [ -f prev_failed.txt ]; then
+            PREV=$(cat prev_failed.txt)
+            if [ "$CURRENT" -gt "$PREV" ]; then
+              TREND="🔺 Increased ($PREV → $CURRENT)"
+            elif [ "$CURRENT" -lt "$PREV" ]; then
+              TREND="🟢 Improved ($PREV → $CURRENT)"
+            else
+              TREND="➖ No change ($CURRENT)"
+            fi
+          fi
+
+          echo "$CURRENT" > prev_failed.txt
+          echo "TREND=$TREND" >> $GITHUB_ENV
+
+      # 🌐 Deploy report
+      - name: Deploy HTML report
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./Reports/pytests
+          destination_dir: reports/${{ github.run_number }}
 
-          subject: >
-            ${{ env.STATUS == 'FAIL'
-              && format('🔴 Test Failures | Run #{0}', github.run_number)
-              || format('🟢 All Tests Passed | Run #{0}', github.run_number) }}
+      - name: Set report URL
+        run: |
+          echo "REPORT_URL=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/${{ github.run_number }}/report.html" >> $GITHUB_ENV
 
-          # Fallback (important)
-          body: "Your email client does not support HTML. Please check attachments."
+      # 📧 Send email (Python)
+      - name: Send email
+        run: |
+          source venv/bin/activate
+          python scripts/send_email.py
+        env:
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
 
-          body_html: |
-            <div style="font-family: Arial; max-width: 800px; margin:auto;">
+          STATUS: ${{ env.STATUS }}
+          STATUS_COLOR: ${{ env.STATUS_COLOR }}
 
-              <div style="background:${{ env.STATUS_COLOR }}; color:white; padding:15px; text-align:center; font-size:20px;">
-                ${{ env.STATUS }} - Test Execution Summary
-              </div>
+          TESTS_PASSED: ${{ env.TESTS_PASSED }}
+          TESTS_FAILED: ${{ env.TESTS_FAILED }}
+          TESTS_SKIPPED: ${{ env.TESTS_SKIPPED }}
+          TESTS_TOTAL: ${{ env.TESTS_TOTAL }}
 
-              <br>
+          FAILED_TESTS: ${{ env.FAILED_TESTS }}
+          TREND: ${{ env.TREND }}
+          REPORT_URL: ${{ env.REPORT_URL }}
 
-              <p>Hello Team,</p>
+          REPORT_HTML: ${{ env.REPORT_HTML }}
+          REPORT_EXCEL: ${{ env.REPORT_EXCEL }}
 
-              <p>Automation test execution completed.</p>
-
-              <table style="width:100%; text-align:center;">
-                <tr>
-                  <td style="background:#2ECC71; color:white;">Passed<br><b>${{ env.TESTS_PASSED }}</b></td>
-                  <td style="background:#E74C3C; color:white;">Failed<br><b>${{ env.TESTS_FAILED }}</b></td>
-                  <td style="background:#F1C40F;">Skipped<br><b>${{ env.TESTS_SKIPPED }}</b></td>
-                  <td style="background:#3498DB; color:white;">Total<br><b>${{ env.TESTS_TOTAL }}</b></td>
-                </tr>
-              </table>
-
-              <br>
-
-              <h3>Execution Details</h3>
-              <p>
-                Repo: ${{ github.repository }}<br>
-                Branch: ${{ github.ref_name }}<br>
-                Run: #${{ github.run_number }}
-              </p>
-
-              <h3>Top Failed Tests</h3>
-              <pre>${{ env.FAILED_TESTS }}</pre>
-
-              <p>
-                <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">
-                  View Full Report
-                </a>
-              </p>
-
-              <br>
-
-              <p>Reports are attached.</p>
-
-              <p>Regards,<br><b>Automation Bot</b></p>
-
-            </div>
-
-          to: ${{ secrets.MAIL_TO }}
-          from: ${{ secrets.MAIL_FROM }}
-
-          attachments: |
-            ${{ env.REPORT_HTML }}
-            ${{ env.REPORT_EXCEL }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
