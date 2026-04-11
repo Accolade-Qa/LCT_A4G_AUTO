@@ -40,7 +40,8 @@ Thumbs.db
 *.swo
 *~
 
-Artifacts/    
+Artifacts/
+Reports/
 
 # Claude code files
 *.claude

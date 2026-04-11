@@ -97,22 +97,6 @@ def page(browser):
     page.on("load", lambda _: _apply_zoom_to_page(page))
     page.on("framenavigated", lambda _: _apply_zoom_to_page(page))
     logger.info("New page opened and zoom applied")
-    page.evaluate("document.body.style.zoom = '0.67'")
-    yield page
-    context.close()
-    
-@pytest.fixture(scope="function")
-def login_page(page):
-    login = LoginPage(page)
-    login.load(BASE_URL)
-    login.login(USERNAME, PASSWORD)
-
-    page.wait_for_load_state("domcontentloaded")
-    page.wait_for_timeout(1000)
-
-    page.locator("text=Dashboard").wait_for(timeout=20000)
-
-    return page 
 
     login = LoginPage(page)
     login.load(BASE_URL)
@@ -124,25 +108,14 @@ def login_page(page):
     page.close()
     context.close()
 
-# 🔹 Screenshot on Failure
-# @pytest.hookimpl(hookwrapper=True)
-# def pytest_runtest_makereport(item, call):
-#     outcome = yield
-#     report = outcome.get_result()
-
-#     if report.when == "call" and report.failed:
-#         page = item.funcargs.get("page", None)
-#         if page:
-#             page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png")
-
+# 🔹 Screenshot on failure
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
 
     if report.when == "call" and report.failed:
-        page = item.funcargs.get("page", None)
-
+        page = item.funcargs.get("page")
         if page:
             logger.warning("Test %s failed, capturing screenshot", item.name)
             page.screenshot(
