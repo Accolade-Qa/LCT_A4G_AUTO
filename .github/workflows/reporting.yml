@@ -7,7 +7,7 @@ on:
       - developement
 
   schedule:
-    - cron: '30 4 * * 1-5'  # 10 AM IST weekdays
+    - cron: '30 4 * * 1-5'  # 10:00 AM IST (Mon–Fri)
 
 env:
   REPORT_HTML: Reports/pytests/report.html
@@ -22,23 +22,30 @@ jobs:
       HEADLESS: 'true'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - run: python -m venv venv
+      - name: Create virtual environment
+        run: python -m venv venv
 
-      - run: |
+      - name: Install dependencies
+        run: |
           source venv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
 
-      - run: |
+      - name: Install Playwright
+        run: |
           source venv/bin/activate
           playwright install
           npx playwright install-deps
@@ -53,7 +60,8 @@ jobs:
             --json-report --json-report-file=$REPORT_JSON \
             --junitxml=$REPORT_JUNIT tests
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload reports artifact
+        uses: actions/upload-artifact@v4
         with:
           name: test-reports
           path: Reports
@@ -63,117 +71,67 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
+      - name: Download reports artifact
+        uses: actions/download-artifact@v4
         with:
           name: test-reports
           path: Reports
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - run: python -m venv venv
+      - name: Create virtual environment
+        run: python -m venv venv
 
-      - run: |
+      - name: Install dependencies
+        run: |
           source venv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Generate Excel
+      - name: Generate Excel report
         run: |
           source venv/bin/activate
           RUN_PYTEST=false python scripts/generate_reports.py
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      # 🔥 Extract insights
-      - name: Extract test insights
-        run: |
-          PASSED=$(jq '.summary.passed // 0' $REPORT_JSON)
-          FAILED=$(jq '.summary.failed // 0' $REPORT_JSON)
-          SKIPPED=$(jq '.summary.skipped // 0' $REPORT_JSON)
-          TOTAL=$(jq '.summary.total // 0' $REPORT_JSON)
-
-          echo "TESTS_PASSED=$PASSED" >> $GITHUB_ENV
-          echo "TESTS_FAILED=$FAILED" >> $GITHUB_ENV
-          echo "TESTS_SKIPPED=$SKIPPED" >> $GITHUB_ENV
-          echo "TESTS_TOTAL=$TOTAL" >> $GITHUB_ENV
-
-          if [ "$FAILED" -gt 0 ]; then
-            echo "STATUS=FAIL" >> $GITHUB_ENV
-            echo "STATUS_COLOR=#E74C3C" >> $GITHUB_ENV
-          else
-            echo "STATUS=PASS" >> $GITHUB_ENV
-            echo "STATUS_COLOR=#2ECC71" >> $GITHUB_ENV
-          fi
-
-          FAILED_TESTS=$(jq -r '.tests[] | select(.outcome=="failed") | .nodeid' $REPORT_JSON | head -n 5)
-
-          echo "FAILED_TESTS<<EOF" >> $GITHUB_ENV
-          echo "$FAILED_TESTS" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      # 📉 Trend
-      - name: Calculate trend
-        run: |
-          CURRENT=${{ env.TESTS_FAILED }}
-          TREND="No previous data"
-
-          if [ -f prev_failed.txt ]; then
-            PREV=$(cat prev_failed.txt)
-            if [ "$CURRENT" -gt "$PREV" ]; then
-              TREND="🔺 Increased ($PREV → $CURRENT)"
-            elif [ "$CURRENT" -lt "$PREV" ]; then
-              TREND="🟢 Improved ($PREV → $CURRENT)"
-            else
-              TREND="➖ No change ($CURRENT)"
-            fi
-          fi
-
-          echo "$CURRENT" > prev_failed.txt
-          echo "TREND=$TREND" >> $GITHUB_ENV
-
-      # 🌐 Deploy report
-      - name: Deploy HTML report
-        uses: peaceiris/actions-gh-pages@v4
+      # 📧 SIMPLE EMAIL (STABLE)
+      - name: Send report email
+        uses: dawidd6/action-send-mail@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./Reports/pytests
-          destination_dir: reports/${{ github.run_number }}
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
 
-      - name: Set report URL
-        run: |
-          echo "REPORT_URL=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/${{ github.run_number }}/report.html" >> $GITHUB_ENV
+          subject: >
+            ${{ github.ref_name == 'master' && github.event_name == 'push'
+              && format('Master Test Report - Run #{0}', github.run_number)
+              || format('Test Report [{0}] - Run #{1}', github.ref_name, github.run_number) }}
 
-      # 📧 Send email (Python)
-      - name: Send email
-        run: |
-          source venv/bin/activate
-          python scripts/send_email.py
-        env:
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          MAIL_TO: ${{ secrets.MAIL_TO }}
-          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          body: |
+            Hello Team,
 
-          STATUS: ${{ env.STATUS }}
-          STATUS_COLOR: ${{ env.STATUS_COLOR }}
+            The test execution has completed successfully.
 
-          TESTS_PASSED: ${{ env.TESTS_PASSED }}
-          TESTS_FAILED: ${{ env.TESTS_FAILED }}
-          TESTS_SKIPPED: ${{ env.TESTS_SKIPPED }}
-          TESTS_TOTAL: ${{ env.TESTS_TOTAL }}
+            Execution Details:
+            - Repository: ${{ github.repository }}
+            - Branch: ${{ github.ref_name }}
+            - Trigger: ${{ github.event_name }}
+            - Run Number: ${{ github.run_number }}
 
-          FAILED_TESTS: ${{ env.FAILED_TESTS }}
-          TREND: ${{ env.TREND }}
-          REPORT_URL: ${{ env.REPORT_URL }}
+            Reports are attached for your review.
 
-          REPORT_HTML: ${{ env.REPORT_HTML }}
-          REPORT_EXCEL: ${{ env.REPORT_EXCEL }}
+            Regards,
+            Automation Bot
 
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_FROM }}
+
+          attachments: |
+            ${{ env.REPORT_HTML }}
+            ${{ env.REPORT_EXCEL }}
