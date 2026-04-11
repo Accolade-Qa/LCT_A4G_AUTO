@@ -203,3 +203,9 @@ class SimDataDetailsPage:
             return False
 
         return True
+    
+    def is_submit_button_disabled_on_no_input(self):
+        button = self._get_button_by_text("Submit check_circle")
+        button.wait_for(state="visible")
+
+        return button.is_disabled()

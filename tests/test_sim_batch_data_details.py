@@ -128,3 +128,7 @@ class TestSimBatchDataDetails:
             download=download,
             expected_filename="Sensorise_SIM_data_Details.xlsx"
         ), "Sample file validation failed"
+        
+    def test_submit_button_disabled_after_no_input(self, sim_data_details_page):
+        logger.info("Testing the submit button is disabled if no input")
+        assert sim_data_details_page.is_submit_button_disabled_on_no_input(), "Submit button should not be enabled"
