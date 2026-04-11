@@ -9,13 +9,16 @@ on:
   schedule:
     - cron: '0 10 * * *'
 env:
-  REPORT_HTML: reports/pytests/report.html
-  REPORT_JSON: reports/json/report.json
-  REPORT_EXCEL: reports/excel/pytest-results.xlsx
+  REPORT_HTML: Reports/pytests/report.html
+  REPORT_JSON: Reports/json/report.json
+  REPORT_EXCEL: Reports/excel/pytest-results.xlsx
+  REPORT_JUNIT: Reports/junit/report.xml
 
 jobs:
-  test-and-report:
+  test-suite:
     runs-on: ubuntu-latest
+    env:
+      HEADLESS: 'true'
 
     steps:
       - name: Checkout repository
@@ -46,17 +49,56 @@ jobs:
           playwright install
 
       - name: Install Playwright system dependencies
-        run: npx playwright install-deps
-
-      - name: Activate virtual environment and run tests
-        env:
-          HEADLESS: 'true'
         run: |
           source venv/bin/activate
-          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' python -m pytest --html=$REPORT_HTML --json-report --json-report-file=$REPORT_JSON --junitxml=reports/junit/report.xml
+          npx playwright install-deps
 
-      - name: Execute report generator
-        run: python scripts/generate_reports.py
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          mkdir -p Reports/pytests Reports/json Reports/junit Reports/excel
+          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' \
+            python -m pytest --html=$REPORT_HTML --self-contained-html \
+            --json-report --json-report-file=$REPORT_JSON --junitxml=$REPORT_JUNIT tests
+
+      - name: Upload Reports artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: Reports
+
+  report-generator:
+    needs: test-suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download test reports artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: test-reports
+          path: Reports
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Create Python virtual environment
+        run: python -m venv venv
+
+      - name: Install Python dependencies
+        run: |
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate Excel report from JSON
+        run: |
+          source venv/bin/activate
+          RUN_PYTEST=false python scripts/generate_reports.py
 
       - name: Prepare email metadata
         run: |

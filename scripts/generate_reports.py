@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -65,12 +66,24 @@ def _convert_json_to_excel(json_path: Path, excel_path: Path) -> None:
     print("Excel report written to", excel_path)
 
 
+def _should_run_pytest() -> bool:
+    return os.getenv("RUN_PYTEST", "true").lower() not in ("false", "0", "no")
+
+
 def main() -> int:
     paths = _prepare_directories()
     project_root = Path(CONFIG_ROOT)
-    exit_code = _run_pytest_with_reports(paths, project_root)
-    if exit_code != 0:
-        print("Pytest finished with failures; reports may still be usable.")
+    exit_code = 0
+
+    if _should_run_pytest():
+        exit_code = _run_pytest_with_reports(paths, project_root)
+        if exit_code != 0:
+            print("Pytest finished with failures; reports may still be usable.")
+    else:
+        if not paths["json"].exists():
+            raise FileNotFoundError(f"Pytest JSON report not found: {paths['json']}")
+        print("Skipping pytest execution because RUN_PYTEST=false")
+
     try:
         _convert_json_to_excel(paths["json"], paths["excel"])
     except Exception as exc:  # pragma: no cover
