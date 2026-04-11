@@ -7,7 +7,7 @@ on:
       - developement
 
   schedule:
-  - cron: '30 4 * * 1-5'
+    - cron: '30 4 * * 1-5'  # 10:00 AM IST (Mon–Fri)
 
 env:
   REPORT_HTML: Reports/pytests/report.html
@@ -35,23 +35,19 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Create Python virtual environment
+      - name: Create virtual environment
         run: python -m venv venv
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Playwright browsers
+      - name: Install Playwright
         run: |
           source venv/bin/activate
           playwright install
-
-      - name: Install Playwright system dependencies
-        run: |
-          source venv/bin/activate
           npx playwright install-deps
 
       - name: Run tests
@@ -59,10 +55,12 @@ jobs:
           source venv/bin/activate
           mkdir -p Reports/pytests Reports/json Reports/junit Reports/excel
           xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' \
-            python -m pytest --html=$REPORT_HTML --self-contained-html \
-            --json-report --json-report-file=$REPORT_JSON --junitxml=$REPORT_JUNIT tests
+            python -m pytest \
+            --html=$REPORT_HTML --self-contained-html \
+            --json-report --json-report-file=$REPORT_JSON \
+            --junitxml=$REPORT_JUNIT tests
 
-      - name: Upload Reports artifact
+      - name: Upload Reports
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
@@ -76,7 +74,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download test reports artifact
+      - name: Download reports
         uses: actions/download-artifact@v4
         with:
           name: test-reports
@@ -87,22 +85,26 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Create Python virtual environment
+      - name: Create virtual environment
         run: python -m venv venv
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Generate Excel report from JSON
+      - name: Generate Excel report
         run: |
           source venv/bin/activate
           RUN_PYTEST=false python scripts/generate_reports.py
 
-      # 🔥 Extract real test summary from JSON
-      - name: Extract test summary
+      # ✅ Ensure jq exists
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      # 🔥 Extract metrics + status + failed tests
+      - name: Extract test insights
         run: |
           PASSED=$(jq '.summary.passed // 0' $REPORT_JSON)
           FAILED=$(jq '.summary.failed // 0' $REPORT_JSON)
@@ -114,12 +116,21 @@ jobs:
           echo "TESTS_SKIPPED=$SKIPPED" >> $GITHUB_ENV
           echo "TESTS_TOTAL=$TOTAL" >> $GITHUB_ENV
 
-      - name: Prepare email metadata
-        run: |
-          echo "BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "RUN_TYPE=${{ github.event_name }}" >> $GITHUB_ENV
+          if [ "$FAILED" -gt 0 ]; then
+            echo "STATUS=FAIL" >> $GITHUB_ENV
+            echo "STATUS_COLOR=#E74C3C" >> $GITHUB_ENV
+          else
+            echo "STATUS=PASS" >> $GITHUB_ENV
+            echo "STATUS_COLOR=#2ECC71" >> $GITHUB_ENV
+          fi
 
-      # 🚀 Upgraded Email Step
+          FAILED_TESTS=$(jq -r '.tests[] | select(.outcome=="failed") | .nodeid' $REPORT_JSON | head -n 5)
+
+          echo "FAILED_TESTS<<EOF" >> $GITHUB_ENV
+          echo "$FAILED_TESTS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # 📧 Send Email
       - name: Send report email
         uses: dawidd6/action-send-mail@v4
         with:
@@ -129,75 +140,60 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
 
           subject: >
-            ${{ github.ref_name == 'master' && github.event_name == 'push'
-              && format('Master Automation Report | Run #{0}', github.run_number)
-              || format('Automation Report [{0}] | Run #{1}', github.ref_name, github.run_number) }}
+            ${{ env.STATUS == 'FAIL'
+              && format('🔴 Test Failures | Run #{0}', github.run_number)
+              || format('🟢 All Tests Passed | Run #{0}', github.run_number) }}
 
-          content_type: text/html
+          # Fallback (important)
+          body: "Your email client does not support HTML. Please check attachments."
 
-          body: |
-            <html>
-            <body style="font-family: Arial, sans-serif; color:#333;">
+          body_html: |
+            <div style="font-family: Arial; max-width: 800px; margin:auto;">
 
-              <h2 style="color:#2E86C1;">Automation Test Report</h2>
+              <div style="background:${{ env.STATUS_COLOR }}; color:white; padding:15px; text-align:center; font-size:20px;">
+                ${{ env.STATUS }} - Test Execution Summary
+              </div>
+
+              <br>
 
               <p>Hello Team,</p>
 
-              <p>The automated <b>pytest execution</b> has completed successfully.</p>
+              <p>Automation test execution completed.</p>
 
-              <hr>
-
-              <h3> ---:Execution Details:---</h3>
-              <table style="border-collapse: collapse;">
-                <tr><td><b>Repository:</b></td><td>${{ github.repository }}</td></tr>
-                <tr><td><b>Branch:</b></td><td>${{ github.ref_name }}</td></tr>
-                <tr><td><b>Trigger:</b></td><td>${{ github.event_name }}</td></tr>
-                <tr><td><b>Run #:</b></td><td>${{ github.run_number }}</td></tr>
-                <tr><td><b>Workflow:</b></td><td>${{ github.workflow }}</td></tr>
+              <table style="width:100%; text-align:center;">
+                <tr>
+                  <td style="background:#2ECC71; color:white;">Passed<br><b>${{ env.TESTS_PASSED }}</b></td>
+                  <td style="background:#E74C3C; color:white;">Failed<br><b>${{ env.TESTS_FAILED }}</b></td>
+                  <td style="background:#F1C40F;">Skipped<br><b>${{ env.TESTS_SKIPPED }}</b></td>
+                  <td style="background:#3498DB; color:white;">Total<br><b>${{ env.TESTS_TOTAL }}</b></td>
+                </tr>
               </table>
 
               <br>
 
-              <h3>Test Summary</h3>
+              <h3>Execution Details</h3>
               <p>
-                ✅ Passed: <b>${{ env.TESTS_PASSED }}</b><br>
-                ❌ Failed: <b>${{ env.TESTS_FAILED }}</b><br>
-                ⏭ Skipped: <b>${{ env.TESTS_SKIPPED }}</b><br>
-                📈 Total: <b>${{ env.TESTS_TOTAL }}</b>
+                Repo: ${{ github.repository }}<br>
+                Branch: ${{ github.ref_name }}<br>
+                Run: #${{ github.run_number }}
               </p>
 
-              <br>
+              <h3>Top Failed Tests</h3>
+              <pre>${{ env.FAILED_TESTS }}</pre>
 
-              <h3>Reports</h3>
-              <ul>
-                <li>HTML Report (Attached)</li>
-                <li>Excel Report (Attached)</li>
-              </ul>
-
-              <br>
-
-              <h3>Workflow Link</h3>
               <p>
                 <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">
-                  View Full Run Details
+                  View Full Report
                 </a>
               </p>
 
               <br>
-              <hr>
 
-              <p>
-                Please review the attached reports for detailed insights.<br>
-                Investigate failures (if any) and take necessary action.
-              </p>
+              <p>Reports are attached.</p>
 
-              <p>
-                Regards,<br>
-                <b>Automation Bot</b>
-              </p>
+              <p>Regards,<br><b>Automation Bot</b></p>
 
-            </body>
-            </html>
+            </div>
 
           to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_FROM }}
