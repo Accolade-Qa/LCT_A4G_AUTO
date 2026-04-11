@@ -2,12 +2,11 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from config.global_var import REPORT_PATH, ROOT_DIR as CONFIG_ROOT
+import pandas as pd
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR))
-from config.global_var import REPORT_PATH, ROOT_DIR as CONFIG_ROOT
-
-import pandas as pd
 
 def _prepare_directories() -> dict[str, Path]:
     reports_root = Path(REPORT_PATH)

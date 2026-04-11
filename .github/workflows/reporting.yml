@@ -53,6 +53,7 @@ jobs:
           HEADLESS: 'true'
         run: |
           source venv/bin/activate
+          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' python -m pytest --html=$REPORT_HTML --json-report --json-report-file=$REPORT_JSON --junitxml=reports/junit/report.xml
 
       - name: Execute report generator
         run: python scripts/generate_reports.py
