@@ -1,3 +1,8 @@
+import os
+
+import pandas as pd
+
+from config.global_var import DOWNLOADS_PATH
 from pages.common import PaginationHelper, TableSection
 from utils.logger import get_logger
 
@@ -140,3 +145,61 @@ class SimDataDetailsPage:
         logger.info("Results table component header text: %s", header_text)
         return header_text
     
+    def validate_batch_upload_input_error_message(self):
+        logger.info("Validating batch upload input error message")
+        iccid_input = self.page.get_by_role("textbox")
+        iccid_input.click()
+        iccid_input.wait_for(state="visible")
+        canvas = self.page.locator("div.component-header")
+        canvas.click()
+        error_message = self.page.get_by_text("This field is mandatory.")
+        error_message.wait_for(state="visible")
+        message = error_message.text_content().strip()
+        logger.info("Batch upload input validation message: %s", message)
+        return message
+    
+    def click_download_sample_button(self):
+        logger.info("Clicking Download Sample button")
+
+        download_sample_button = self._get_button_by_text("Download Sample")
+        download_sample_button.wait_for(state="visible")
+
+        with self.page.expect_download() as download_info:
+            download_sample_button.click()
+
+        download = download_info.value
+        return download
+        
+        
+    def is_sample_file_downloaded(self, download, download_path=DOWNLOADS_PATH, expected_filename="Sensorise_SIM_data_Details.xlsx"):
+        logger.info("Validating downloaded file")
+
+        # Ensure directory exists
+        os.makedirs(download_path, exist_ok=True)
+
+        # Save file
+        file_path = os.path.join(download_path, expected_filename)
+        download.save_as(file_path)
+
+        # ✅ Check file exists
+        if not os.path.exists(file_path):
+            logger.error("File not found after download")
+            return False
+
+        logger.info("File downloaded successfully: %s", file_path)
+
+        # ✅ Validate file content (header check)
+        try:
+            df = pd.read_excel(file_path, nrows=1)
+            headers = df.columns.tolist()
+            logger.info("Extracted headers from Excel: %s", headers)
+
+            if not headers or not any("ICC" in str(header).upper() for header in headers):
+                logger.error("Header validation failed; expected ICCID column")
+                return False
+
+        except Exception as e:
+            logger.exception("Error reading file: %s", e)
+            return False
+
+        return True

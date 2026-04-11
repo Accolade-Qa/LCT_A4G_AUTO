@@ -108,3 +108,23 @@ class TestSimBatchDataDetails:
         assert result["success"], f"Pagination failed: {result['error']}"
         # assert result["total_pages"] > 1, "Pagination did not move beyond first page"
         assert result["pages_visited"] == sorted(result["pages_visited"]), "Pages not in order"
+
+    ## Batch upload test cases
+    
+    def test_batch_upload_input_validation(self, sim_data_details_page):
+        logger.info("Validating batch upload input")
+        expected_error_message = "This field is mandatory."
+        actual_error_message = sim_data_details_page.validate_batch_upload_input_error_message()
+        assert (
+            actual_error_message == expected_error_message
+        ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
+        
+    def test_download_sample_button_functionality(self, sim_data_details_page):
+        logger.info("Testing Download Sample button functionality")
+
+        download = sim_data_details_page.click_download_sample_button()
+
+        assert sim_data_details_page.is_sample_file_downloaded(
+            download=download,
+            expected_filename="Sensorise_SIM_data_Details.xlsx"
+        ), "Sample file validation failed"
