@@ -1,4 +1,3 @@
-
 import json
 import os
 import subprocess
@@ -233,16 +232,14 @@ def _build_test_context(tests: list[dict]) -> tuple[list[dict], float]:
         outcome_class = (
             "pass"
             if outcome in {"pass", "passed"}
-            else "fail"
-            if outcome in {"fail", "failed"}
-            else "skipped"
-            if outcome == "skipped"
-            else "other"
+            else (
+                "fail"
+                if outcome in {"fail", "failed"}
+                else "skipped" if outcome == "skipped" else "other"
+            )
         )
         message = (
-            item.get("message")
-            or (longrepr.splitlines()[0] if longrepr else "")
-            or "—"
+            item.get("message") or (longrepr.splitlines()[0] if longrepr else "") or "—"
         )
         entries.append(
             {
@@ -319,6 +316,8 @@ def _render_html_report(json_path: Path, html_path: Path, css_path: Path) -> Non
 
 def _write_css(css_path: Path) -> None:
     css_path.write_text(REPORT_CSS, encoding="utf-8")
+
+
 def _run_pytest_with_reports(paths: dict[str, Path], root: Path) -> int:
     cmd = [
         sys.executable,
@@ -359,7 +358,9 @@ def _convert_json_to_excel(json_path: Path, excel_path: Path) -> None:
             }
         )
 
-    dataframe = pd.DataFrame(cases, columns=["Test case name", "Expected", "Actual", "Result"])
+    dataframe = pd.DataFrame(
+        cases, columns=["Test case name", "Expected", "Actual", "Result"]
+    )
     dataframe.to_excel(excel_path, index=False)
     print("Excel report written to", excel_path)
 

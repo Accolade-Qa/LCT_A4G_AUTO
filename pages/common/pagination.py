@@ -88,7 +88,10 @@ class PaginationHelper:
             result["pages_visited"].append(current_page)
 
             if total_pages <= 1:
-                logger.info("Pagination has only one page (%s); skipping navigation", current_page)
+                logger.info(
+                    "Pagination has only one page (%s); skipping navigation",
+                    current_page,
+                )
                 result["total_pages"] = 1
                 return result
 
@@ -119,20 +122,31 @@ class PaginationHelper:
 
                 current_page = self._get_current_page(input_locator)
                 if current_page in visited:
-                    logger.warning("Pagination loop detected: current %s already visited", current_page)
+                    logger.warning(
+                        "Pagination loop detected: current %s already visited",
+                        current_page,
+                    )
                     result["success"] = False
                     result["error"] = "Pagination loop detected"
                     break
 
                 if current_page != result["pages_visited"][-1] + 1:
-                    logger.warning("Page increment mismatch: expected %s got %s", result["pages_visited"][-1] + 1, current_page)
+                    logger.warning(
+                        "Page increment mismatch: expected %s got %s",
+                        result["pages_visited"][-1] + 1,
+                        current_page,
+                    )
                     result["success"] = False
-                    result["error"] = f"Page did not increment correctly: {result['pages_visited'][-1]} -> {current_page}"
+                    result["error"] = (
+                        f"Page did not increment correctly: {result['pages_visited'][-1]} -> {current_page}"
+                    )
                     break
 
                 new_content = content_locator.inner_text()
                 if prev_content == new_content:
-                    logger.warning("Pagination page %s did not change content", current_page)
+                    logger.warning(
+                        "Pagination page %s did not change content", current_page
+                    )
                     result["success"] = False
                     result["error"] = "Content did not change after pagination"
                     break
@@ -147,7 +161,10 @@ class PaginationHelper:
                 if self.max_backward_steps is not None:
                     backward_limit = min(backward_limit, self.max_backward_steps)
 
-                logger.info("Starting backward pagination verification (limit %s)", backward_limit)
+                logger.info(
+                    "Starting backward pagination verification (limit %s)",
+                    backward_limit,
+                )
 
                 while backward_steps < backward_limit:
                     prev_button = self.page.locator(self.prev_button)
@@ -164,7 +181,11 @@ class PaginationHelper:
 
                     expected_previous = result["pages_visited"][-1] - 1
                     if current_page != expected_previous:
-                        logger.warning("Backward pagination mismatch: expected %s got %s", expected_previous, current_page)
+                        logger.warning(
+                            "Backward pagination mismatch: expected %s got %s",
+                            expected_previous,
+                            current_page,
+                        )
                         result["success"] = False
                         result["error"] = (
                             f"Backward pagination issue: {result['pages_visited'][-1]} -> {current_page}"
@@ -173,7 +194,10 @@ class PaginationHelper:
 
                     new_content = content_locator.inner_text()
                     if prev_content == new_content:
-                        logger.warning("Backward pagination content did not change at page %s", current_page)
+                        logger.warning(
+                            "Backward pagination content did not change at page %s",
+                            current_page,
+                        )
                         result["success"] = False
                         result["error"] = "Content did not change on previous page"
                         break

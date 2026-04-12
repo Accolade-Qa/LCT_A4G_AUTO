@@ -14,12 +14,12 @@ class DashboardPage:
         self.table_section = TableSection(page)
         self.pagination_helper = PaginationHelper(page)
         self.search_helper = SearchHelper(page)
-        
+
     def go_to_dashboard(self, url):
         logger.info("Navigating to dashboard URL %s", url)
         self.page.goto(url)
         logger.debug("Dashboard goto complete")
-    
+
     def _is_cards_visible(self):
         logger.info("Checking KPI card visibility")
         cards_locator = self.page.locator(".kpi-section.ng-star-inserted")
@@ -27,7 +27,7 @@ class DashboardPage:
         visible = cards_locator.is_visible()
         logger.info("KPI cards visibility check result: %s", visible)
         return visible
-    
+
     def _cards_parent(self):
         cards_parent = self.page.locator("div.kpi-section.ng-star-inserted")
         cards_parent.wait_for(state="visible")
@@ -44,7 +44,7 @@ class DashboardPage:
 
     def get_card_element(self, index):
         return self._card_elements().nth(index)
-    
+
     def get_cards_title_text(self, index):
         logger.debug("Getting title for card index %s", index)
         card = self.get_card_element(index)
@@ -53,7 +53,7 @@ class DashboardPage:
         title = card_title_locator.inner_text()
         logger.info("Card index %s title text: %s", index, title)
         return title
-    
+
     def get_cards_inner_count(self, index):
         logger.debug("Getting count for card index %s", index)
         card = self.get_card_element(index)
@@ -62,7 +62,7 @@ class DashboardPage:
         count_text = card_count_locator.inner_text()
         logger.info("Card index %s displayed count: %s", index, count_text)
         return count_text
-    
+
     def _is_graph_visible(self):
         logger.info("Checking graph visibility")
         graph_locator = self.page.locator(".graph-section.ng-star-inserted")
@@ -70,7 +70,7 @@ class DashboardPage:
         visible = graph_locator.is_visible()
         logger.info("Graph visibility result: %s", visible)
         return visible
-    
+
     def get_graph_title(self, title):
         logger.debug("Querying graph title for '%s'", title)
         graph_title_locator = self.page.locator(f"h3:has-text('{title}')")
@@ -78,24 +78,25 @@ class DashboardPage:
         text = graph_title_locator.inner_text()
         logger.info("Graph title text resolved: %s", text)
         return text
-    
+
     def _is_table_visible(self):
         table_locator = self.page.locator("//div[@class='component-body']//table")
         table_locator.wait_for(state="visible")
         visible = table_locator.is_visible()
         logger.info("Dashboard table visibility: %s", visible)
         return visible
-    
+
     # def _is_buttons_visible(self):
     #     buttons_locator = self.page.get_by_role("button")
     #     buttons_locator.wait_for(state="visible")
     #     self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
     #     return buttons_locator.is_visible()
-    
+
     def get_table_title_after_card_click(self, title):
         card_locator = (
-            self.page
-            .locator("div.kpi-section.ng-star-inserted div.kpi-details span.kpi-content")
+            self.page.locator(
+                "div.kpi-section.ng-star-inserted div.kpi-details span.kpi-content"
+            )
             .filter(has_text=title)
             .first
         )
@@ -108,14 +109,11 @@ class DashboardPage:
         real_title = table_title_locator.inner_text()
         logger.info("Table title after card click: %s", real_title)
         return real_title
-      
+
     def check_export_button(self):
         export_btn = self.page.locator("button:has-text('Export')")
 
-        result = {
-            "success": True,
-            "error": None
-        }
+        result = {"success": True, "error": None}
 
         logger.info("Verifying export button functionality")
         try:
@@ -133,4 +131,3 @@ class DashboardPage:
             logger.exception("Export button verification failed: %s", e)
 
         return result
-    

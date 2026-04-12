@@ -1,6 +1,14 @@
 import pytest
 from playwright.sync_api import sync_playwright
-from config.config import BASE_URL, BROWSER, DASHBOARD_URL, SIM_DATA_DETAILS_URL,HEADLESS, USERNAME, PASSWORD
+from config.config import (
+    BASE_URL,
+    BROWSER,
+    DASHBOARD_URL,
+    SIM_DATA_DETAILS_URL,
+    HEADLESS,
+    USERNAME,
+    PASSWORD,
+)
 from config.global_var import SCREENSHOT_PATH
 from pages.login_page import LoginPage
 from utils.logger import get_logger
@@ -108,6 +116,7 @@ def page(browser):
     page.close()
     context.close()
 
+
 # 🔹 Screenshot on failure
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
@@ -118,24 +127,23 @@ def pytest_runtest_makereport(item, call):
         page = item.funcargs.get("page")
         if page:
             logger.warning("Test %s failed, capturing screenshot", item.name)
-            page.screenshot(
-                path=f"{SCREENSHOT_PATH}/{item.name}.png",
-                full_page=True
-            )
-            
-            
-            
+            page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png", full_page=True)
+
+
 @pytest.fixture
 def dashboard_page(page):
     from pages.dashboard_page import DashboardPage
+
     dashboard = DashboardPage(page)
     dashboard.go_to_dashboard(DASHBOARD_URL)
     logger.info("Dashboard page fixture ready")
     return dashboard
 
+
 @pytest.fixture
 def sim_data_details_page(page):
     from pages.sim_data_details_page import SimDataDetailsPage
+
     sim_data_details = SimDataDetailsPage(page)
     sim_data_details.go_to_simbatchpage(SIM_DATA_DETAILS_URL)
     logger.info("SIM data details fixture ready")

@@ -47,10 +47,22 @@ class DashboardAPI:
         }
 
         api_endpoints = [
-            ("TOTAL PRODUCTION DEVICES", "/device/getProductionDeviceCount?selectedDeviceModelId=&selectedCustomerId="),
-            ("TOTAL DISPATCHED DEVICES", "/device/getDispatchDeviceCount?selectedDeviceModelId=&selectedCustomerId="),
-            ("TOTAL INSTALLED DEVICES", "/device/getInstalledDeviceCount?selectedDeviceModelId=&selectedCustomerId="),
-            ("TOTAL DISCARDED DEVICES", "/device/getDiscardedDeviceCount?selectedDeviceModelId=&selectedCustomerId="),
+            (
+                "TOTAL PRODUCTION DEVICES",
+                "/device/getProductionDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
+            ),
+            (
+                "TOTAL DISPATCHED DEVICES",
+                "/device/getDispatchDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
+            ),
+            (
+                "TOTAL INSTALLED DEVICES",
+                "/device/getInstalledDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
+            ),
+            (
+                "TOTAL DISCARDED DEVICES",
+                "/device/getDiscardedDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
+            ),
         ]
 
         result = {}
@@ -64,7 +76,9 @@ class DashboardAPI:
                 logger.debug("API response for '%s': %s", title, data)
                 if count is None:
                     count = data.get("count")
-                    logger.debug("API alternative count field for '%s': %s", title, data)
+                    logger.debug(
+                        "API alternative count field for '%s': %s", title, data
+                    )
                 result[title] = int(count)
                 logger.info("API count for '%s': %s", title, result[title])
             else:

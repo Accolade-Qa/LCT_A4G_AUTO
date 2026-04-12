@@ -10,7 +10,7 @@ class BasePage:
 
     def get_page_title(self):
         return self.page.title()
-    
+
     def get_title(self):
         # page.locator(".page-title")
         logger.info("Waiting for page title locator to become visible")

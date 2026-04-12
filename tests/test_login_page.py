@@ -1,5 +1,12 @@
 from pages.login_page import LoginPage
-from config.config import USERNAME, PASSWORD, DASHBOARD_URL, BASE_URL, INVALID_PASSWORD, INVALID_USERNAME
+from config.config import (
+    USERNAME,
+    PASSWORD,
+    DASHBOARD_URL,
+    BASE_URL,
+    INVALID_PASSWORD,
+    INVALID_USERNAME,
+)
 from playwright.sync_api import expect
 from utils.logger import get_logger
 
@@ -19,7 +26,9 @@ class TestLoginPage:
         logger.info("Starting invalid login test")
         login_page = LoginPage(page)
         login_page.load(BASE_URL)
-        error_msg = login_page.login_with_invalid_credentials(INVALID_USERNAME, INVALID_PASSWORD)
+        error_msg = login_page.login_with_invalid_credentials(
+            INVALID_USERNAME, INVALID_PASSWORD
+        )
         logger.info("Invalid login error: %s", error_msg)
         assert "Minimum 6 characters required" in error_msg
 

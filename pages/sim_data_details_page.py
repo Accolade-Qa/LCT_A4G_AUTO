@@ -63,7 +63,9 @@ class SimDataDetailsPage:
         return text
 
     def get_upload_instruction_text(self):
-        instruction_locator = self.page.get_by_text("Upload ICCID's to get SIM Data Details")
+        instruction_locator = self.page.get_by_text(
+            "Upload ICCID's to get SIM Data Details"
+        )
         instruction_locator.wait_for(state="visible")
         text = instruction_locator.text_content().strip()
         logger.info("Upload instruction text retrieved: %s", text)
@@ -96,7 +98,9 @@ class SimDataDetailsPage:
         iccid_input.click()
         canvas = self.page.locator("div.component-header")
         canvas.click()
-        error_message = self.page.get_by_text("This field is required and can't be only spaces.")
+        error_message = self.page.get_by_text(
+            "This field is required and can't be only spaces."
+        )
         error_message.wait_for(state="visible")
         message = error_message.text_content().strip()
         logger.info("Blank input validation message: %s", message)
@@ -109,12 +113,14 @@ class SimDataDetailsPage:
         iccid_input.fill("123456789")  # Input less than 20 characters
         canvas = self.page.locator("div.component-header")
         canvas.click()
-        error_message = self.page.get_by_text("Value must be exactly 20 characters long.")
+        error_message = self.page.get_by_text(
+            "Value must be exactly 20 characters long."
+        )
         error_message.wait_for(state="visible")
         message = error_message.text_content().strip()
         logger.info("ICCID length validation message: %s", message)
         return message
-    
+
     def enter_valid_iccid(self, iccid):
         logger.info("Entering valid ICCID: %s", iccid)
         iccid_input = self.page.get_by_role("textbox")
@@ -122,29 +128,33 @@ class SimDataDetailsPage:
         iccid_input.fill(iccid)
         canvas = self.page.locator("div.component-header")
         canvas.click()
-        
+
     def click_submit_button(self):
         logger.info("Clicking Submit button")
         submit_button = self.page.get_by_role("button", name="Submit")
         submit_button.wait_for(state="visible")
         submit_button.click()
-        
+
     def is_results_table_visible(self):
         logger.info("Checking if results table is visible or not")
-        table_locator = self.page.locator("//div[@class='component-container ng-star-inserted']")
+        table_locator = self.page.locator(
+            "//div[@class='component-container ng-star-inserted']"
+        )
         table_locator.wait_for(state="visible")
         visible = table_locator.is_visible()
         logger.info("Results table visible: %s", visible)
         return visible
-    
+
     def get_results_table_component_header(self):
         logger.info("Retrieving results table component header text")
-        header_locator = self.page.locator("div[class='component-container ng-star-inserted'] h6[class='component-title']")
+        header_locator = self.page.locator(
+            "div[class='component-container ng-star-inserted'] h6[class='component-title']"
+        )
         header_locator.wait_for(state="visible")
         header_text = header_locator.text_content().strip()
         logger.info("Results table component header text: %s", header_text)
         return header_text
-    
+
     def validate_batch_upload_input_error_message(self):
         logger.info("Validating batch upload input error message")
         iccid_input = self.page.get_by_role("textbox")
@@ -157,7 +167,7 @@ class SimDataDetailsPage:
         message = error_message.text_content().strip()
         logger.info("Batch upload input validation message: %s", message)
         return message
-    
+
     def click_download_sample_button(self):
         logger.info("Clicking Download Sample button")
 
@@ -169,9 +179,13 @@ class SimDataDetailsPage:
 
         download = download_info.value
         return download
-        
-        
-    def is_sample_file_downloaded(self, download, download_path=DOWNLOADS_PATH, expected_filename="Sensorise_SIM_data_Details.xlsx"):
+
+    def is_sample_file_downloaded(
+        self,
+        download,
+        download_path=DOWNLOADS_PATH,
+        expected_filename="Sensorise_SIM_data_Details.xlsx",
+    ):
         logger.info("Validating downloaded file")
 
         # Ensure directory exists
@@ -194,7 +208,9 @@ class SimDataDetailsPage:
             headers = df.columns.tolist()
             logger.info("Extracted headers from Excel: %s", headers)
 
-            if not headers or not any("ICC" in str(header).upper() for header in headers):
+            if not headers or not any(
+                "ICC" in str(header).upper() for header in headers
+            ):
                 logger.error("Header validation failed; expected ICCID column")
                 return False
 
@@ -203,7 +219,7 @@ class SimDataDetailsPage:
             return False
 
         return True
-    
+
     def is_submit_button_disabled_on_no_input(self):
         button = self._get_button_by_text("Submit check_circle")
         button.wait_for(state="visible")
