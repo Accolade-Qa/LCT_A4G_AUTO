@@ -9,7 +9,7 @@ from playwright.async_api import expect
 from streamlit import text, title
 from pages.base_page import BasePage
 from datetime import datetime
-from config.config import BASE_URL, PAGE_TITLE, USERNAME, PASSWORD,INVALID_USERNAME,INVALID_PASSWORD
+from config.config import BASE_URL, PAGE_TITLE, USERNAME, PASSWORD,INVALID_USERNAME,INVALID_PASSWORD,DASHBOARD_URL
  
 class LoginPage(BasePage):
  
@@ -38,35 +38,11 @@ class LoginPage(BasePage):
  
     # 🔹New Method 1: Perform Login
     def login(self, username=USERNAME, password=PASSWORD):
-<<<<<<< HEAD
         self.username.fill(username)
         self.password.fill(password)
         self.login_btn.click()
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_url(DASHBOARD_URL, timeout=60000)
- 
-# 🔹 New Method 2: Invalid Login Method
-    def login_with_invalid_credentials(self, username=INVALID_USERNAME, password=INVALID_PASSWORD):
-=======
-        try:
-            self.logger.info(f"Login started | Username: {username}")
->>>>>>> Shital
-            self.username.fill(username)
-            self.password.fill(password)
-            self.login_btn.click()
-            # Wait for navigation
-            self.page.wait_for_load_state("networkidle")
-            self.logger.info("Login button clicked successfully")
-        except Exception as e:
-            self.logger.error(f"Login failed: {e}")
-            write_result(
-                "login",
-                "User should login successfully",
-                "Login failed",
-                "FAIL",
-                str(e)
-            )
-            raise
    
 # 🔹 New Method 2: Invalid Login Method
     def login_with_invalid_credentials(self, username=INVALID_USERNAME, password=INVALID_PASSWORD):
