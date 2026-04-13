@@ -12,15 +12,9 @@ from config.config import (
     PASSWORD,
 )
 from config.global_var import SCREENSHOT_PATH
-
-
-from datetime import datetime
-from config.config import BASE_URL, BROWSER, HEADLESS, USERNAME, PASSWORD, DASHBOARD_URL
-from config.global_var import DOWNLOADS_PATH, SCREENSHOT_PATH
-
 from utils.excel_report import write_result
-
 from pages.login_page import LoginPage
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # ✅ Ensure folders exist
@@ -130,30 +124,20 @@ def page(browser):
     yield page
     page.close()
     context.close()
-    return page
 
-@pytest.fixture(scope="session")
-def context(browser):
-    context = browser.new_context()
-    yield context
-    # ❌ Do not close context
-    
-        
+
+# @pytest.fixture(scope="session")
+# def context(browser):
+#     context = browser.new_context()
+#     yield context
+#     # ❌ Do not close context
+
+
+# 🔹 Screenshot on failure
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
-    if report.when == "call":
-        test_name = item.name
-        # Get actual & expected if stored
-        expected = getattr(item, "expected", "N/A")
-        actual = getattr(item, "actual", "N/A")
-        if report.passed:
-            status = "PASS"
-            error = ""
-        else:
-            status = "FAIL"
-            error = str(report.longrepr)
 
     if report.when == "call" and report.failed:
         page = item.funcargs.get("page")

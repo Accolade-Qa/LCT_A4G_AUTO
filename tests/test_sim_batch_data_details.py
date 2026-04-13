@@ -193,3 +193,12 @@ class TestSimBatchDataDetails:
         assert (
             sim_data_details_page.is_submit_button_disabled_on_no_input()
         ), "Submit button should not be enabled"
+
+    # def test_submit_button_enabled_after_valid_file_upload(self, sim_data_details_page):
+    #     logger.info("Testing submit button enabled after valid file upload")
+    #     sim_data_details_page.upload_valid_file(
+    #         "Sensorise_SIM_data_Details.xlsx"
+    #     )  # Example valid file
+    #     assert (
+    #         not sim_data_details_page.is_submit_button_disabled_on_no_input()
+    #     ), "Submit button should be enabled after valid file upload"

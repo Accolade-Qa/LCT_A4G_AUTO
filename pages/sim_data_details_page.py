@@ -1,4 +1,5 @@
 import os
+import re
 
 import pandas as pd
 
@@ -225,3 +226,11 @@ class SimDataDetailsPage:
         button.wait_for(state="visible")
 
         return button.is_disabled()
+
+    def upload_valid_file(self, filename):
+        logger.info("Uploading valid file: %s", filename)
+        self.page.get_by_role(
+            "button", name=re.compile(r"attach_file", re.IGNORECASE)
+        ).click()
+        file_input = self.page.locator("input[type='file']")
+        file_input.set_input_files(filename)
