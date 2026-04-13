@@ -11,13 +11,9 @@ def test_login(page, request):
     login_page.load(BASE_URL)
     print("Base URL:", BASE_URL)
     login_page.login(USERNAME, PASSWORD)
-    expected = DASHBOARD_URL
-    actual = page.url
-    print("Expected URL:", expected)
-    print("Actual URL:", actual)
-    request.node.expected = expected
-    request.node.actual = actual
-    assert actual == expected
+    page.wait_for_load_state("networkidle")
+    expect(page).to_have_url(DASHBOARD_URL)   # ✅ FIX    
+
 
 def test_invalid_login(page):
     login_page = LoginPage(page)
