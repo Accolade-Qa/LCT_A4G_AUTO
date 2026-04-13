@@ -1,8 +1,24 @@
+import os
+import sys
 import pytest
 from playwright.sync_api import sync_playwright
+<<<<<<< HEAD
 from config.config import BASE_URL, BROWSER, HEADLESS, USERNAME, PASSWORD,DASHBOARD_URL
 from config.global_var import SCREENSHOT_PATH
+=======
+
+from datetime import datetime
+from config.config import BASE_URL, BROWSER, HEADLESS, USERNAME, PASSWORD, DASHBOARD_URL
+from config.global_var import DOWNLOADS_PATH, SCREENSHOT_PATH
+
+from utils.excel_report import write_result
+>>>>>>> Shital
 from pages.login_page import LoginPage
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# ✅ Ensure folders exist
+os.makedirs("reports", exist_ok=True)
+os.makedirs(SCREENSHOT_PATH, exist_ok=True)
 
 
 # 🔹 Playwright instance
@@ -23,8 +39,9 @@ def browser(playwright_instance):
     )
 
     yield browser
-    browser.close()
+    # browser.close()
 
+<<<<<<< HEAD
 
 def _new_context_with_zoom(browser, **kwargs):
     context = browser.new_context(**kwargs)
@@ -36,8 +53,14 @@ def _new_context_with_zoom(browser, **kwargs):
 @pytest.fixture(scope="session")
 def auth_context(browser):
     context = _new_context_with_zoom(browser, viewport={"width": 1920, "height": 1080})
+=======
+# 🔹 Page
+@pytest.fixture(scope="function")
+def page(browser):
+    context = browser.new_context(no_viewport=True)  # 🔹 disables fixed viewport
+>>>>>>> Shital
     page = context.new_page()
-    page.evaluate("document.body.style.zoom = '0.67'")
+    page.goto("about:blank")  # optional
     yield page
     context.close()
     
@@ -47,9 +70,10 @@ def login_page(page):
     login.load(BASE_URL)
     login.login(USERNAME, PASSWORD)
 
+    page.wait_for_url(DASHBOARD_URL, timeout=20000)
     page.wait_for_load_state("domcontentloaded")
-    page.wait_for_timeout(1000)
 
+<<<<<<< HEAD
     page.locator("text=Dashboard").wait_for(timeout=20000)
 
     return page 
@@ -96,11 +120,34 @@ def page(auth_context):
 #         if page:
 #             page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png")
 
+=======
+    return page
+
+@pytest.fixture(scope="session")
+def context(browser):
+    context = browser.new_context()
+    yield context
+    # ❌ Do not close context
+    
+        
+>>>>>>> Shital
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
+    if report.when == "call":
+        test_name = item.name
+        # Get actual & expected if stored
+        expected = getattr(item, "expected", "N/A")
+        actual = getattr(item, "actual", "N/A")
+        if report.passed:
+            status = "PASS"
+            error = ""
+        else:
+            status = "FAIL"
+            error = str(report.longrepr)
 
+<<<<<<< HEAD
     if report.when == "call" and report.failed:
         page = item.funcargs.get("page", None)
 
@@ -141,3 +188,10 @@ def pytest_runtest_makereport(item, call):
 
 #     yield page
 #     context.close()
+=======
+        write_result(test_name, expected, actual, status, error)
+        
+def pytest_sessionfinish(session, exitstatus):
+    from utils.excel_report import remove_duplicates  # adjust path
+    remove_duplicates()
+>>>>>>> Shital

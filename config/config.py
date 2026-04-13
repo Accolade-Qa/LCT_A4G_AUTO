@@ -1,13 +1,17 @@
 import os
 from dotenv import load_dotenv
-
+ 
 load_dotenv()
-
+ 
 BASE_URL = os.getenv("BASE_URL")
+<<<<<<< HEAD
 DASHBOARD_URL = os.getenv(
     "DASHBOARD_URL",
     "http://lct-a4g-qa.accoladeelectronics.com/device-dashboard-page"
 )
+=======
+DASHBOARD_URL = os.getenv("DASHBOARD_URL","http://lct-a4g-qa.accoladeelectronics.com/device-dashboard-page")
+>>>>>>> Shital
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")
 BROWSER = os.getenv("BROWSER", "chromium")
@@ -20,4 +24,8 @@ INVALID_PASSWORD = os.getenv("INVALID_PASSWORD", "12345")
 API_BASE_URL = os.getenv("API_BASE_URL", "http://lct-a4g-qa.accoladeelectronics.com:9090")
 API_USERNAME = os.getenv("API_USERNAME", USERNAME)
 API_PASSWORD = os.getenv("API_PASSWORD", PASSWORD)
+<<<<<<< HEAD
 PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")
+=======
+PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
+>>>>>>> Shital
