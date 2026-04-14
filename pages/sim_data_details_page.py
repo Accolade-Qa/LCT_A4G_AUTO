@@ -22,6 +22,22 @@ class SimDataDetailsPage:
             max_forward_steps=5,
             max_backward_steps=5,
         )
+        # inside __init__
+
+        self.valid_table_section = TableSection(
+            page,
+            table_selector='page.locator("h6.component-title").has-text("Valid ICCID Details") ~ div table',
+        )
+
+        self.duplicate_table_section = TableSection(
+            page,
+            table_selector='page.locator("h6.component-title").has-text("Duplicate ICCID Details") ~ div table',
+        )
+
+        self.error_table_section = TableSection(
+            page,
+            table_selector='page.locator("h6.component-title").has-text("Not Present Details") ~ div table',
+        )
 
     def go_to_simbatchpage(self, url):
         logger.info("Navigating to SIM Data Details page: %s", url)
@@ -79,11 +95,15 @@ class SimDataDetailsPage:
         logger.info("ICCID upload placeholder attribute: %s", placeholder)
         return placeholder
 
-    def is_submit_button_disabled(self):
+    def _get_submit_button(self):
         submit_button = self.page.get_by_role("button", name="Submit")
         submit_button.wait_for(state="visible")
+        return submit_button
+
+    def is_submit_button_disabled(self):
+        submit_button = self._get_submit_button()
         disabled = submit_button.is_disabled()
-        logger.info("Submit button initially disabled: %s", disabled)
+        logger.info("Submit button initial disabled state: %s", disabled)
         return disabled
 
     def click_manual_upload_button(self):
@@ -132,8 +152,7 @@ class SimDataDetailsPage:
 
     def click_submit_button(self):
         logger.info("Clicking Submit button")
-        submit_button = self.page.get_by_role("button", name="Submit")
-        submit_button.wait_for(state="visible")
+        submit_button = self._get_submit_button()
         submit_button.click()
 
     def is_results_table_visible(self):
@@ -222,15 +241,26 @@ class SimDataDetailsPage:
         return True
 
     def is_submit_button_disabled_on_no_input(self):
-        button = self._get_button_by_text("Submit check_circle")
-        button.wait_for(state="visible")
-
-        return button.is_disabled()
+        submit_button = self._get_submit_button()
+        disabled = submit_button.is_disabled()
+        logger.info("Submit button disabled with no input: %s", disabled)
+        return disabled
 
     def upload_valid_file(self, filename):
         logger.info("Uploading valid file: %s", filename)
-        self.page.get_by_role(
-            "button", name=re.compile(r"attach_file", re.IGNORECASE)
-        ).click()
+
+        # self.page.locator("mat-icon:has-text('attach_file')").click()
+
         file_input = self.page.locator("input[type='file']")
         file_input.set_input_files(filename)
+
+    def validate_tables_against_api(self, api_data: dict):
+        valid_list = api_data.get("simDetails", {}).get("simDetailEntity", [])
+        duplicate_list = api_data.get("duplicateRows", [])
+        error_list = api_data.get("errors", [])
+
+        logger.info("Validating UI tables against API response")
+
+        self.valid_table_section.validate_table_data(valid_list)
+        self.duplicate_table_section.validate_table_data(duplicate_list)
+        self.error_table_section.validate_table_data(error_list, iccid_key="iccid")

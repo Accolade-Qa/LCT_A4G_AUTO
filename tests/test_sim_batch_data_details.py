@@ -1,7 +1,11 @@
 from config.config import SIM_DATA_DETAILS_URL
+from pathlib import Path
+from pages.api.sim_batch_details import SIMBatchDetailsAPI
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+TEST_DATA_DIR = Path(__file__).resolve().parents[1] / "test_data"
 
 
 class TestSimBatchDataDetails:
@@ -194,11 +198,36 @@ class TestSimBatchDataDetails:
             sim_data_details_page.is_submit_button_disabled_on_no_input()
         ), "Submit button should not be enabled"
 
-    # def test_submit_button_enabled_after_valid_file_upload(self, sim_data_details_page):
-    #     logger.info("Testing submit button enabled after valid file upload")
-    #     sim_data_details_page.upload_valid_file(
-    #         "Sensorise_SIM_data_Details.xlsx"
-    #     )  # Example valid file
-    #     assert (
-    #         not sim_data_details_page.is_submit_button_disabled_on_no_input()
-    #     ), "Submit button should be enabled after valid file upload"
+    def test_submit_button_enabled_after_valid_file_upload(self, sim_data_details_page):
+        logger.info("Testing submit button enabled after valid file upload")
+        sim_data_details_page.upload_valid_file(
+            str(TEST_DATA_DIR / "Sensorise_SIM_data_Details.xlsx")
+        )  # Example valid file
+        assert (
+            not sim_data_details_page.is_submit_button_disabled_on_no_input()
+        ), "Submit button should be enabled after valid file upload"
+
+        if not sim_data_details_page.is_submit_button_disabled_on_no_input():
+            sim_data_details_page.click_submit_button()
+            assert (
+                sim_data_details_page.is_results_table_visible()
+            ), "Results table should be visible after submitting valid file"
+
+    # def test_validate_tables_with_api(self, page, sim_data_details_page):
+    # logger.info("Validating UI tables against API")
+
+    # # Upload file or enter ICCID (depends on your flow)
+    # sim_data_details_page.upload_valid_file(
+    #     str(TEST_DATA_DIR / "Sensorise_SIM_data_Details.xlsx")
+    # )
+
+    # sim_data_details_page.click_submit_button()
+
+    # # Wait for UI
+    # page.wait_for_load_state("networkidle")
+
+    # # Fetch API data
+    # api_data = SIMBatchDetailsAPI._fetch_sim_details_from_api(page)
+
+    # # Validate UI vs API
+    # sim_data_details_page.validate_tables_against_api(api_data)
