@@ -6,6 +6,7 @@ from config.config import (
     BASE_URL,
     BROWSER,
     DASHBOARD_URL,
+    ROLE_MANAGEMENT_URL,
     SIM_DATA_DETAILS_URL,
     HEADLESS,
     USERNAME,
@@ -164,3 +165,13 @@ def sim_data_details_page(page):
     sim_data_details.go_to_simbatchpage(SIM_DATA_DETAILS_URL)
     logger.info("SIM data details fixture ready")
     return sim_data_details
+
+
+@pytest.fixture
+def role_management_page(page):
+    from pages.role_management_page import RoleManagementPage
+
+    role_management = RoleManagementPage(page)
+    role_management.go_to_rolemanagementpage(ROLE_MANAGEMENT_URL)
+    logger.info("Role Management page fixture ready")
+    return role_management
