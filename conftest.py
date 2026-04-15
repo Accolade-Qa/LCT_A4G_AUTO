@@ -9,11 +9,13 @@ from config.config import (
     ROLE_GROUP_URL,
     ROLE_MANAGEMENT_URL,
     SIM_DATA_DETAILS_URL,
+    DEVICE_DETAILS_URL,
     HEADLESS,
     USERNAME,
     PASSWORD,
 )
 from config.global_var import SCREENSHOT_PATH
+from pages.device_details_page import DeviceDetailsPage
 from pages.login_page import LoginPage
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -163,3 +165,13 @@ def role_group_page(page):
     role_group.go_to_role_group_page(ROLE_GROUP_URL)
     logger.info("Role Group page fixture ready")
     return role_group
+
+
+@pytest.fixture
+def device_details_page(page):
+    from pages.device_details_page import DeviceDetailsPage
+
+    device_details = DeviceDetailsPage(page)
+    device_details.go_to_device_details_page(DEVICE_DETAILS_URL)
+    logger.info("Device Details page fixture ready")
+    return device_details
