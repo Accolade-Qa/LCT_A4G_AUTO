@@ -18,6 +18,10 @@ ROLE_MANAGEMENT_URL = os.getenv(
     "http://lct-a4g-qa.accoladeelectronics.com/user-role",
 )
 
+ROLE_GROUP_URL = os.getenv(
+    "ROLE_GROUP_URL", "http://lct-a4g-qa.accoladeelectronics.com/role-group"
+)
+
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")
 BROWSER = os.getenv("BROWSER", "chromium")

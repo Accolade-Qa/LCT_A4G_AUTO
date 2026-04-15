@@ -6,6 +6,7 @@ from config.config import (
     BASE_URL,
     BROWSER,
     DASHBOARD_URL,
+    ROLE_GROUP_URL,
     ROLE_MANAGEMENT_URL,
     SIM_DATA_DETAILS_URL,
     HEADLESS,
@@ -13,7 +14,6 @@ from config.config import (
     PASSWORD,
 )
 from config.global_var import SCREENSHOT_PATH
-from utils.excel_report import write_result
 from pages.login_page import LoginPage
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -21,30 +21,32 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # ✅ Ensure folders exist
 os.makedirs("reports", exist_ok=True)
 os.makedirs(SCREENSHOT_PATH, exist_ok=True)
+
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+# ✅ Single source of truth for page zoom
 ZOOM_SCRIPT = """
 () => {
     const applyZoom = () => {
-        const root = document.documentElement;
-        if (root) {
-            root.style.setProperty('zoom', '0.9', 'important');
+        const zoomLevel = '0.8';
+
+        if (document.documentElement) {
+            document.documentElement.style.zoom = zoomLevel;
         }
+
         if (document.body) {
-            document.body.style.setProperty('zoom', '0.9', 'important');
+            document.body.style.zoom = zoomLevel;
         }
     };
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        applyZoom();
-    } else {
-        document.addEventListener('DOMContentLoaded', applyZoom, { once: true });
-    }
-    const observer = new MutationObserver(() => applyZoom());
-    if (document.documentElement) {
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    }
+
+    applyZoom();
+
+    new MutationObserver(applyZoom).observe(document.documentElement, {
+        childList: true,
+        subtree: true
+    });
 }
 """
 
@@ -70,68 +72,43 @@ def browser(playwright_instance):
     logger.info("Launched browser instance (%s) headless=%s", BROWSER, HEADLESS)
 
     yield browser
-    # browser.close()
     logger.info("Browser instance closed")
 
 
+# 🔹 Context with zoom applied
 def _new_context_with_zoom(browser, **kwargs):
-    default_viewport = {
-        "viewport": {"width": 1920, "height": 1080},
-        "screen": {"width": 1920, "height": 1080},
-    }
-    default_viewport.update(kwargs)
-    context = browser.new_context(**default_viewport)
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        screen={"width": 1920, "height": 1080},
+        **kwargs,
+    )
     context.add_init_script(ZOOM_SCRIPT)
-    logger.debug("Created new browser context with viewport=%s", default_viewport)
+    logger.debug("Created new browser context with zoom applied")
     return context
 
 
-def _apply_zoom_to_page(page):
-    page.evaluate(
-        """
-        () => {
-            const root = document.documentElement;
-            if (root) {
-                root.style.setProperty('zoom', '0.80', 'important');
-            }
-            if (document.body) {
-                document.body.style.setProperty('zoom', '0.80', 'important');
-            }
-        }
-        """
-    )
-    logger.debug("Applied DOM zoom to page %s", page.url)
-
-
-# 🔥 Authenticated Context (BEST PRACTICE)
+# 🔥 Authenticated Page Fixture
 @pytest.fixture(scope="function")
 def page(browser):
     context = _new_context_with_zoom(
         browser,
         accept_downloads=True,
     )
+
     page = context.new_page()
-    _apply_zoom_to_page(page)
-    page.on("load", lambda _: _apply_zoom_to_page(page))
-    page.on("framenavigated", lambda _: _apply_zoom_to_page(page))
-    logger.info("New page opened and zoom applied")
+    logger.info("New page opened")
 
     login = LoginPage(page)
     login.load(BASE_URL)
     login.login(USERNAME, PASSWORD)
+
     page.wait_for_load_state("networkidle")
     logger.info("Authenticated context ready: %s", page.url)
 
     yield page
+
     page.close()
     context.close()
-
-
-# @pytest.fixture(scope="session")
-# def context(browser):
-#     context = browser.new_context()
-#     yield context
-#     # ❌ Do not close context
 
 
 # 🔹 Screenshot on failure
@@ -147,6 +124,7 @@ def pytest_runtest_makereport(item, call):
             page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png", full_page=True)
 
 
+# 🔹 Page Fixtures
 @pytest.fixture
 def dashboard_page(page):
     from pages.dashboard_page import DashboardPage
@@ -175,3 +153,13 @@ def role_management_page(page):
     role_management.go_to_rolemanagementpage(ROLE_MANAGEMENT_URL)
     logger.info("Role Management page fixture ready")
     return role_management
+
+
+@pytest.fixture
+def role_group_page(page):
+    from pages.role_group_page import RoleGroupPage
+
+    role_group = RoleGroupPage(page)
+    role_group.go_to_role_group_page(ROLE_GROUP_URL)
+    logger.info("Role Group page fixture ready")
+    return role_group
