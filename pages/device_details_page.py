@@ -1,3 +1,4 @@
+from pages.common import SearchHelper, TableSection
 from utils.logger import get_logger
 
 
@@ -7,6 +8,8 @@ logger = get_logger(__name__)
 class DeviceDetailsPage:
     def __init__(self, page):
         self.page = page
+        self.search_helper = SearchHelper(page)
+        self.table_section = TableSection(page)
 
     def go_to_device_details_page(self, url):
         logger.info("Navigating to Device Details page: %s", url)
@@ -79,3 +82,21 @@ class DeviceDetailsPage:
         count_text = card_count_locator.inner_text()
         logger.info("Card index %s displayed count: %s", index, count_text)
         return count_text
+
+    def search_for_device(self, device):
+        logger.info(f"Searching for device: {device}")
+        return self.search_helper.run_search(str(device))
+
+    def click_on_view_device_in_table(self, device):
+        logger.info(f"Clicking view icon for device: {device}")
+
+        row = self.page.locator(f"//tr[td[contains(text(), '{device}')]]")
+
+        row.wait_for(state="visible")
+
+        view_button = row.locator("button:has(mat-icon:has-text('visibility'))")
+
+        if view_button.count() == 0:
+            raise Exception(f"View button not found for device {device}")
+
+        view_button.click()
