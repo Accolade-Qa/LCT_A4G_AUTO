@@ -131,3 +131,21 @@ class DashboardPage:
             logger.exception("Export button verification failed: %s", e)
 
         return result
+
+    def search_for_device(self, device):
+        logger.info(f"Searching for device: {device}")
+        return self.search_helper.run_search(str(device))
+
+    def click_on_view_device_in_table(self, device):
+        logger.info(f"Clicking view icon for device: {device}")
+
+        row = self.page.locator(f"//tr[td[contains(text(), '{device}')]]")
+
+        row.wait_for(state="visible")
+
+        view_button = row.locator("button:has(mat-icon:has-text('visibility'))")
+
+        if view_button.count() == 0:
+            raise Exception(f"View button not found for device {device}")
+
+        view_button.click()
