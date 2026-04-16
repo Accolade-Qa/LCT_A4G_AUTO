@@ -36,3 +36,46 @@ class DeviceDetailsPage:
         kpi_cards.first.wait_for(state="visible")
 
         return all(kpi_cards.nth(i).is_visible() for i in range(kpi_cards.count()))
+
+    def _is_cards_visible(self):
+        logger.info("Checking KPI card visibility")
+        cards_locator = self.page.locator(".kpi-details")
+        cards_locator.wait_for(state="visible")
+        visible = cards_locator.is_visible()
+        logger.info("KPI cards visibility check result: %s", visible)
+        return visible
+
+    def _cards_parent(self):
+        cards_parent = self.page.locator("div.kpi-section")
+        cards_parent.wait_for(state="visible")
+        logger.debug("Cards parent container ready")
+        return cards_parent
+
+    def _card_elements(self):
+        return self._cards_parent().locator(":scope > div")
+
+    def get_cards_count(self):
+        count = self._card_elements().count()
+        logger.info("Found %s dashboard cards", count)
+        return count
+
+    def get_card_element(self, index):
+        return self._card_elements().nth(index)
+
+    def get_cards_title_text(self, index):
+        logger.debug("Getting title for card index %s", index)
+        card = self.get_card_element(index)
+        card_title_locator = card.locator("div.kpi-details span").nth(0)
+        card_title_locator.wait_for(state="visible")
+        title = card_title_locator.inner_text()
+        logger.info("Card index %s title text: %s", index, title)
+        return title
+
+    def get_cards_inner_count(self, index):
+        logger.debug("Getting count for card index %s", index)
+        card = self.get_card_element(index)
+        card_count_locator = card.locator("div.kpi-details span").nth(1)
+        card_count_locator.wait_for(state="visible")
+        count_text = card_count_locator.inner_text()
+        logger.info("Card index %s displayed count: %s", index, count_text)
+        return count_text
