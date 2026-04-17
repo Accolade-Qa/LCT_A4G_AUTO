@@ -1,6 +1,7 @@
-from pages.common import SearchHelper, TableSection
-from utils.logger import get_logger
+from playwright.sync_api import expect
 
+from pages.common import PaginationHelper, SearchHelper, TableSection
+from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -10,6 +11,40 @@ class DeviceDetailsPage:
         self.page = page
         self.search_helper = SearchHelper(page)
         self.table_section = TableSection(page)
+        self.pagination_helper = PaginationHelper(page)
+
+    # ------------------ INTERNAL HELPERS ------------------
+
+    def _login_packet_base(self):
+        """
+        Base locator for 'Last 50 Login Packets' component
+        """
+        return "//h6[text()='Last 50 Login Packets']/ancestor::div[contains(@class,'component-container')]"
+
+    # ------------------ PAGINATION ------------------
+
+    def set_pagination_for_login_packets(self):
+        """
+        Override pagination for specific component (Login Packets table)
+        """
+        self.pagination_helper = PaginationHelper(self.page)
+
+    def get_login_packet_pagination(self):
+        """
+        Scoped pagination for Login Packets table
+        """
+        base = self._login_packet_base()
+
+        return PaginationHelper(
+            self.page,
+            content_selector=f"{base}//table",
+            page_input=f"{base}//input[contains(@class,'page-input')]",
+            next_button=f"{base}//button[.//mat-icon[text()='chevron_right']]",
+            prev_button=f"{base}//button[.//mat-icon[text()='chevron_left']]",
+            total_pages_selector=f"{base}//span[contains(text(),'of')]",
+        )
+
+    # ------------------ NAVIGATION ------------------
 
     def go_to_device_details_page(self, url):
         logger.info("Navigating to Device Details page: %s", url)
@@ -28,6 +63,8 @@ class DeviceDetailsPage:
             and self.page.get_by_role("heading", name="Device Details").is_visible()
         )
 
+    # ------------------ PAGE ELEMENTS ------------------
+
     def is_device_details_page_buttons_are_visible(self):
         buttons = self.page.get_by_role("button")
         buttons.first.wait_for(state="visible")
@@ -39,6 +76,8 @@ class DeviceDetailsPage:
         kpi_cards.first.wait_for(state="visible")
 
         return all(kpi_cards.nth(i).is_visible() for i in range(kpi_cards.count()))
+
+    # ------------------ KPI CARDS ------------------
 
     def _is_cards_visible(self):
         logger.info("Checking KPI card visibility")
@@ -83,15 +122,18 @@ class DeviceDetailsPage:
         logger.info("Card index %s displayed count: %s", index, count_text)
         return count_text
 
+    # ------------------ SEARCH ------------------
+
     def search_for_device(self, device):
         logger.info(f"Searching for device: {device}")
         return self.search_helper.run_search(str(device))
+
+    # ------------------ TABLE ACTIONS ------------------
 
     def click_on_view_device_in_table(self, device):
         logger.info(f"Clicking view icon for device: {device}")
 
         row = self.page.locator(f"//tr[td[contains(text(), '{device}')]]")
-
         row.wait_for(state="visible")
 
         view_button = row.locator("button:has(mat-icon:has-text('visibility'))")
@@ -100,3 +142,101 @@ class DeviceDetailsPage:
             raise Exception(f"View button not found for device {device}")
 
         view_button.click()
+
+    # ------------------ COMPONENT TITLES ------------------
+
+    def get_table_component_title_text(self, index):
+        logger.debug("Getting title for table component index %s", index)
+        title_locator = self.page.locator(".component-title").nth(index)
+        title_locator.wait_for(state="visible")
+        title = title_locator.inner_text()
+        logger.info("Table component index %s title text: %s", index, title)
+        return title
+
+    # ------------------ HEADERS ------------------
+
+    def get_inside_table_headers_count(self):
+        return self.page.locator(".component-body .header").count()
+
+    def get_table_component_headers(self):
+        logger.info("Getting headers for table component")
+
+        headers_locator = self.page.locator(".component-body .header")
+        headers_locator.first.wait_for(state="visible")
+
+        headers = [
+            headers_locator.nth(i).inner_text().strip()
+            for i in range(headers_locator.count())
+        ]
+
+        logger.info("Table component headers: %s", headers)
+        return headers
+
+    # ------------------ LOGIN PACKET TABLE (FIXED) ------------------
+
+    def get_login_packet_table_headers(self):
+        """
+        Scoped headers for Login Packet table
+        """
+        base = self._login_packet_base()
+
+        headers = self.page.locator(f"{base}//thead//th")
+        headers.first.wait_for(state="visible")
+
+        return [
+            headers.nth(i).inner_text().strip().upper() for i in range(headers.count())
+        ]
+
+    def get_device_details_table_data(self):
+        """
+        Scoped table data for Login Packet table
+        """
+        logger.info("Extracting login packet table data (row-wise)")
+
+        base = self._login_packet_base()
+
+        rows = self.page.locator(f"{base}//tbody//tr")
+        rows.first.wait_for(state="visible", timeout=5000)
+
+        table_data = []
+
+        for i in range(rows.count()):
+            row = rows.nth(i)
+            cols = row.locator("td")
+
+            row_data = [cols.nth(j).inner_text().strip() for j in range(cols.count())]
+
+            table_data.append(row_data)
+
+        logger.info("Extracted table data: %s", table_data)
+        return table_data
+
+    # ------------------ EXPORT (FIXED) ------------------
+
+    def check_export_button(self):
+        """
+        Scoped export button validation
+        """
+        base = self._login_packet_base()
+        export_btn = self.page.locator(
+            f"{base}//button[.//text()[contains(.,'Export')]]"
+        )
+
+        result = {"success": True, "error": None}
+
+        logger.info("Verifying export button functionality")
+
+        try:
+            export_btn.wait_for(state="visible", timeout=10000)
+            export_btn.scroll_into_view_if_needed()
+            expect(export_btn).to_be_enabled(timeout=10000)
+
+            export_btn.click()
+            self.page.wait_for_timeout(2000)
+
+        except Exception as e:
+            result["success"] = False
+            result["error"] = str(e)
+            logger.exception("Export button verification failed: %s", e)
+
+        return result

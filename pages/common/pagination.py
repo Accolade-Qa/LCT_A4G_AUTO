@@ -16,7 +16,7 @@ class PaginationHelper:
         page_input: str = "input.page-input",
         next_button: str = "button:has(mat-icon:has-text('chevron_right'))",
         prev_button: Optional[str] = None,
-        content_selector: str = "table",
+        content_selector: str = "div.component-body table",
         total_pages_selector: str = "text=/\\d+\\s*/\\s*\\d+/",
         max_forward_steps: Optional[int] = 8,
         max_backward_steps: Optional[int] = None,
