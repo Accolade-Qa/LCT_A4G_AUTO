@@ -1,20 +1,22 @@
-from utils.logger import get_logger   # ✅ import logger
-logger = get_logger(__name__)
+from utils.logger import get_logger  # ✅ import logger
 
+logger = get_logger(__name__)
 
 
 class BasePage:
     def __init__(self, page):
         self.page = page
-
-
         self.footer = page.locator("div.footer-col.footer-left")
-        self.version =page.locator("body app-root app-footer span:nth-child(1)")
+        self.version = page.locator("body app-root app-footer span:nth-child(1)")
         logger.info("Initialized BasePage for %s", page.url)
-
 
     def get_page_title(self):
         return self.page.title()
+
+    def highlight(self, locator):
+        locator.wait_for(state="visible")
+        locator.evaluate("el => el.style.border = '3px solid purple'")
+        return locator
 
     def get_title(self):
         # page.locator(".page-title")
