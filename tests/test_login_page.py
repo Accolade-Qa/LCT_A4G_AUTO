@@ -2,9 +2,18 @@ import re
 from urllib3 import request
 from conftest import page
 from pages.login_page import LoginPage
-from config.config import PAGE_TITLE, USERNAME, PASSWORD, DASHBOARD_URL, BASE_URL,INVALID_PASSWORD,INVALID_USERNAME
+from config.config import (
+    PAGE_TITLE,
+    USERNAME,
+    PASSWORD,
+    DASHBOARD_URL,
+    BASE_URL,
+    INVALID_PASSWORD,
+    INVALID_USERNAME,
+)
 from playwright.sync_api import expect
 from utils.excel_report import write_result
+
 
 def test_login(page, request):
     login_page = LoginPage(page)
@@ -12,20 +21,26 @@ def test_login(page, request):
     print("Base URL:", BASE_URL)
     login_page.login(USERNAME, PASSWORD)
     page.wait_for_load_state("networkidle")
-    expect(page).to_have_url(DASHBOARD_URL)   # ✅ FIX    
+    expect(page).to_have_url(DASHBOARD_URL)  # ✅ FIX
 
 
 def test_invalid_login(page):
     login_page = LoginPage(page)
     login_page.load(BASE_URL)
-    actual_msg = login_page.login_with_invalid_credentials(INVALID_USERNAME, INVALID_PASSWORD).strip().lower().rstrip(".")
+    actual_msg = (
+        login_page.login_with_invalid_credentials(INVALID_USERNAME, INVALID_PASSWORD)
+        .strip()
+        .lower()
+        .rstrip(".")
+    )
     expected_msg = "Minimum 6 characters required".strip().lower().rstrip(".")
     print("Expected Error Message:", expected_msg)
     print("Actual Error Message:", actual_msg)
     status = "PASS" if actual_msg == expected_msg else "FAIL"
     write_result("test_invalid_login", expected_msg, actual_msg, status)
     assert actual_msg == expected_msg
- 
+
+
 def test_username(page):
     login_page = LoginPage(page)
     login_page.load(BASE_URL)
@@ -40,14 +55,15 @@ def test_username(page):
     write_result("test_username", expected, actual, status)
     assert actual == expected, f"Expected: {expected}, Got: {actual}"
 
+
 def test_password(page):
     login_page = LoginPage(page)
     login_page.load(BASE_URL)
     try:
-        error_msg = login_page.login_with_passwordonly(" ",PASSWORD)
+        error_msg = login_page.login_with_passwordonly(" ", PASSWORD)
         print("Error Message:", error_msg)
         assert error_msg != "", "Error message is empty ❌"
-        expected_msg = "This field is required and can't be only spaces."   # 🔥 update as per your UI
+        expected_msg = "This field is required and can't be only spaces."  # 🔥 update as per your UI
         actual = error_msg.strip().lower().rstrip(".")
         expected = expected_msg.strip().lower().rstrip(".")
         print("Expected:", expected)
@@ -57,10 +73,13 @@ def test_password(page):
         write_result("test_password", expected, actual, status)
         assert actual == expected, f"Expected: {expected}, Got: {actual}"
     except Exception as e:
-        write_result("test_password", "Username error expected", "Failed", "FAIL", str(e))
+        write_result(
+            "test_password", "Username error expected", "Failed", "FAIL", str(e)
+        )
         raise
-       
-def test_page_title(page,request):
+
+
+def test_page_title(page, request):
     login_page = LoginPage(page)
     login_page.load(BASE_URL)
     test_name = request.node.name
@@ -79,10 +98,11 @@ def test_page_title(page,request):
         write_result(test_name, expected, "ERROR", "FAIL", str(e))
         raise
 
+
 def test_longusername_password(page, request):
     login_page = LoginPage(page)
     test_name = request.node.name
-    expected_list = ["Please enter a valid Email ID.","Minimum 6 characters required."]
+    expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
     login_page.logger.info(f"Starting test: {test_name}")
     login_page.load(BASE_URL)
     login_page.login("shital", "ABCD")
@@ -93,41 +113,10 @@ def test_longusername_password(page, request):
     try:
         # ✅ Correct validation
         assert all(
-            any(exp.lower() in e.lower() for e in errors)
-            for exp in expected_list
+            any(exp.lower() in e.lower() for e in errors) for exp in expected_list
         )
         status = "PASS"
-        login_page.logger.info(
-            f"Test Passed | Expected: {expected} | Actual: {actual}"
-        )
-    except AssertionError:
-        status = "FAIL"
-        login_page.logger.error(
-            f"Test Failed | Expected: {expected} | Actual: {actual}"
-        )
-    write_result(test_name, expected, actual, status)
-    
-def test_shortusername_password(page, request):
-    login_page = LoginPage(page)
-    test_name = request.node.name
-    expected_list = ["Please enter a valid Email ID.","Minimum 6 characters required."]
-    login_page.logger.info(f"Starting test: {test_name}")
-    login_page.load(BASE_URL)
-    login_page.login("shital", "ABCD")
-    errors = login_page.get_error_message()
-    print("Errors:", errors)
-    actual = ", ".join(errors) if errors else "No error message"
-    expected = ", ".join(expected_list)
-    try:
-        # ✅ Correct validation
-        assert all(
-            any(exp.lower() in e.lower() for e in errors)
-            for exp in expected_list
-        )
-        status = "PASS"
-        login_page.logger.info(
-            f"Test Passed | Expected: {expected} | Actual: {actual}"
-        )
+        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
     except AssertionError:
         status = "FAIL"
         login_page.logger.error(
@@ -135,7 +124,33 @@ def test_shortusername_password(page, request):
         )
     write_result(test_name, expected, actual, status)
 
-        
+
+def test_shortusername_password(page, request):
+    login_page = LoginPage(page)
+    test_name = request.node.name
+    expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
+    login_page.logger.info(f"Starting test: {test_name}")
+    login_page.load(BASE_URL)
+    login_page.login("shital", "ABCD")
+    errors = login_page.get_error_message()
+    print("Errors:", errors)
+    actual = ", ".join(errors) if errors else "No error message"
+    expected = ", ".join(expected_list)
+    try:
+        # ✅ Correct validation
+        assert all(
+            any(exp.lower() in e.lower() for e in errors) for exp in expected_list
+        )
+        status = "PASS"
+        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
+    except AssertionError:
+        status = "FAIL"
+        login_page.logger.error(
+            f"Test Failed | Expected: {expected} | Actual: {actual}"
+        )
+    write_result(test_name, expected, actual, status)
+
+
 #     # 🔹 Footer Tests
 #     # 🔹 Test: Footer links present
 def test_footer_links(page, request):
@@ -152,13 +167,10 @@ def test_footer_links(page, request):
     try:
         # ✅ Validate all expected links are present
         assert all(
-            any(exp.lower() in link.lower() for link in links)
-            for exp in expected_links
+            any(exp.lower() in link.lower() for link in links) for exp in expected_links
         )
         status = "PASS"
-        login_page.logger.info(
-            f"Test Passed | Expected: {expected} | Actual: {actual}"
-        )
+        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
     except AssertionError:
         status = "FAIL"
         login_page.logger.error(
@@ -166,7 +178,8 @@ def test_footer_links(page, request):
         )
     # ✅ Write to Excel
     write_result(test_name, expected, actual, status)
-    
+
+
 def test_footer_links_clickable(page, request):
     login_page = LoginPage(page)
     login_page.load(BASE_URL)
@@ -175,9 +188,7 @@ def test_footer_links_clickable(page, request):
         results = login_page.verify_footer_links_clickable()
         # Check if all clickable
         all_clickable = all(link["clickable"] for link in results)
-        actual = ", ".join(
-            [f'{link["text"]}: {link["clickable"]}' for link in results]
-        )
+        actual = ", ".join([f'{link["text"]}: {link["clickable"]}' for link in results])
         expected = "All footer links should be clickable"
         status = "PASS" if all_clickable else "FAIL"
         write_result(test_name, expected, actual, status)
@@ -185,6 +196,7 @@ def test_footer_links_clickable(page, request):
     except Exception as e:
         write_result(test_name, "All footer links clickable", "ERROR", "FAIL", str(e))
         raise
+
 
 def test_footer_year(page, request):
     login_page = LoginPage(page)
@@ -200,6 +212,7 @@ def test_footer_year(page, request):
     except Exception as e:
         write_result(test_name, "Footer year validation", "ERROR", "FAIL", str(e))
         raise
+
 
 def test_get_build_version(page):
     login_page = LoginPage(page)
@@ -220,4 +233,3 @@ def test_get_build_version(page):
     except Exception as e:
         write_result(test_name, expected, "ERROR", "FAIL", str(e))
         raise
-    

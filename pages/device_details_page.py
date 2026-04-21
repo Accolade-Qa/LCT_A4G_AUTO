@@ -1,6 +1,10 @@
+import os
+import re
+
 from playwright.sync_api import expect
 
 from pages.common import PaginationHelper, SearchHelper, TableSection
+from config.global_var import DOWNLOADS_PATH
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -193,9 +197,10 @@ class DeviceDetailsPage:
         """
         logger.info("Extracting login packet table data (row-wise)")
 
-        base = self._login_packet_base()
+        # base = self._login_packet_base()
+        # rows = self.page.locator(f"{base}//tbody//tr")
 
-        rows = self.page.locator(f"{base}//tbody//tr")
+        rows = self.page.locator("tr.ng-star-inserted")
         rows.first.wait_for(state="visible", timeout=5000)
 
         table_data = []
@@ -205,6 +210,11 @@ class DeviceDetailsPage:
             cols = row.locator("td")
 
             row_data = [cols.nth(j).inner_text().strip() for j in range(cols.count())]
+
+            # if i is zero or not gets anything then check the no data image is present
+            if i == 0 and not row_data:
+                self.table_section.has_no_data()
+                logger.warning("No data found in login packet table")
 
             table_data.append(row_data)
 
@@ -240,3 +250,29 @@ class DeviceDetailsPage:
             logger.exception("Export button verification failed: %s", e)
 
         return result
+
+    def click_export_button(self):
+        """
+        Clicks the export button and handles the download.
+        Note: The button triggers an async download via backend API.
+        """
+        # Search for Export button directly on the page
+        export_btn = self.page.locator("//button[contains(.,'Export')]")
+        export_btn.wait_for(state="visible", timeout=10000)
+        export_btn.scroll_into_view_if_needed()
+
+        logger.info("Export button found and scrolled into view")
+
+        # Start listening for the download before clicking
+        # The backend may generate the file and trigger download
+        with self.page.expect_download(timeout=60000) as download_info:
+            # Also wait for any network activity to complete
+            logger.info("Clicking export button")
+            export_btn.click()
+            # Wait a moment for the backend to process
+            self.page.wait_for_load_state("networkidle", timeout=10000)
+            logger.info("Export button clicked, waiting for download")
+
+        download = download_info.value
+        logger.info("Download captured: %s", download.suggested_filename)
+        return download
