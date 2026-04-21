@@ -48,3 +48,10 @@ API_BASE_URL = os.getenv(
 )
 API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
+MODEL_URL = os.getenv("MODEL_URL", "http://lct-a4g-qa.accoladeelectronics.com/model")
+CREATE_NEW_MODEL = os.getenv(
+    "CREATE_NEW_MODEL", "http://lct-a4g-qa.accoladeelectronics.com/model-firmware"
+)
+UPDATE_MODEL = os.getenv(
+    "UPDATE_MODEL", "http://lct-a4g-qa.accoladeelectronics.com/model-firmware/11"
+)
