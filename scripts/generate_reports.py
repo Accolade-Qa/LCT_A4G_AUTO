@@ -1,395 +1,196 @@
 import json
-import os
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-
-ROOT_DIR = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT_DIR))
-
-from config.global_var import REPORT_PATH, ROOT_DIR as CONFIG_ROOT
 import pandas as pd
+from jinja2 import Template
 
-REPORT_TEMPLATE = """
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Automation Test Report</title>
-    <link rel="stylesheet" href="report.css" />
-  </head>
-  <body>
-    <header>
-      <h1>Automation Test Report</h1>
-      <p>Generated at {{ generated_at }} &middot; Duration {{ duration }}</p>
-    </header>
+# ================= CONFIG =================
+ROOT = Path.cwd()
+REPORT_DIR = ROOT / "reports"
 
-    <section class="summary-grid">
-      <div class="card card-total">
-        <div class="label">Total tests</div>
-        <div class="value">{{ summary.total }}</div>
-        <div class="subtext">Passed: {{ counts.passed }} · Failed: {{ counts.failed }} · Skipped: {{ counts.skipped }}</div>
-      </div>
-      <div class="card card-pass">
-        <div class="label">Passed</div>
-        <div class="value">{{ counts.passed }}</div>
-        <div class="subtext">Success rate {{ counts.pass_rate }}%</div>
-      </div>
-      <div class="card card-fail">
-        <div class="label">Failed</div>
-        <div class="value">{{ counts.failed }}</div>
-        <div class="subtext">{{ failure_ratio }} failures</div>
-      </div>
-      <div class="card card-skipped">
-        <div class="label">Skipped</div>
-        <div class="value">{{ counts.skipped }}</div>
-        <div class="subtext">{{ counts.skipped }} skipped by suite</div>
-      </div>
-    </section>
+JSON_PATH = REPORT_DIR / "report.json"
+HTML_PATH = REPORT_DIR / "report.html"
+EXCEL_PATH = REPORT_DIR / "report.xlsx"
 
-    <h2>Test details</h2>
-    <table class="status-table">
-      <thead>
-        <tr>
-          <th>Module</th>
-          <th>Test</th>
-          <th>Outcome</th>
-          <th>Duration (s)</th>
-          <th>Message</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for test in tests %}
-        <tr>
-          <td>{{ test.module }}</td>
-          <td>{{ test.short_name }}</td>
-          <td class="status-{{ test.outcome_class }}">{{ test.outcome | capitalize }}</td>
-          <td>{{ "%.2f"|format(test.duration) }}</td>
-          <td>
-            {% if test.longrepr %}
-            <details>
-              <summary>View failure info</summary>
-              <div class="fail-details">{{ test.longrepr }}</div>
-            </details>
-            {% else %}
-              {{ test.message or "—" }}
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </body>
+# ================= HTML TEMPLATE =================
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Test Report</title>
+<style>
+body {
+    font-family: system-ui;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 20px;
+}
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+.card {
+    padding: 15px;
+    border-radius: 10px;
+    background: #1e293b;
+}
+.pass { border-left: 5px solid #22c55e; }
+.fail { border-left: 5px solid #ef4444; }
+.skip { border-left: 5px solid #f59e0b; }
+
+.value { font-size: 26px; }
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+td, th {
+    padding: 10px;
+    border-bottom: 1px solid #334155;
+}
+.status-pass { color: #22c55e; }
+.status-fail { color: #ef4444; }
+.status-skipped { color: #f59e0b; }
+</style>
+</head>
+
+<body>
+
+<h1>Test Report</h1>
+<p>{{ time }}</p>
+
+<div class="cards">
+<div class="card"><div>Total</div><div class="value">{{ total }}</div></div>
+<div class="card pass"><div>Passed</div><div class="value">{{ passed }}</div></div>
+<div class="card fail"><div>Failed</div><div class="value">{{ failed }}</div></div>
+<div class="card skip"><div>Skipped</div><div class="value">{{ skipped }}</div></div>
+</div>
+
+<table>
+<tr><th>Test</th><th>Status</th><th>Time</th><th>Message</th></tr>
+
+{% for t in tests %}
+<tr>
+<td>{{ t.name }}</td>
+<td class="status-{{ t.status }}">{{ t.status }}</td>
+<td>{{ t.duration }}</td>
+<td>{{ t.message }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</body>
 </html>
 """
 
-REPORT_CSS = """
-:root {
-  font-family: 'Inter', Arial, sans-serif;
-  color: #1e1e1e;
-  background-color: #f4f6fb;
-}
-body {
-  margin: 0;
-  padding: 2rem;
-  background: #f4f6fb;
-}
-h1 {
-  margin-bottom: 0.25rem;
-}
-h2 {
-  margin-top: 2rem;
-  border-bottom: 2px solid #e0e7ff;
-  padding-bottom: 0.25rem;
-}
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-.card {
-  padding: 1rem 1.25rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
-  background: white;
-}
-.card .label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #475569;
-}
-.card .value {
-  margin-top: 0.35rem;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
-.card .subtext {
-  margin-top: 0.15rem;
-  color: #64748b;
-  font-size: 0.85rem;
-}
-.card-total {
-  background: linear-gradient(135deg, #eef2ff, #f8fafc);
-}
-.card-pass {
-  border-left: 4px solid #22c55e;
-  background: linear-gradient(135deg, #ecfdf3, #f7fee7);
-}
-.card-fail {
-  border-left: 4px solid #dc2626;
-  background: linear-gradient(135deg, #fee2e2, #fff1f2);
-}
-.card-skipped {
-  border-left: 4px solid #ea580c;
-  background: linear-gradient(135deg, #fff7ed, #fff4e6);
-}
-.status-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-.status-table th,
-.status-table td {
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0.75rem;
-  text-align: left;
-}
-.status-table th {
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #475569;
-  background: #f8fafc;
-}
-.status-pass {
-  color: #16a34a;
-  font-weight: 600;
-}
-.status-fail {
-  color: #dc2626;
-  font-weight: 600;
-}
-.status-skipped {
-  color: #ea580c;
-  font-weight: 600;
-}
-.status-other {
-  color: #475569;
-  font-weight: 600;
-}
-.fail-details {
-  font-family: 'Courier New', monospace;
-  background: #111827;
-  color: #e2e8f0;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  margin-top: 0.5rem;
-  max-height: 220px;
-  overflow: auto;
-}
-details {
-  margin-top: 0.5rem;
-}
-details summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: #1d4ed8;
-}
-"""
 
+# ================= STEP 1: RUN PYTEST =================
+def run_pytest():
+    REPORT_DIR.mkdir(exist_ok=True)
 
-def _prepare_directories() -> dict[str, Path]:
-    reports_root = Path(REPORT_PATH)
-    paths = {
-        "html": reports_root / "pytests" / "report.html",
-        "json": reports_root / "json" / "report.json",
-        "excel": reports_root / "excel" / "pytest-results.xlsx",
-        "css": reports_root / "pytests" / "report.css",
-    }
-    for path in paths.values():
-        path.parent.mkdir(parents=True, exist_ok=True)
-    return paths
-
-
-def _build_test_context(tests: list[dict]) -> tuple[list[dict], float]:
-    entries = []
-    total_duration = 0.0
-    for item in tests:
-        nodeid = item.get("nodeid", "")
-        outcome = item.get("outcome", "unknown")
-        duration = item.get("duration", 0.0) or 0.0
-        module = nodeid.split("::")[0]
-        short_name = nodeid.split("::")[-1]
-        longrepr = item.get("longrepr") or item.get("longreprtext") or ""
-        if isinstance(longrepr, list):
-            longrepr = "".join(longrepr)
-        outcome_class = (
-            "pass"
-            if outcome in {"pass", "passed"}
-            else (
-                "fail"
-                if outcome in {"fail", "failed"}
-                else "skipped" if outcome == "skipped" else "other"
-            )
-        )
-        message = (
-            item.get("message") or (longrepr.splitlines()[0] if longrepr else "") or "—"
-        )
-        entries.append(
-            {
-                "module": module,
-                "short_name": short_name,
-                "outcome": outcome,
-                "duration": duration,
-                "longrepr": longrepr,
-                "message": message,
-                "outcome_class": outcome_class,
-            }
-        )
-        total_duration += duration
-    return entries, total_duration
-
-
-def _summarize(data: dict) -> tuple[dict[str, int], dict]:
-    tests = data.get("tests", [])
-    counts = {"passed": 0, "failed": 0, "skipped": 0, "other": 0}
-    for test in tests:
-        outcome = test.get("outcome", "").lower()
-        if outcome in {"pass", "passed"}:
-            counts["passed"] += 1
-        elif outcome in {"fail", "failed"}:
-            counts["failed"] += 1
-        elif outcome == "skipped":
-            counts["skipped"] += 1
-        else:
-            counts["other"] += 1
-    total = len(tests)
-    pass_rate = round((counts["passed"] / total * 100) if total else 0, 1)
-    return counts, {"total": total, "pass_rate": pass_rate}
-
-
-def _render_html_report(json_path: Path, html_path: Path, css_path: Path) -> None:
-    if not json_path.exists():
-        raise FileNotFoundError(f"Pytest JSON report not found: {json_path}")
-
-    with json_path.open() as handle:
-        payload = json.load(handle)
-
-    summary = payload.get("summary", {})
-    counts, base = _summarize(payload)
-    tests_context, total_duration = _build_test_context(payload.get("tests", []))
-    summary_context = {
-        "total": base["total"],
-        "pass_rate": base["pass_rate"],
-        "duration": f"{total_duration:.2f}s",
-    }
-    failure_ratio = f"{counts['failed']}/{base['total'] or 1}"
-
-    env = Environment(
-        loader=FileSystemLoader(searchpath=str(Path(__file__).parent)),
-        autoescape=select_autoescape(["html", "xml"]),
-    )
-    template = env.from_string(REPORT_TEMPLATE)
-    _write_css(css_path)
-    html_content = template.render(
-        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
-        duration=summary_context["duration"],
-        summary=summary_context,
-        counts={
-            "passed": counts["passed"],
-            "failed": counts["failed"],
-            "skipped": counts["skipped"],
-            "pass_rate": summary_context["pass_rate"],
-        },
-        failure_ratio=failure_ratio,
-        tests=tests_context,
-    )
-
-    html_path.write_text(html_content, encoding="utf-8")
-
-
-def _write_css(css_path: Path) -> None:
-    css_path.write_text(REPORT_CSS, encoding="utf-8")
-
-
-def _run_pytest_with_reports(paths: dict[str, Path], root: Path) -> int:
     cmd = [
         sys.executable,
         "-m",
         "pytest",
-        "--html",
-        str(paths["html"]),
-        "--self-contained-html",
         "--json-report",
-        "--json-report-file",
-        str(paths["json"]),
-        "tests",
+        f"--json-report-file={JSON_PATH}",
     ]
-    print("Running:", " ".join(cmd))
-    result = subprocess.run(cmd, cwd=root)
+
+    print("Running pytest...")
+    result = subprocess.run(cmd, cwd=ROOT)
     return result.returncode
 
 
-def _convert_json_to_excel(json_path: Path, excel_path: Path) -> None:
-    if not json_path.exists():
-        raise FileNotFoundError(f"Pytest JSON report not found: {json_path}")
-    with json_path.open() as handle:
-        payload = json.load(handle)
+# ================= STEP 2: PROCESS JSON =================
+def process_json():
+    with open(JSON_PATH) as f:
+        data = json.load(f)
 
-    cases = []
-    for case in payload.get("tests", []):
-        outcome = case["outcome"]
-        expected = "Pass" if outcome == "passed" else "Pass"
-        actual = "Pass" if outcome == "passed" else case.get("longrepr", "Fail")
-        result = outcome.upper()
+    tests = []
+    counts = {"passed": 0, "failed": 0, "skipped": 0}
 
-        cases.append(
+    for t in data.get("tests", []):
+        outcome = t.get("outcome", "")
+
+        if outcome in ["passed", "pass"]:
+            status = "pass"
+            counts["passed"] += 1
+        elif outcome in ["failed", "fail"]:
+            status = "fail"
+            counts["failed"] += 1
+        else:
+            status = "skipped"
+            counts["skipped"] += 1
+
+        tests.append(
             {
-                "Test case name": case["nodeid"],
-                "Expected": expected,
-                "Actual": actual,
-                "Result": result,
+                "name": t.get("nodeid"),
+                "status": status,
+                "duration": round(t.get("duration", 0), 2),
+                "message": (t.get("longrepr") or "")[:150],
             }
         )
 
-    dataframe = pd.DataFrame(
-        cases, columns=["Test case name", "Expected", "Actual", "Result"]
+    total = len(tests)
+    return tests, counts, total, data
+
+
+# ================= STEP 3: HTML =================
+def generate_html(tests, counts, total):
+    template = Template(HTML_TEMPLATE)
+
+    html = template.render(
+        time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        total=total,
+        passed=counts["passed"],
+        failed=counts["failed"],
+        skipped=counts["skipped"],
+        tests=tests,
     )
-    dataframe.to_excel(excel_path, index=False)
-    print("Excel report written to", excel_path)
+
+    HTML_PATH.write_text(html, encoding="utf-8")
+    print("HTML generated:", HTML_PATH)
 
 
-def _should_run_pytest() -> bool:
-    return os.getenv("RUN_PYTEST", "true").lower() not in ("false", "0", "no")
+# ================= STEP 4: EXCEL =================
+def generate_excel(data):
+    rows = []
+
+    for t in data.get("tests", []):
+        rows.append(
+            {
+                "Test Case": t.get("nodeid"),
+                "Result": t.get("outcome").upper(),
+                "Duration": t.get("duration"),
+                "Message": t.get("longrepr", ""),
+            }
+        )
+
+    df = pd.DataFrame(rows)
+    df.to_excel(EXCEL_PATH, index=False)
+
+    print("Excel generated:", EXCEL_PATH)
 
 
-def main() -> int:
-    paths = _prepare_directories()
-    project_root = Path(CONFIG_ROOT)
-    exit_code = 0
+# ================= MAIN =================
+def main():
+    exit_code = run_pytest()
 
-    if _should_run_pytest():
-        exit_code = _run_pytest_with_reports(paths, project_root)
-        if exit_code != 0:
-            print("Pytest finished with failures; reports may still be usable.")
-    else:
-        if not paths["json"].exists():
-            raise FileNotFoundError(f"Pytest JSON report not found: {paths['json']}")
-        print("Skipping pytest execution because RUN_PYTEST=false")
+    tests, counts, total, data = process_json()
 
-    try:
-        _render_html_report(paths["json"], paths["html"], paths["css"])
-        _convert_json_to_excel(paths["json"], paths["excel"])
-    except Exception as exc:  # pragma: no cover
-        print("Failed to convert JSON report to Excel:", exc)
-        if exit_code == 0:
-            exit_code = 1
+    generate_html(tests, counts, total)
+    generate_excel(data)
+
+    if exit_code != 0:
+        print("Some tests failed")
+
     return exit_code
 
 

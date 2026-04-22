@@ -55,3 +55,5 @@ CREATE_NEW_MODEL = os.getenv(
 UPDATE_MODEL = os.getenv(
     "UPDATE_MODEL", "http://lct-a4g-qa.accoladeelectronics.com/model-firmware/11"
 )
+
+IMEI = os.getenv("IMEI")

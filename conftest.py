@@ -4,6 +4,7 @@ import pytest
 from playwright.sync_api import sync_playwright
 from config.config import (
     BASE_URL,
+    IMEI,
     BROWSER,
     DASHBOARD_URL,
     ROLE_GROUP_URL,
@@ -171,7 +172,7 @@ def role_group_page(page):
 
 @pytest.fixture
 def device_details_page(page):
-    device = "866677075606341"
+    device = IMEI
 
     base = BasePage(page)
     dashboard = DashboardPage(page)
