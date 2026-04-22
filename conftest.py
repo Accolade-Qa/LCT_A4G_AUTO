@@ -15,6 +15,8 @@ from config.config import (
     PASSWORD,
 )
 from config.global_var import SCREENSHOT_PATH
+from pages.base_page import BasePage
+from pages.dashboard_page import DashboardPage
 from pages.device_details_page import DeviceDetailsPage
 from pages.login_page import LoginPage
 
@@ -169,9 +171,21 @@ def role_group_page(page):
 
 @pytest.fixture
 def device_details_page(page):
-    from pages.device_details_page import DeviceDetailsPage
+    device = "866677075606341"
 
+    base = BasePage(page)
+    dashboard = DashboardPage(page)
     device_details = DeviceDetailsPage(page)
-    device_details.go_to_device_details_page(DEVICE_DETAILS_URL)
-    logger.info("Device Details page fixture ready")
+
+    base.navigate_to(DASHBOARD_URL)
+
+    result = dashboard.search_helper.run_search(device)
+    assert result["success"], f"Search failed: {result['error']}"
+    assert result["results_found"] == 1
+
+    dashboard.click_on_view_device_in_table(device)
+
+    page.wait_for_url("**/device-details")
+    page.wait_for_load_state("networkidle")
+
     return device_details

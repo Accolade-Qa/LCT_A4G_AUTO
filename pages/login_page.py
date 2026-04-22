@@ -3,39 +3,50 @@ import re
 
 from pytest_playwright.pytest_playwright import page
 
-from utils.excel_report import write_result   # ✅ ADD THIS
-from utils.logger import get_logger           # (if using custom logger)
+from utils.excel_report import write_result  # ✅ ADD THIS
+from utils.logger import get_logger  # (if using custom logger)
 from playwright.async_api import expect
-from streamlit import text, title
 from pages.base_page import BasePage
 from datetime import datetime
-from config.config import BASE_URL, PAGE_TITLE, USERNAME, PASSWORD,INVALID_USERNAME,INVALID_PASSWORD,DASHBOARD_URL
- 
+from config.config import (
+    BASE_URL,
+    PAGE_TITLE,
+    USERNAME,
+    PASSWORD,
+    INVALID_USERNAME,
+    INVALID_PASSWORD,
+    DASHBOARD_URL,
+)
+
+
 class LoginPage(BasePage):
- 
+
     def __init__(self, page):
         super().__init__(page)
         self.logger = logging.getLogger(self.__class__.__name__)
-        
+
         # ✅ Enable locators
         self.username = page.get_by_placeholder("Your Email Address")
         self.password = page.get_by_placeholder("Password")
-        self.login_btn = page.get_by_role("button", name=re.compile(r"Sign in", re.IGNORECASE))
+        self.login_btn = page.get_by_role(
+            "button", name=re.compile(r"Sign in", re.IGNORECASE)
+        )
         self.errormsg = page.get_by_text("Minimum 6 characters required.")
-        self.wrongusername =page.get_by_text("Minimum 6 characters required.", exact=True)
+        self.wrongusername = page.get_by_text(
+            "Minimum 6 characters required.", exact=True
+        )
         self.emptyusername = page.locator("mat-error")
         self.page_title1 = page.locator("div.site-name-text-section:visible")
         self.footer = page.locator("div.footer-col.footer-left")
         self.footer_links = page.locator("b:has-text('Accolade Electronics Pvt. Ltd.')")
         self.build_version = page.locator("body app-root app-footer span:nth-child(1)")
         self.valid_email_error = page.locator("mat-error")
-        
-        
+
     # 🔹 Open Login Page
     def load(self, url=BASE_URL):
         self.page.goto(url, timeout=60000)
         self.page.wait_for_load_state("domcontentloaded")
- 
+
     # 🔹New Method 1: Perform Login
     def login(self, username=USERNAME, password=PASSWORD):
         self.username.fill(username)
@@ -43,17 +54,19 @@ class LoginPage(BasePage):
         self.login_btn.click()
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_url(DASHBOARD_URL, timeout=60000)
-   
-# 🔹 New Method 2: Invalid Login Method
-    def login_with_invalid_credentials(self, username=INVALID_USERNAME, password=INVALID_PASSWORD):
+
+    # 🔹 New Method 2: Invalid Login Method
+    def login_with_invalid_credentials(
+        self, username=INVALID_USERNAME, password=INVALID_PASSWORD
+    ):
         self.logger.info(f"Login started | Username: {username}")
         self.username.fill(username)
         self.password.fill(password)
         self.login_btn.click()
         self.errormsg.wait_for(state="visible", timeout=5000)
         return self.errormsg.inner_text().strip()
-     
-#  🔹 New Method 3: Login with username
+
+    #  🔹 New Method 3: Login with username
     def login_with_usernameonly(self, username=USERNAME):
         self.username.fill(username)
         self.page.keyboard.press("Tab")
@@ -62,7 +75,7 @@ class LoginPage(BasePage):
         error_text = self.wrongusername.inner_text().strip()
         print(f"Captured Error: [{error_text}]")
         return error_text
-  
+
     def login_with_passwordonly(self, username="", password=PASSWORD):
         try:
             self.logger.info(f"Login with password only: {password}")
@@ -74,14 +87,14 @@ class LoginPage(BasePage):
             self.emptyusername.first.wait_for(state="visible", timeout=5000)
             self.page.wait_for_timeout(300)  # 🔥 stability
             error_text = self.emptyusername.first.inner_text().strip()
-            print(f"Captured Error: [{error_text}]")   # 🔥 print output
+            print(f"Captured Error: [{error_text}]")  # 🔥 print output
             self.logger.info(f"Captured Error: {error_text}")
             return error_text
         except Exception as e:
             self.logger.error(f"Error in password-only login: {e}")
             raise
-            
-    def verify_page_title(self, page_title =PAGE_TITLE):
+
+    def verify_page_title(self, page_title=PAGE_TITLE):
         try:
             self.logger.info("Verifying page title...")
             self.page.wait_for_load_state("load")
@@ -92,7 +105,7 @@ class LoginPage(BasePage):
         except Exception as e:
             self.logger.error(f"Error while verifying page title: {e}")
             raise
-           
+
     def get_error_message(self):
         try:
             self.logger.info("Waiting for error messages...")
@@ -108,12 +121,10 @@ class LoginPage(BasePage):
             return messages
         except Exception as e:
             self.logger.error(f"No error message found: {str(e)}")
-            return []    
-    
-    
-      # 🔹 Wait for footer
-    
-    
+            return []
+
+    # 🔹 Wait for footer
+
     def verify_footer_links_present(self):
         try:
             self.logger.info("Verifying footer links...")
@@ -131,8 +142,7 @@ class LoginPage(BasePage):
         except Exception as e:
             self.logger.error(f"Footer verification failed: {str(e)}")
             raise
-        
-    
+
     def verify_footer_links_clickable(self):
         try:
             self.logger.info("Verifying footer links are clickable...")
@@ -147,15 +157,12 @@ class LoginPage(BasePage):
                 text = element.inner_text().strip()
                 is_clickable = element.is_enabled()
                 self.logger.info(f"Link {i+1}: {text} | Clickable: {is_clickable}")
-                results.append({
-                    "text": text,
-                    "clickable": is_clickable
-                })
+                results.append({"text": text, "clickable": is_clickable})
             return results
         except Exception as e:
             self.logger.error(f"Footer clickable verification failed: {str(e)}")
             raise
-       
+
     def verify_footer_year(self):
         try:
             self.logger.info("Verifying footer year...")
@@ -168,7 +175,7 @@ class LoginPage(BasePage):
         except Exception as e:
             self.logger.error(f"Footer year verification failed: {str(e)}")
             raise
-    
+
     def get_build_version(self):
         try:
             self.logger.info("Fetching build version...")

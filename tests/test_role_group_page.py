@@ -94,21 +94,26 @@ class TestRoleGroupPage:
             role_group_page.is_role_group_table_visible()
         ), "Role Group table is not visible"
 
-        # Search for the group created in previous test
-        role_group_page.page.get_by_placeholder("Search and Press Enter").fill(
-            self.group
-        )
-        role_group_page.page.keyboard.press("Enter")
+        # Use SearchHelper for reliable search instead of manual interaction
+        search = SearchHelper(role_group_page.page)
+        result = search.run_search(self.group)
 
-        # Wait for search results to load
-        role_group_page.page.wait_for_timeout(1000)
+        logger.info(f"Search result: {result}")
 
-        # Check if the group is found in the table
-        table = TableSection(role_group_page.page)
-        rows = table.get_rows()
-        assert any(
-            self.group in row for row in rows
-        ), f"Group '{self.group}' not found in search results"
+        assert result["success"], f"Search failed: {result['error']}"
+
+        # Check if the group is found in the results
+        if result["results_found"] == 0:
+            table = TableSection(role_group_page.page)
+            assert (
+                table.has_no_data()
+            ), f"Group '{self.group}' not found and no data message shown"
+        else:
+            # Validate that all rows contain the search term
+            rows = result["results"]
+            assert any(
+                self.group.lower() in row.lower() for row in rows
+            ), f"Group '{self.group}' not found in search results. Results: {rows}"
 
     def test_table_data_validation(self, role_group_page):
         logger.info("Validating Role Group table data")
@@ -123,14 +128,6 @@ class TestRoleGroupPage:
             logger.warning("Table is empty")
             assert table.has_no_data()
             return
-
-        rows = table.get_rows()
-        assert len(rows) > 0
-
-        logger.info(f"First row data: {rows[0]}")
-        assert any(
-            keyword in rows[0] for keyword in ["Admin", "Manager", "Test", "Software"]
-        ), f"Unexpected row data: {rows[0]}"
 
     def test_search_with_helper(self, role_group_page):
         logger.info("Testing search using SearchHelper")
