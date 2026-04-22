@@ -31,7 +31,9 @@ class TableSection:
         logger.info("Table headers retrieved: %s", headers)
         return headers
 
-    def get_rows(self, row_selector: str = "tbody tr") -> list[str]:
+    def get_rows(
+        self, row_selector: str = ".component-body table tbody tr"
+    ) -> list[str]:
         table = self.wait_for_table()
         rows = table.locator(row_selector)
         values = [rows.nth(i).inner_text() for i in range(rows.count())]
