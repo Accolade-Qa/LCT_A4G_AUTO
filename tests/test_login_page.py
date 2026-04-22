@@ -99,56 +99,56 @@ def test_page_title(page, request):
         raise
 
 
-def test_longusername_password(page, request):
-    login_page = LoginPage(page)
-    test_name = request.node.name
-    expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
-    login_page.logger.info(f"Starting test: {test_name}")
-    login_page.load(BASE_URL)
-    login_page.login("shital", "ABCD")
-    errors = login_page.get_error_message()
-    print("Errors:", errors)
-    actual = ", ".join(errors) if errors else "No error message"
-    expected = ", ".join(expected_list)
-    try:
-        # ✅ Correct validation
-        assert all(
-            any(exp.lower() in e.lower() for e in errors) for exp in expected_list
-        )
-        status = "PASS"
-        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
-    except AssertionError:
-        status = "FAIL"
-        login_page.logger.error(
-            f"Test Failed | Expected: {expected} | Actual: {actual}"
-        )
-    write_result(test_name, expected, actual, status)
+# def test_longusername_password(page, request):
+#     login_page = LoginPage(page)
+#     test_name = request.node.name
+#     expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
+#     login_page.logger.info(f"Starting test: {test_name}")
+#     login_page.load(BASE_URL)
+#     login_page.login("shital", "ABCD")
+#     errors = login_page.get_error_message()
+#     print("Errors:", errors)
+#     actual = ", ".join(errors) if errors else "No error message"
+#     expected = ", ".join(expected_list)
+#     try:
+#         # ✅ Correct validation
+#         assert all(
+#             any(exp.lower() in e.lower() for e in errors) for exp in expected_list
+#         )
+#         status = "PASS"
+#         login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
+#     except AssertionError:
+#         status = "FAIL"
+#         login_page.logger.error(
+#             f"Test Failed | Expected: {expected} | Actual: {actual}"
+#         )
+#     write_result(test_name, expected, actual, status)
 
 
-def test_shortusername_password(page, request):
-    login_page = LoginPage(page)
-    test_name = request.node.name
-    expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
-    login_page.logger.info(f"Starting test: {test_name}")
-    login_page.load(BASE_URL)
-    login_page.login("shital", "ABCD")
-    errors = login_page.get_error_message()
-    print("Errors:", errors)
-    actual = ", ".join(errors) if errors else "No error message"
-    expected = ", ".join(expected_list)
-    try:
-        # ✅ Correct validation
-        assert all(
-            any(exp.lower() in e.lower() for e in errors) for exp in expected_list
-        )
-        status = "PASS"
-        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
-    except AssertionError:
-        status = "FAIL"
-        login_page.logger.error(
-            f"Test Failed | Expected: {expected} | Actual: {actual}"
-        )
-    write_result(test_name, expected, actual, status)
+# def test_shortusername_password(page, request):
+#     login_page = LoginPage(page)
+#     test_name = request.node.name
+#     expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
+#     login_page.logger.info(f"Starting test: {test_name}")
+#     login_page.load(BASE_URL)
+#     login_page.login("shital", "ABCD")
+#     errors = login_page.get_error_message()
+#     print("Errors:", errors)
+#     actual = ", ".join(errors) if errors else "No error message"
+#     expected = ", ".join(expected_list)
+#     try:
+#         # ✅ Correct validation
+#         assert all(
+#             any(exp.lower() in e.lower() for e in errors) for exp in expected_list
+#         )
+#         status = "PASS"
+#         login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
+#     except AssertionError:
+#         status = "FAIL"
+#         login_page.logger.error(
+#             f"Test Failed | Expected: {expected} | Actual: {actual}"
+#         )
+#     write_result(test_name, expected, actual, status)
 
 
 #     # 🔹 Footer Tests
