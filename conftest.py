@@ -10,7 +10,7 @@ from config.config import (
     ROLE_GROUP_URL,
     ROLE_MANAGEMENT_URL,
     SIM_DATA_DETAILS_URL,
-    DEVICE_DETAILS_URL,
+    OTA_URL,
     HEADLESS,
     USERNAME,
     PASSWORD,
@@ -190,3 +190,15 @@ def device_details_page(page):
     page.wait_for_load_state("networkidle")
 
     return device_details
+
+
+@pytest.fixture
+def ota_page(page):
+    from pages.ota_page import OtaPage
+    from pages.base_page import BasePage
+
+    ota = OtaPage(page)
+    base = BasePage(page)
+
+    base.navigate_to(OTA_URL)
+    return ota

@@ -26,6 +26,9 @@ DEVICE_DETAILS_URL = os.getenv(
     "DEVICE_DETAILS_URL", "http://lct-a4g-qa.accoladeelectronics.com/device-details"
 )
 
+OTA_URL = os.getenv(
+    "OTA_URL", "http://lct-a4g-qa.accoladeelectronics.com/ota-batch-page"
+)
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")
 BROWSER = os.getenv("BROWSER", "chromium")
