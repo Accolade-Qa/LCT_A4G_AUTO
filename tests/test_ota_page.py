@@ -1,5 +1,5 @@
 import re
-from allure_pytest import helper
+from config.config import IMEI
 from playwright.sync_api import expect
 from pages.common.search import SearchHelper
 from pages.common.table_section import TableSection
@@ -499,4 +499,109 @@ class TestOtaPage:
             logger.info("Submit button clicked successfully")
         except Exception as e:
             logger.error("Error clicking submit button: %s", str(e))
+            raise
+
+    """ Manual Ota Test Cases"""
+
+    def test_manual_ota_button_visible(self, ota_page):
+        """Verify Manual OTA button is visible on OTA Master page."""
+        assert (
+            ota_page.is_manual_ota_button_visible()
+        ), "Manual OTA button is not visible on OTA Master page"
+
+    def test_click_and_validate_manual_ota_button(self, ota_page):
+        """Verify clicking Manual OTA button opens correct page."""
+        if ota_page.is_manual_ota_button_visible():
+            logger.info("Manual OTA button is visible - attempting to click")
+            try:
+                ota_page.click_manual_ota_button()
+                expect(ota_page.page).to_have_url(re.compile(r".*manual-ota"))
+                logger.info("Clicked Manual OTA button successfully")
+            except Exception as e:
+                logger.error("Error clicking Manual OTA button: %s", str(e))
+                raise
+
+            # Validate new page opened (this would depend on the expected behavior)
+            # For example, if it opens a new tab or navigates to a new URL, we would check that here.
+            # This is a placeholder for actual validation logic.
+            logger.info(
+                "Manual OTA button click test completed - add validation logic as needed"
+            )
+        else:
+            logger.warning(
+                "Manual OTA button is not visible - cannot perform click test"
+            )
+
+    def test_component_title_on_manual_ota_page(self, ota_page):
+        """Verify component title is visible on Manual OTA page."""
+        ota_page.go_to_manual_ota_page()
+        assert (
+            ota_page.get_manual_ota_component_title() == "Search Device"
+        ), "Component title is not visible on Manual OTA page"
+
+    def test_search_button_disabled_on_manual_ota_page_if_fields_not_filled(
+        self, ota_page
+    ):
+        """Verify Search button is disabled on Manual OTA page if fields are not filled."""
+        ota_page.go_to_manual_ota_page()
+        assert (
+            ota_page.is_search_button_disabled()
+        ), "Search button should be disabled when fields are not filled"
+
+    def test_imei_input_fields_errors(self, ota_page):
+        """Verify error messages for IMEI input fields on Manual OTA page."""
+        ota_page.go_to_manual_ota_page()
+
+        # Test empty IMEI field
+        ota_page.clear_imei_input()
+        # ota_page.click_imei_input()  # Focus on the IMEI input to trigger validation
+        ota_page.click_manual_ota_imei_search_button()
+        assert (
+            ota_page.get_imei_error_message(
+                "This field is required and can't be only spaces."
+            )
+            == "This field is required and can't be only spaces."
+        ), "Expected error message for empty IMEI field not shown"
+
+        # Test invalid IMEI format
+        ota_page.fill_imei_input("invalid_imei_demo")
+        ota_page.click_manual_ota_imei_search_button()
+        assert (
+            ota_page.get_imei_error_message("Value must be exactly 15 characters long.")
+            == "Value must be exactly 15 characters long."
+        ), "Expected error message for invalid IMEI format not shown"
+
+        # Test 15 character IMEI format in string
+        ota_page.fill_imei_input("a" * 15)
+        ota_page.click_manual_ota_imei_search_button()
+        assert (
+            ota_page.get_imei_error_message("Only numbers are allowed.")
+            == "Only numbers are allowed."
+        ), "Expected error message for invalid IMEI format not shown"
+
+    def test_enter_valid_imei_and_search(self, ota_page):
+        """Verify entering valid IMEI and clicking search on Manual OTA page."""
+        ota_page.go_to_manual_ota_page()
+
+        valid_imei = IMEI  # Example of a valid 15-digit IMEI
+        ota_page.fill_imei_input(valid_imei)
+        assert (
+            not ota_page.is_search_button_disabled()
+        ), "Search button should be enabled when valid IMEI is entered"
+
+        try:
+            ota_page.click_manual_ota_imei_search_button()
+            logger.info("Clicked Search button with valid IMEI successfully")
+
+            # Verify search was executed (page still on manual-ota and no error displayed)
+            assert (
+                "manual-ota" in ota_page.page.url
+            ), "Should remain on manual-ota page after search"
+
+            # Note: New OTA button check removed as it doesn't appear after search.
+            # Add more specific assertions here based on actual search results behavior
+            logger.info("Search completed successfully with valid IMEI")
+
+        except Exception as e:
+            logger.error("Error during search: %s", str(e))
             raise

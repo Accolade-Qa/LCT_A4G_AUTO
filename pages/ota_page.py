@@ -1,3 +1,5 @@
+import re
+
 from pages.base_page import BasePage
 from pages.common.search import SearchHelper
 from pages.common.table_section import TableSection
@@ -28,6 +30,7 @@ class OtaPage(BasePage):
     EXAMPLE_FIELD = "input[formcontrolname='otaCommandExample']"
     INPUT_FIELD_REQUIRED_DROPDOWN = "mat-select[formcontrolname='isInputFieldRequired']"
     SUBMIT_BUTTON = "button:has-text('Submit')"
+    SEARCH_BUTTON = "button:has-text('Search search')"
     MAT_OPTION = "mat-option"
 
     def __init__(self, page):
@@ -430,6 +433,19 @@ class OtaPage(BasePage):
         logger.debug("Submit button disabled state: %s", is_disabled)
         return is_disabled
 
+    def is_search_button_disabled(self) -> bool:
+        """Check if Search button is disabled.
+
+        Returns:
+            bool: True if search button is disabled, False otherwise
+        """
+        logger.debug("Checking if Search button is disabled")
+        search_button = self.page.locator(self.SEARCH_BUTTON)
+        search_button.wait_for(state="visible")
+        is_disabled = search_button.is_disabled()
+        logger.debug("Search button disabled state: %s", is_disabled)
+        return is_disabled
+
     def is_submit_button_enabled(self) -> bool:
         """Check if Submit button is enabled.
 
@@ -442,3 +458,150 @@ class OtaPage(BasePage):
         is_enabled = not submit_button.is_disabled()
         logger.debug("Submit button enabled state: %s", is_enabled)
         return is_enabled
+
+    """ Manual OTA Page Methods"""
+
+    def go_to_manual_ota_page(self) -> None:
+        """Navigate to Manual OTA page by clicking the button.
+
+        Raises:
+            Exception: If Manual OTA page button is not visible
+        """
+        logger.debug("Navigating to Manual OTA page")
+
+        self.page.get_by_text("Manual OTA open_in_new").click()
+        self.page.wait_for_url("**/manual-ota*")
+
+    def is_manual_ota_button_visible(self) -> bool:
+        """Check if Manual OTA button is visible.
+
+        Returns:
+            bool: True if Manual OTA button is visible, False otherwise
+        """
+        logger.debug("Checking visibility of Manual OTA button")
+        manual_ota_button = self.page.get_by_text("Manual OTA open_in_new")
+        return manual_ota_button.is_visible()
+
+    def click_manual_ota_button(self) -> None:
+        """Click the Manual OTA button."""
+        logger.debug("Clicking Manual OTA button")
+        manual_ota_button = self.page.get_by_text("Manual OTA open_in_new")
+        manual_ota_button.wait_for(state="visible")
+        manual_ota_button.click()
+
+    def get_manual_ota_component_title(self) -> str:
+        """Get the component title text from Manual OTA page.
+
+        Returns:
+            str: The component title text, or empty string if not found
+        """
+        logger.debug("Retrieving Manual OTA component title")
+        try:
+            component_title = self.page.locator("h6:has-text('Search Device')")
+            if component_title.is_visible():
+                title_text = component_title.inner_text()
+                logger.debug("Manual OTA component title: %s", title_text)
+                return title_text
+            else:
+                logger.warning("Manual OTA component title not visible")
+                return ""
+        except Exception as e:
+            logger.warning("Error retrieving Manual OTA component title: %s", str(e))
+            return ""
+
+    def clear_imei_input(self) -> None:
+        """Clear the IMEI input field on Manual OTA page."""
+        logger.debug("Clearing IMEI input field")
+        imei_input = self.page.locator("input[formcontrolname='imei']")
+        imei_input.wait_for(state="visible")
+        imei_input.fill("")
+
+    def click_manual_ota_imei_search_button(self) -> None:
+        """Click the Search button on Manual OTA page.
+
+        Note: Uses force=True to click even when disabled, which is needed for validation testing.
+        """
+        logger.debug("Clicking Manual OTA Search button")
+        search_button = self.page.locator("//button[@class='submit-button']")
+        search_button.wait_for(state="visible")
+        search_button.click(force=True)
+
+    def get_imei_error_message(self, error) -> str:
+        """Get the error message text related to IMEI input on Manual OTA page.
+
+        Returns:
+            str: The error message text, or empty string if not found
+        """
+        logger.debug("Retrieving IMEI error message")
+        try:
+            # Use get_by_text to avoid CSS selector escaping issues with apostrophes
+            error_message = self.page.get_by_text(error, exact=True)
+            if error_message.is_visible():
+                message_text = error_message.inner_text().strip()
+                logger.debug("IMEI error message: %s", message_text)
+                return message_text
+            else:
+                logger.warning("IMEI error message not visible")
+                return ""
+        except Exception as e:
+            logger.warning("Error retrieving IMEI error message: %s", str(e))
+            return ""
+
+    def fill_imei_input(self, imei: str) -> None:
+        """Fill the IMEI input field on Manual OTA page.
+
+        Args:
+            imei: IMEI number to enter in the input field
+        """
+        logger.debug("Filling IMEI input field with: %s", imei)
+        imei_input = self.page.locator("input[formcontrolname='imei']")
+        imei_input.wait_for(state="visible")
+        imei_input.fill(imei)
+
+    def is_new_ota_button_visible(self) -> bool:
+        """Check if New OTA button is visible on Manual OTA page.
+
+        Returns:
+            bool: True if New OTA button is visible, False otherwise
+        """
+        logger.debug("Checking visibility of New OTA button on Manual OTA page")
+        try:
+            # Try multiple locator strategies in order of preference
+            locators = [
+                ("button:has-text('New OTA')", "has-text selector"),
+                (self.page.get_by_role("button", name="New OTA"), "by-role: New OTA"),
+                ("//button[contains(text(), 'New OTA')]", "XPath with text"),
+                (
+                    self.page.get_by_text("New OTA add_circle"),
+                    "by-text: New OTA add_circle",
+                ),
+            ]
+
+            for locator, description in locators:
+                try:
+                    if isinstance(locator, str):
+                        button = self.page.locator(locator)
+                    else:
+                        button = locator
+
+                    # Wait for button to be visible with reasonable timeout
+                    button.wait_for(state="visible", timeout=3000)
+                    is_visible = button.is_visible()
+
+                    if is_visible:
+                        logger.info("New OTA button found using: %s", description)
+                        return True
+                    else:
+                        logger.debug(
+                            "Button found but not visible using: %s", description
+                        )
+                except Exception as e:
+                    logger.debug("Locator '%s' failed: %s", description, str(e))
+                    continue
+
+            logger.warning("New OTA button not found with any locator strategy")
+            return False
+
+        except Exception as e:
+            logger.error("Error checking New OTA button visibility: %s", str(e))
+            return False
