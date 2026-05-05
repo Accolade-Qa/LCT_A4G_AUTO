@@ -21,5 +21,6 @@ API_USERNAME = os.getenv("API_USERNAME", USERNAME)
 API_PASSWORD = os.getenv("API_PASSWORD", PASSWORD)
 PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
 
+GOVT_SERVER_URL = os.getenv("GOVT_SERVER_URL", "http://lct-a4g-qa.accoladeelectronics.com/govt-servers")
 # PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")
 
