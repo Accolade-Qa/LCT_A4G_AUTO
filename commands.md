@@ -2,94 +2,111 @@
 
 ## pytest
 
-Runs all tests:
+Run all tests:
 ```bash
 pytest
 ```
 
-Runs tests in specific folder:
+Run specific test file:
 ```bash
-pytest tests/
+pytest tests/test_login_page.py
 ```
 
-Runs specific test file:
-```bash
-pytest tests/test_example.py
-```
-
-Runs specific test class:
-```bash
-pytest tests/test_example.py::TestClassName
-```
-
-Runs specific test function:
-```bash
-pytest tests/test_example.py::test_function_name
-```
-
-Runs multiple folders test cases:
-```bash
-pytest tests/unit tests/integration
-```
-
-Runs test with matching keyword:
+Run test with keyword match:
 ```bash
 pytest -k "login"
 ```
 
-Runs test by marker:
+Run tests with verbose output:
 ```bash
-pytest -m smoke
+pytest -v
 ```
 
-Stop on first failure:
+Run tests and stop on first failure:
 ```bash
 pytest -x
 ```
 
-Real world command usage:
+Run tests in parallel (auto workers):
 ```bash
-pytest tests/unit -v -k "api" -x
+pytest -n auto
 ```
 
-## Common Commands
-
-Remove the `__pycache__` folders:
-```powershell
-Get-ChildItem -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+Run tests with Allure reporting:
+```bash
+pytest --alluredir=reports/allure-results
 ```
 
-Set env variable to not have the `__pycache__` folder everywhere in the project:
-```powershell
-$env:PYTHONDONTWRITEBYTECODE=1
+Run tests with HTML report:
+```bash
+pytest --html=reports/report.html --self-contained-html
 ```
 
-Generate the `.venv` in the project:
+## Setup & Environment
+
+Create virtual environment:
 ```bash
 python -m venv .venv
 ```
 
-Activate the virtual environment:
+Activate virtual environment (PowerShell):
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Upgrade pip:
+Install dependencies:
 ```bash
-python.exe -m pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-Install dependencies from requirements.txt file:
+Install Playwright browsers:
 ```bash
-pip install -r .\requirements.txt
+playwright install
 ```
 
-Hide `.xyz` folders from VS Code — add this line to settings.json file:
-```json
-"files.exclude": {
-    "**/.xyz": true,
-    "**/__pycache__": true,
-    "**/.pytest_cache": true,
-    "**/.venv": true
-}
+## Docker
+
+Build Docker image:
+```bash
+docker build -t lct-a4g-automation .
+```
+
+Run all tests in container:
+```bash
+docker run --rm lct-a4g-automation
+```
+
+Run tests with .env file:
+```bash
+docker run --rm --env-file .env lct-a4g-automation
+```
+
+Run specific test in container:
+```bash
+docker run --rm lct-a4g-automation pytest tests/test_login_page.py
+```
+
+Run tests with volume mount for reports:
+```bash
+docker run --rm -v %cd%\reports:/app/reports lct-a4g-automation pytest --alluredir=reports/allure-results
+```
+
+Run tests in parallel inside container:
+```bash
+docker run --rm lct-a4g-automation pytest -n auto
+```
+
+View running containers:
+```bash
+docker ps
+```
+
+View container logs:
+```bash
+docker logs <container_id>
+```
+
+Stop container:
+```bash
+docker stop <container_id>
 ```

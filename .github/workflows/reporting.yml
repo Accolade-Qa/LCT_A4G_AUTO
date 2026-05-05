@@ -1,0 +1,136 @@
+name: Test and Report Workflow
+
+on:
+  push:
+    branches:
+      - master
+
+  schedule:
+    - cron: '30 4 * * 1-5'  # 10:00 AM IST (Mon–Fri)
+
+env:
+  REPORT_HTML: Reports/pytests/report.html
+  REPORT_JSON: Reports/json/report.json
+  REPORT_EXCEL: Reports/excel/pytest-results.xlsx
+  REPORT_JUNIT: Reports/junit/report.xml
+
+jobs:
+  test-suite:
+    runs-on: ubuntu-latest
+    env:
+      HEADLESS: 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create virtual environment
+        run: python -m venv venv
+
+      - name: Install dependencies
+        run: |
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright
+        run: |
+          source venv/bin/activate
+          playwright install
+          npx playwright install-deps
+
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          mkdir -p Reports/pytests Reports/json Reports/junit Reports/excel
+          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' \
+            python -m pytest \
+            --html=$REPORT_HTML --self-contained-html \
+            --json-report --json-report-file=$REPORT_JSON \
+            --junitxml=$REPORT_JUNIT tests
+
+      - name: Upload reports artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: Reports
+
+  report-generator:
+    needs: test-suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download reports artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: test-reports
+          path: Reports
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Create virtual environment
+        run: python -m venv venv
+
+      - name: Install dependencies
+        run: |
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate Excel report
+        run: |
+          source venv/bin/activate
+          RUN_PYTEST=false python scripts/generate_reports.py
+
+      # 📧 SIMPLE EMAIL (STABLE)
+      - name: Send report email
+        uses: dawidd6/action-send-mail@v4
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+
+          subject: >
+            ${{ github.ref_name == 'master' && github.event_name == 'push'
+              && format('Master Test Report - Run #{0}', github.run_number)
+              || format('Test Report [{0}] - Run #{1}', github.ref_name, github.run_number) }}
+
+          body: |
+            Hello Team,
+
+            The test execution has completed successfully.
+
+            Execution Details:
+            - Repository: ${{ github.repository }}
+            - Branch: ${{ github.ref_name }}
+            - Trigger: ${{ github.event_name }}
+            - Run Number: ${{ github.run_number }}
+
+            Reports are attached for your review.
+
+            Regards,
+            Automation Bot
+
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_FROM }}
+
+          attachments: |
+            ${{ env.REPORT_HTML }}
+            ${{ env.REPORT_EXCEL }}

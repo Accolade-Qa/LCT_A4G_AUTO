@@ -4,3 +4,9 @@ pytest-playwright
 python-dotenv
 pytest-xdist
 allure-pytest
+pandas
+pytest-html
+pytest-json-report
+openpyxl
+jinja2
+streamlit

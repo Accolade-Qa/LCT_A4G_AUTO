@@ -1,0 +1,9 @@
+{
+  "project": "LCT-A4G Automation",
+  "description": "Claude instructions for generating and validating Playwright/pytest automation work.",
+  "default_agent": "assistant",
+  "commands_dir": ".claude/commands",
+  "agents_dir": ".claude/agents",
+  "rules_dir": ".claude/rules",
+  "skills_dir": ".claude/skills"
+}

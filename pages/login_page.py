@@ -12,7 +12,7 @@ from datetime import datetime
 from config.config import BASE_URL, PAGE_TITLE, USERNAME, PASSWORD,INVALID_USERNAME,INVALID_PASSWORD,DASHBOARD_URL
  
 class LoginPage(BasePage):
- 
+
     def __init__(self, page):
         super().__init__(page)
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -20,7 +20,9 @@ class LoginPage(BasePage):
         # ✅ Enable locators
         self.username = page.get_by_placeholder("Your Email Address")
         self.password = page.get_by_placeholder("Password")
-        self.login_btn = page.get_by_role("button", name=re.compile(r"Sign in", re.IGNORECASE))
+        self.login_btn = page.get_by_role(
+            "button", name=re.compile(r"Sign in", re.IGNORECASE)
+        )
         self.errormsg = page.get_by_text("Minimum 6 characters required.")
         self.email_error = page.get_by_text("Please enter a valid Email ID.", exact=True)
         self.password_error = page.get_by_text("Minimum 6 characters required.", exact=True)    

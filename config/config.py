@@ -5,7 +5,26 @@ load_dotenv()
  
 BASE_URL = os.getenv("BASE_URL")
 
+
 DASHBOARD_URL = os.getenv("DASHBOARD_URL","http://lct-a4g-qa.accoladeelectronics.com/device-dashboard-page")
+
+SIM_DATA_DETAILS_URL = os.getenv(
+    "SIM_DATA_DETAILS_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/sensorise-sim-data-details",
+)
+ROLE_MANAGEMENT_URL = os.getenv(
+    "ROLE_MANAGEMENT_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/user-role",
+)
+
+ROLE_GROUP_URL = os.getenv(
+    "ROLE_GROUP_URL", "http://lct-a4g-qa.accoladeelectronics.com/role-group"
+)
+
+DEVICE_DETAILS_URL = os.getenv(
+    "DEVICE_DETAILS_URL", "http://lct-a4g-qa.accoladeelectronics.com/device-details"
+)
+
 
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")
@@ -16,7 +35,10 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 VIDEO_RECORDING = os.getenv("VIDEO_RECORDING", "false").lower() == "true"
 INVALID_USERNAME = os.getenv("INVALID_USERNAME", "ABCD")
 INVALID_PASSWORD = os.getenv("INVALID_PASSWORD", "12345")
-API_BASE_URL = os.getenv("API_BASE_URL", "http://lct-a4g-qa.accoladeelectronics.com:9090")
+
+API_BASE_URL = os.getenv(
+    "API_BASE_URL", "http://lct-a4g-qa.accoladeelectronics.com:9090"
+)
 API_USERNAME = os.getenv("API_USERNAME", USERNAME)
 API_PASSWORD = os.getenv("API_PASSWORD", PASSWORD)
 PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
@@ -24,3 +46,19 @@ PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
 GOVT_SERVER_URL = os.getenv("GOVT_SERVER_URL", "http://lct-a4g-qa.accoladeelectronics.com/govt-servers")
 # PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")
 
+# PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")
+PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
+API_BASE_URL = os.getenv(
+    "API_BASE_URL", "http://lct-a4g-qa.accoladeelectronics.com:9090"
+)
+API_USERNAME = os.getenv("API_USERNAME")
+API_PASSWORD = os.getenv("API_PASSWORD")
+MODEL_URL = os.getenv("MODEL_URL", "http://lct-a4g-qa.accoladeelectronics.com/model")
+CREATE_NEW_MODEL = os.getenv(
+    "CREATE_NEW_MODEL", "http://lct-a4g-qa.accoladeelectronics.com/model-firmware"
+)
+UPDATE_MODEL = os.getenv(
+    "UPDATE_MODEL", "http://lct-a4g-qa.accoladeelectronics.com/model-firmware/11"
+)
+
+IMEI = os.getenv("IMEI")

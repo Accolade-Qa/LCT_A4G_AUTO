@@ -5,321 +5,169 @@
 [![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://pytest.org/)
 [![Allure](https://img.shields.io/badge/Allure-FF6B35?style=for-the-badge&logo=allure&logoColor=white)](https://docs.qameta.io/allure/)
 
-A robust end-to-end automation testing framework built with **Playwright** and **pytest** for testing the LCT-A4G Device Dashboard application.
+A Playwright + pytest automation stack that drives the LCT-A4G Device Dashboard and captures actionable test artifacts for both local experimentation and CI pipelines.
 
-## 🚀 Features
+## Overview
 
-- **Modern UI Automation**: Built with Playwright for reliable cross-browser testing
-- **Page Object Model**: Well-structured page objects for maintainable test code
-- **Comprehensive Reporting**: Allure reports with screenshots and video recordings
-- **Parallel Execution**: pytest-xdist support for faster test execution
-- **Configuration Management**: Environment-based configuration with .env support
-- **Screenshot on Failure**: Automatic screenshot capture for failed tests
-- **Cross-Browser Support**: Chromium, Firefox, and WebKit support
-- **CI/CD Ready**: Optimized for continuous integration pipelines
+- Structured around Playwright page objects, pytest fixtures, and helpers to keep test logic readable and resilient.
+- Captures screenshots, traces, and videos per the configured `.env` flags so debugging failures is faster.
+- Packs configuration for Chromium, Firefox, and WebKit runs plus optional tracing and reporting hooks.
 
-## 📋 Prerequisites
+## Prerequisites
 
-- **Python 3.8+**
-- **Git** (for cloning the repository)
-- **Virtual Environment** (recommended)
+- Python 3.8 or newer
+- Git (to clone and keep the repo in sync)
+- A supported shell (PowerShell, Command Prompt, or Bash)
+- Recommended: create an isolated virtual environment for dependencies.
 
-## 🛠️ Installation & Setup
+## Getting started
 
-### 1. Clone the Repository
-```bash
+1. **Clone the repository**
+   ```bash
 git clone <repository-url>
 cd LCT_A4G_AUTO
 ```
-
-### 2. Create Virtual Environment
-```bash
-# Windows
+2. **Create a virtual environment**
+   ```bash
 python -m venv .venv
-
-# Linux/Mac
-python3 -m venv venv
 ```
-
-### 3. Activate Virtual Environment
-```bash
-# Windows (PowerShell)
+3. **Activate the virtual environment**
+   ```bash
+# PowerShell
 .venv\Scripts\Activate.ps1
 
-# Windows (Command Prompt)
+# Command Prompt
 .venv\Scripts\activate.bat
-
-# Linux/Mac
-source venv/bin/activate
 ```
-
-### 4. Install Dependencies
-```bash
+4. **Install Python requirements**
+   ```bash
 pip install -r requirements.txt
 ```
-
-### 5. Install Playwright Browsers
-```bash
+5. **Install Playwright browsers**
+   ```bash
 playwright install
 ```
-
-### 6. Environment Configuration
-Create a `.env` file in the root directory:
-```env
-# Application URLs
+6. **Copy the `.env` template** and fill in values for your environment. A minimal example:
+   ```env
 BASE_URL=https://your-app-url.com
 DASHBOARD_URL=https://your-app-url.com/device-dashboard-page
-
-# Authentication
 APP_USERNAME=your_username
 APP_PASSWORD=your_password
-
-# Browser Configuration
 BROWSER=chromium
 HEADLESS=false
-
-# Test Configuration
 SCREENSHOT_ON_FAILURE=true
 LOG_LEVEL=INFO
 VIDEO_RECORDING=false
 ```
 
-## 📁 Project Structure
+## Configuration
+
+| Variable | Description | Suggested values |
+|----------|-------------|------------------|
+| `BASE_URL` | Root URL of the LCT-A4G application | `https://your-app-url.com` |
+| `DASHBOARD_URL` | Device dashboard landing page | `https://your-app-url.com/device-dashboard-page` |
+| `APP_USERNAME` / `APP_PASSWORD` | Credentials used during login tests | --- |
+| `BROWSER` | Playwright browser to launch | `chromium`, `firefox`, `webkit` |
+| `HEADLESS` | Run browser headless? | `true`, `false` |
+| `SCREENSHOT_ON_FAILURE` | Capture failure screenshots | `true`, `false` |
+| `VIDEO_RECORDING` | Retain video on failure | `true`, `false` |
+| `LOG_LEVEL` | Logging verbosity | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+
+Additional browser launch arguments can be injected in `conftest.py` via the `args` list for custom debugging or CI requirements.
+
+## Project layout
 
 ```
-LCT_A4G_AUTO/
-├── 📄 README.md                 # Project documentation
-├── 📄 requirements.txt          # Python dependencies
-├── 📄 pytest.ini               # pytest configuration
-├── 📄 setup.sh                 # Setup script for Linux/Mac
-├── 📄 commands.md              # Common commands reference
-├── 📄 conftest.py              # pytest fixtures and configuration
-├── 📁 config/                  # Configuration files
-│   ├── 📄 config.py           # Environment configuration
-│   └── 📄 global_var.py       # Global variables
-├── 📁 pages/                   # Page Object Model classes
-│   ├── 📄 base_page.py        # Base page class
-│   ├── 📄 login_page.py       # Login page object
-│   └── 📄 dashboard_page.py   # Dashboard page object
-├── 📁 tests/                   # Test cases
-│   ├── 📄 test_login_page.py  # Login tests
-│   └── 📄 test_dashboard_page.py # Dashboard tests
-├── 📁 utils/                   # Utility functions
-│   └── 📄 helpers.py          # Helper methods
-└── 📁 reports/                 # Test reports and artifacts
+README.md                 � project guide
+requirements.txt          � pinned dependencies
+pytest.ini                � pytest defaults and markers
+conftest.py               � fixtures, hooks, Playwright setup
+config/                   � environment helpers and global variables
+pages/                    � Playwright page objects grouped by screen
+tests/                    � pytest test modules
+utils/                    � shared helper functions
+scripts/                  � automation helpers (e.g., report generation)
+reports/                  � stored test artifacts (Allure, HTML, screenshots)
 ```
 
-## ⚙️ Configuration
+## Running tests
 
-### Browser Options
-- `BROWSER`: `chromium` (default), `firefox`, `webkit`
-- `HEADLESS`: `true`/`false` - Run browser in headless mode
+- Run the full suite: `pytest`
+- Target a file: `pytest tests/test_login_page.py`
+- Run a specific test: `pytest tests/test_login_page.py::test_login`
+- Use keywords: `pytest -k "login"`
+- Increase verbosity: `pytest -v`
+- Stop after first failure: `pytest -x`
+- Disable stdout capture: `pytest -s`
 
-### Test Options
-- `SCREENSHOT_ON_FAILURE`: `true`/`false` - Capture screenshots on test failure
-- `VIDEO_RECORDING`: `true`/`false` - Record test videos
-- `LOG_LEVEL`: `DEBUG`, `INFO`, `WARNING`, `ERROR`
+### Parallel execution
 
-### Browser Launch Parameters
-The framework supports various browser launch arguments for enhanced testing:
+- Auto workers: `pytest -n auto`
+- Fixed workers: `pytest -n 4`
 
-```python
-# In conftest.py, you can add:
-args=[
-    "--start-maximized",           # Maximize browser window
-    "--disable-web-security",      # Disable CORS for testing
-    "--no-sandbox",                # Useful in CI environments
-    "--disable-dev-shm-usage",     # Fix resource issues
-    "--disable-gpu",               # Disable GPU acceleration
-]
-```
+### Browser-specific flags
 
-## 🧪 Running Tests
-
-### Basic Test Execution
 ```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest tests/test_login_page.py
-
-# Run specific test function
-pytest tests/test_login_page.py::test_login
-
-# Run tests with keyword filter
-pytest -k "login"
-
-# Run tests in verbose mode
-pytest -v
-
-# Stop on first failure
-pytest -x
-
-# Run with detailed output
-pytest -s
-```
-
-### Parallel Execution
-```bash
-# Run tests in parallel (using all CPU cores)
-pytest -n auto
-
-# Run with specific number of workers
-pytest -n 4
-```
-
-### Browser-Specific Tests
-```bash
-# Run on specific browser
 pytest --browser chromium
 pytest --browser firefox
 pytest --browser webkit
+pytest --headed false  # handy when HEADLESS=false is not respected by default
+``` 
 
-# Run in headless mode
-pytest --headed false
-```
+### Advanced options
 
-### Advanced Options
 ```bash
-# Generate Allure reports
 pytest --alluredir=reports/allure-results
-
-# Run with video recording
 pytest --video=retain-on-failure
-
-# Run with tracing
 pytest --tracing=retain-on-failure
 ```
 
-## 📊 Reporting
+## Reporting
 
-### Allure Reports
-```bash
-# Generate and serve Allure report
-allure generate reports/allure-results --clean
-allure open reports/allure-results
+- **Allure**: `allure generate reports/allure-results --clean` then `allure open reports/allure-results`
+- **HTML**: `pytest --html=reports/report.html`
+- **Auto-generated bundle**: `python scripts/generate_reports.py` runs pytest with `--html`, `--self-contained-html`, and `--json-report` to emit:
+  - `reports/pytests/report.html` (HTML)
+  - `reports/json/report.json` (JSON)
+  - `reports/excel/pytest-results.xlsx` (Excel) via pandas transformation
+
+Set `SUITE_NAME` in your environment to customize report prefixes (default `LCT_A4G_AUTO`). Include the generated HTML/Excel when sharing results.
+
+## Development notes
+
+- **Add tests**: Drop new files in `tests/`, name them `test_*.py`, and reuse page objects.
+- **Add page objects**: Extend `pages/base_page.py` and keep locators/selectors centralized.
+- **Helper utilities**: `utils/helpers.py` exposes methods such as `maximize_browser()`, `wait_for_element()`, and `take_screenshot()` to keep tests concise.
+
+## Useful commands
+
 ```
-
-### HTML Reports
-```bash
-# Generate HTML report
-pytest --html=reports/report.html
-```
-
-### Screenshots & Videos
-- **Screenshots**: Automatically captured on test failure in `screenshots/` directory
-- **Videos**: Recorded when `VIDEO_RECORDING=true` in `.env`
-- **Traces**: Available for debugging failed tests
-
-## 🛠️ Development
-
-### Adding New Tests
-1. Create test file in `tests/` directory
-2. Follow naming convention: `test_*.py`
-3. Use page objects from `pages/` directory
-4. Add appropriate assertions
-
-### Adding New Page Objects
-1. Create page class in `pages/` directory
-2. Inherit from `BasePage`
-3. Implement page-specific methods and locators
-
-### Helper Methods
-Common utility methods are available in `utils/helpers.py`:
-- `maximize_browser()` - Maximize browser window
-- `wait_for_element()` - Wait for element visibility
-- `take_screenshot()` - Capture screenshot
-- And more...
-
-## 🔧 Common Commands
-
-### Environment Management
-```bash
-# Activate virtual environment (Windows)
-.venv\Scripts\Activate.ps1
-
-# Activate virtual environment (Linux/Mac)
-source venv/bin/activate
-
-# Deactivate virtual environment
-deactivate
-```
-
-### Cleanup
-```bash
-# Remove Python cache files
-find . -type d -name "__pycache__" -exec rm -rf {} +
-# or on Windows PowerShell:
-Get-ChildItem -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
-
-# Clean all artifacts
-rm -rf screenshots/ videos/ reports/ .pytest_cache/
-```
-
-### Dependency Management
-```bash
-# Update all packages
+.venv\Scripts\Activate.ps1  # Activate (PowerShell)
+.venv\Scripts\activate.bat  # Activate (cmd)
+deactivate                    # Exit venv
 pip install --upgrade -r requirements.txt
-
-# Add new dependency
-pip install package-name
+pip install <package-name>
 pip freeze > requirements.txt
+``` 
+
+Cleanup commands (adapt for your shell):
 ```
+# Remove generated caches and artifacts
+Get-ChildItem -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+Remove-Item -Recurse -Force screenshots/ videos/ reports/ .pytest_cache/
+``` 
 
-## 🌐 Browser Support
+## Troubleshooting
 
-| Browser | Version | Status |
-|---------|---------|--------|
-| Chromium | Latest | ✅ Supported |
-| Firefox | Latest | ✅ Supported |
-| WebKit (Safari) | Latest | ✅ Supported |
+- **Playwright browsers missing**: `playwright install`
+- **Import errors**: ensure the virtual environment is activated; verify `sys.path` with `python -c "import sys; print(sys.path)"`
+- **Pytest discovery issues**: use the `test_*.py` convention; confirm `pytest.ini` markers
+- **Env variables not read**: ensure `.env` matches keys expected in `config/config.py`
 
-## 🤝 Contributing
+## CI reporting
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+A GitHub Actions workflow (`.github/workflows/reporting.yml`) runs `scripts/generate_reports.py` on every push to `master` and every day at 10:00 UTC on `develop`. The job uses `dawidd6/action-send-mail` to email the HTML/Excel payloads; configure the repository secrets `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_TO`, and `MAIL_FROM`. Subject lines include the branch name so recipients can identify manual vs. scheduled runs.
 
-### Code Standards
-- Follow PEP 8 style guidelines
-- Use descriptive variable and function names
-- Add docstrings to all functions and classes
-- Write meaningful commit messages
+## License
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-**Browser not found error:**
-```bash
-playwright install
-```
-
-**Import errors:**
-- Ensure virtual environment is activated
-- Check Python path: `python -c "import sys; print(sys.path)"`
-
-**Test discovery issues:**
-- Ensure test files follow `test_*.py` naming convention
-- Check `pytest.ini` configuration
-
-**Environment variable issues:**
-- Ensure `.env` file exists and is properly formatted
-- Check variable names match those in `config/config.py`
-
-### Getting Help
-
-- Check existing issues on GitHub
-- Review the [commands.md](commands.md) file for additional commands
-- Enable debug logging by setting `LOG_LEVEL=DEBUG` in `.env`
-
----
-
-**Happy Testing! 🚀**
+MIT

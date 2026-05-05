@@ -1,0 +1,4 @@
+{
+  "local_agent": "assistant",
+  "notes": "Use CLAUDE.local.md for machine-specific details and avoid committing secrets."
+}
