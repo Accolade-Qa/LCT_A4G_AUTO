@@ -10,7 +10,7 @@ on:
 
 env:
   REPORT_HTML: Reports/pytests/report.html
-  REPORT_JSON: Reports/json/report.json
+  # REPORT_JSON: Reports/json/report.json
   REPORT_EXCEL: Reports/excel/pytest-results.xlsx
   REPORT_JUNIT: Reports/junit/report.xml
 
