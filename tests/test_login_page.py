@@ -1,3 +1,5 @@
+from multiprocessing.util import get_logger
+from multiprocessing.util import get_logger
 import re
 from urllib3 import request
 from conftest import page
@@ -14,14 +16,35 @@ from config.config import (
 from playwright.sync_api import expect
 from utils.excel_report import write_result
 
+logger = get_logger()
+
+logger = get_logger()
+
 
 def test_login(page, request):
     login_page = LoginPage(page)
-    login_page.load(BASE_URL)
-    print("Base URL:", BASE_URL)
-    login_page.login(USERNAME, PASSWORD)
-    page.wait_for_load_state("networkidle")
-    expect(page).to_have_url(DASHBOARD_URL)  # ✅ FIX
+    test_name = request.node.name
+    logger.info(f"Starting test: {test_name}")
+    try:
+        login_page.load(BASE_URL)
+        logger.info(f"Base URL opened: {BASE_URL}")
+        login_page.login(USERNAME, PASSWORD)
+        page.wait_for_url("**/device-dashboard-page", timeout=20000)
+        # page.wait_for_load_state("networkidle")
+        expect(page).to_have_url(DASHBOARD_URL)
+        logger.info("Login test PASSED")
+        write_result(test_name, expected=DASHBOARD_URL, actual=page.url, status="PASS")
+    except Exception as e:
+        logger.error(f"Login test FAILED: {str(e)}")
+
+        write_result(
+            test_name,
+            expected=DASHBOARD_URL,
+            actual=page.url,
+            status="FAIL",
+            error=str(e),
+        )
+        raise
 
 
 def test_invalid_login(page):
@@ -99,56 +122,54 @@ def test_page_title(page, request):
         raise
 
 
-# def test_longusername_password(page, request):
-#     login_page = LoginPage(page)
-#     test_name = request.node.name
-#     expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
-#     login_page.logger.info(f"Starting test: {test_name}")
-#     login_page.load(BASE_URL)
-#     login_page.login("shital", "ABCD")
-#     errors = login_page.get_error_message()
-#     print("Errors:", errors)
-#     actual = ", ".join(errors) if errors else "No error message"
-#     expected = ", ".join(expected_list)
-#     try:
-#         # ✅ Correct validation
-#         assert all(
-#             any(exp.lower() in e.lower() for e in errors) for exp in expected_list
-#         )
-#         status = "PASS"
-#         login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
-#     except AssertionError:
-#         status = "FAIL"
-#         login_page.logger.error(
-#             f"Test Failed | Expected: {expected} | Actual: {actual}"
-#         )
-#     write_result(test_name, expected, actual, status)
+def test_longusername_password(page, request):
+    login_page = LoginPage(page)
+    test_name = request.node.name
+    expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
+    login_page.logger.info(f"Starting test: {test_name}")
+    login_page.load(BASE_URL)
+    # ❗ Invalid input
+    login_page.login("shitalaccolade", "ABCD")
+    # ✅ NO blur, NO click — directly fetch
+    errors = login_page.get_error_message()
+    print("Errors:", errors)
+    actual = ", ".join(errors) if errors else "No error message"
+    expected = ", ".join(expected_list)
+    try:
+        assert sorted(errors) == sorted(expected_list)
+        status = "PASS"
+        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
+    except AssertionError:
+        status = "FAIL"
+        login_page.logger.error(
+            f"Test Failed | Expected: {expected} | Actual: {actual}"
+        )
+    write_result(test_name, expected, actual, status)
 
 
-# def test_shortusername_password(page, request):
-#     login_page = LoginPage(page)
-#     test_name = request.node.name
-#     expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
-#     login_page.logger.info(f"Starting test: {test_name}")
-#     login_page.load(BASE_URL)
-#     login_page.login("shital", "ABCD")
-#     errors = login_page.get_error_message()
-#     print("Errors:", errors)
-#     actual = ", ".join(errors) if errors else "No error message"
-#     expected = ", ".join(expected_list)
-#     try:
-#         # ✅ Correct validation
-#         assert all(
-#             any(exp.lower() in e.lower() for e in errors) for exp in expected_list
-#         )
-#         status = "PASS"
-#         login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
-#     except AssertionError:
-#         status = "FAIL"
-#         login_page.logger.error(
-#             f"Test Failed | Expected: {expected} | Actual: {actual}"
-#         )
-#     write_result(test_name, expected, actual, status)
+def test_shortusername_password(page, request):
+    login_page = LoginPage(page)
+    test_name = request.node.name
+    expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
+    login_page.logger.info(f"Starting test: {test_name}")
+    login_page.load(BASE_URL)
+    # ❗ Invalid input
+    login_page.login("shital", "ABCD")
+    # ✅ NO blur, NO click — directly fetch
+    errors = login_page.get_error_message()
+    print("Errors:", errors)
+    actual = ", ".join(errors) if errors else "No error message"
+    expected = ", ".join(expected_list)
+    try:
+        assert sorted(errors) == sorted(expected_list)
+        status = "PASS"
+        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
+    except AssertionError:
+        status = "FAIL"
+        login_page.logger.error(
+            f"Test Failed | Expected: {expected} | Actual: {actual}"
+        )
+    write_result(test_name, expected, actual, status)
 
 
 #     # 🔹 Footer Tests

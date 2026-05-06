@@ -1,6 +1,7 @@
-from utils.logger import get_logger  # ✅ import logger
 
+from utils.logger import get_logger   # ✅ import logger
 logger = get_logger(__name__)
+
 
 
 class BasePage:
