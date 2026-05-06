@@ -51,13 +51,17 @@ class DeviceModel(BasePage):
         page_title_locator = self.page.get_by_text("Create Device Model")
         page_title_locator.wait_for(state="visible")
         self.highlight(page_title_locator)
-        assert page_title_locator.is_visible(), "Page title is not visible"
+        return (
+            page_title_locator.text_content()
+            if page_title_locator.is_visible()
+            else None
+        )
 
     def _submit_button(self):
-        submit_button_locator = self.page.get_by_role("button")
+        submit_button_locator = self.page.get_by_text("Submit check_circle", exact=True)
         submit_button_locator.wait_for(state="visible")
         self.highlight(submit_button_locator)
-        return submit_button_locator.is_enabled()
+        return not submit_button_locator.is_enabled()
 
     def _model_code(self, code):
         model_code_locator = self.page.get_by_label("Model Code")

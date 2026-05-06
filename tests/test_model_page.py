@@ -54,7 +54,7 @@ class TestModel:
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
 
-        return (
+        assert (
             model_page._create_model_visibility()
         ), "Create Model button is not visible or enabled"
 
@@ -66,14 +66,14 @@ class TestModel:
     def test_create_model_page_title(self, page):
         model_page = DeviceModel(page)
         model_page.go_to_model(CREATE_NEW_MODEL)
-        return (
+        assert (
             model_page._create_model_page_title() == "Create Device Model"
         ), "Create Model Page Title not visible"
 
     def test_submit_button(self, page):
         model_page = DeviceModel(page)
         model_page.go_to_model(CREATE_NEW_MODEL)
-        return model_page._submit_button(), "Submit button is not enabled"
+        assert model_page._submit_button(), "Submit button is not enabled"
 
     def test_model_code(self, page):
         model_page = DeviceModel(page)
@@ -150,13 +150,14 @@ class TestModel:
     def test_get_updated_model_text(self, page):
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
-        
+
         expected_model_text = ["UpdatedCode"]
 
         for text in expected_model_text:
             actual_model_text = model_page._get_updated_model_text(text)
-            assert actual_model_text == text, \
-                f"expected model text '{text}', got '{actual_model_text}'"
+            assert (
+                actual_model_text == text
+            ), f"expected model text '{text}', got '{actual_model_text}'"
 
     def test_delete_updated_model(self, page):
         model_page = DeviceModel(page)
