@@ -1,4 +1,5 @@
 from multiprocessing.util import get_logger
+from multiprocessing.util import get_logger
 import re
 from urllib3 import request
 from conftest import page
@@ -14,6 +15,8 @@ from config.config import (
 )
 from playwright.sync_api import expect
 from utils.excel_report import write_result
+
+logger = get_logger()
 
 logger = get_logger()
 

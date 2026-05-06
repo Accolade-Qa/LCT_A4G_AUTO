@@ -8,15 +8,13 @@ class GovtServerPage(BasePage):
     def __init__(self, page):
         # super().__init__(page)
         self.page = page
-        self.logger = logging.getLogger(__name__)   # ✅ ADD THIS
-    
-           
+        self.logger = logging.getLogger(__name__)  # ✅ ADD THIS
 
         # ✅ Locator inside __init__
         # self.deviceutilitylink = page.locator("a.dropdown-toggle.ng-star-inserted:visible")
         # self.devicetab = page.get_by_text("DEVICE UTILITY", exact=True)
         # self.device_tab = page.get_by_role("link", name=re.compile(r"DEVICE UTILITY", re.IGNORECASE))
-        
+
     # ✅ Method INSIDE class
     def go_to_govtserver(self, url):
         self.logger.info(f"Opening URL: {url}")
@@ -25,7 +23,9 @@ class GovtServerPage(BasePage):
     # ✅ Method INSIDE class
     def click_device_utility_tab(self):
         self.logger.info("Opening DEVICE UTILITY tab")
-        device_tab = self.page.get_by_role("link", name=re.compile(r"DEVICE UTILITY", re.IGNORECASE))
+        device_tab = self.page.get_by_role(
+            "link", name=re.compile(r"DEVICE UTILITY", re.IGNORECASE)
+        )
         # device_tab = self.page.locator("//a[contains(text(),'DEVICE UTILITY')]")
         device_tab.wait_for(state="visible", timeout=10000)
         # Scroll into view
@@ -36,7 +36,6 @@ class GovtServerPage(BasePage):
         dropdown = self.page.locator("ul.dropdown-menu.show, ul.dropdown-menu")
         dropdown.wait_for(state="visible", timeout=10000)
         self.logger.info("DEVICE UTILITY dropdown opened successfully")
-        
 
     def click_government_servers(self):
         gov_option = self.page.locator("//a[contains(text(),'GOVERNMENT SERVERS')]")

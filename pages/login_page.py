@@ -6,19 +6,9 @@ from pytest_playwright.pytest_playwright import page
 from utils.excel_report import write_result  # ✅ ADD THIS
 from utils.logger import get_logger  # (if using custom logger)
 from playwright.async_api import expect
+from streamlit import text, title
 from pages.base_page import BasePage
 from datetime import datetime
-from config.config import (
-    BASE_URL,
-    PAGE_TITLE,
-    USERNAME,
-    PASSWORD,
-    INVALID_USERNAME,
-    INVALID_PASSWORD,
-    DASHBOARD_URL,
-)
-
-
 from config.config import (
     BASE_URL,
     PAGE_TITLE,
@@ -169,23 +159,6 @@ class LoginPage(BasePage):
         except Exception as e:
             self.logger.error(f"Footer verification failed: {str(e)}")
             raise
-
-            try:
-                self.logger.info("Verifying footer links...")
-                # ✅ Use locator directly
-                links = self.footer_links
-                count = links.count()
-                self.logger.info(f"Total footer elements found: {count}")
-                assert count > 0, "Footer text not found"
-                link_texts = []
-                for i in range(count):
-                    text = links.nth(i).inner_text().strip()
-                    link_texts.append(text)
-                    self.logger.info(f"Element {i+1}: {text}")
-                return link_texts
-            except Exception as e:
-                self.logger.error(f"Footer verification failed: {str(e)}")
-                raise
 
     def verify_footer_links_clickable(self):
         try:
