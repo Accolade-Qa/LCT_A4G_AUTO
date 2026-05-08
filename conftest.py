@@ -10,7 +10,7 @@ from config.config import (
     ROLE_GROUP_URL,
     ROLE_MANAGEMENT_URL,
     SIM_DATA_DETAILS_URL,
-    DEVICE_DETAILS_URL,
+    OTA_URL,
     HEADLESS,
     USERNAME,
     PASSWORD,
@@ -31,11 +31,11 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# ✅ Single source of truth for page zoom
+# ✅ Single source of truth for page zoom (75% = 0.75)
 ZOOM_SCRIPT = """
 () => {
     const applyZoom = () => {
-        const zoomLevel = '0.8';
+        const zoomLevel = '0.75';
 
         if (document.documentElement) {
             document.documentElement.style.zoom = zoomLevel;
@@ -72,9 +72,13 @@ def browser(playwright_instance):
 
     browser = browser_type.launch(
         headless=HEADLESS,
-        args=["--start-maximized"],
+        args=["--start-maximized", "--kiosk"],
     )
-    logger.info("Launched browser instance (%s) headless=%s", BROWSER, HEADLESS)
+    logger.info(
+        "Launched browser instance (%s) headless=%s in fullscreen mode",
+        BROWSER,
+        HEADLESS,
+    )
 
     yield browser
     logger.info("Browser instance closed")
@@ -82,11 +86,7 @@ def browser(playwright_instance):
 
 # 🔹 Context with zoom applied
 def _new_context_with_zoom(browser, **kwargs):
-    context = browser.new_context(
-        viewport={"width": 1920, "height": 1080},
-        screen={"width": 1920, "height": 1080},
-        **kwargs,
-    )
+    context = browser.new_context(viewport=None)
     context.add_init_script(ZOOM_SCRIPT)
     logger.debug("Created new browser context with zoom applied")
     return context
@@ -190,3 +190,29 @@ def device_details_page(page):
     page.wait_for_load_state("networkidle")
 
     return device_details
+
+
+@pytest.fixture
+def ota_page(page):
+    from pages.ota_page import OtaPage
+    from pages.base_page import BasePage
+
+    ota = OtaPage(page)
+    base = BasePage(page)
+
+    base.navigate_to(OTA_URL)
+    return ota
+
+
+@pytest.fixture
+def govt_server_page(page):
+    from pages.govt_server_page import GovtServerPage
+
+    govtserver = GovtServerPage(page)
+    # Navigate via menu instead of direct URL
+    govtserver.click_device_utility_tab()
+    govtserver.click_government_servers()
+
+    logger.info("Government Server page ready via UI navigation")
+
+    return govtserver

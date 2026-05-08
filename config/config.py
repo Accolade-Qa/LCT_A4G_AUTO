@@ -5,6 +5,7 @@ load_dotenv()
 
 BASE_URL = os.getenv("BASE_URL")
 
+
 DASHBOARD_URL = os.getenv(
     "DASHBOARD_URL", "http://lct-a4g-qa.accoladeelectronics.com/device-dashboard-page"
 )
@@ -26,6 +27,10 @@ DEVICE_DETAILS_URL = os.getenv(
     "DEVICE_DETAILS_URL", "http://lct-a4g-qa.accoladeelectronics.com/device-details"
 )
 
+OTA_URL = os.getenv(
+    "OTA_URL", "http://lct-a4g-qa.accoladeelectronics.com/ota-batch-page"
+)
+
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")
 BROWSER = os.getenv("BROWSER", "chromium")
@@ -41,6 +46,13 @@ API_BASE_URL = os.getenv(
 )
 API_USERNAME = os.getenv("API_USERNAME", USERNAME)
 API_PASSWORD = os.getenv("API_PASSWORD", PASSWORD)
+PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
+
+GOVT_SERVER_URL = os.getenv(
+    "GOVT_SERVER_URL", "http://lct-a4g-qa.accoladeelectronics.com/govt-servers"
+)
+# PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")
+
 # PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")
 PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
 API_BASE_URL = os.getenv(
