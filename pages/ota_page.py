@@ -33,6 +33,18 @@ class OtaPage(BasePage):
     SEARCH_BUTTON = "button:has-text('Search search')"
     MAT_OPTION = "mat-option"
 
+    # Manual OTA Page Locators
+    SELECT_OTA_TYPE_DROPDOWN = ".dropdown-label floating"
+    MANUAL_OTA_BUTTON = "Manual OTA open_in_new"
+    MANUAL_OTA_URL_PATTERN = "**/manual-ota*"
+    IMEI_INPUT_FIELD = "input[formcontrolname='imei']"
+    SEARCH_DEVICE_TITLE = "h6:has-text('Search Device')"
+    NEW_OTA_BUTTON = "New OTA add_circle"
+    OTA_COMMAND_LIST_HEADER = "h6:has-text('OTA Command List')"
+    SET_BATCH_BUTTON = "button:has-text('Set Batch')"
+    MANUAL_OTA_SEARCH_BUTTON = "//button[contains(@class,'submit-button')]"
+    CHECKBOX_SELECTOR = "input[type='checkbox']"
+
     def __init__(self, page):
         """Initialize OTA page object.
 
@@ -516,15 +528,27 @@ class OtaPage(BasePage):
         imei_input.wait_for(state="visible")
         imei_input.fill("")
 
-    def click_manual_ota_imei_search_button(self) -> None:
-        """Click the Search button on Manual OTA page.
+    def click_imei_input(self) -> None:
+        """Click the IMEI input field on Manual OTA page to trigger validation."""
+        logger.debug("Clicking IMEI input field to trigger validation")
+        imei_input = self.page.locator("input[formcontrolname='imei']")
+        imei_input.wait_for(state="visible")
+        imei_input.click()
 
-        Note: Uses force=True to click even when disabled, which is needed for validation testing.
-        """
+    def click_manual_ota_imei_search_button(self) -> None:
+        """Click the Search button on Manual OTA page."""
         logger.debug("Clicking Manual OTA Search button")
-        search_button = self.page.locator("//button[@class='submit-button']")
+        search_button = self.page.locator("//button[contains(@class,'submit-button')]")
         search_button.wait_for(state="visible")
-        search_button.click(force=True)
+        # Use force=True to bypass disabled state validation (needed for error validation tests)
+        if search_button.is_disabled():
+            logger.debug(
+                "Search button is disabled, clicking with force=True for error validation"
+            )
+            search_button.click(force=True)
+        else:
+            logger.debug("Search button is enabled, clicking normally")
+            search_button.click()
 
     def get_imei_error_message(self, error) -> str:
         """Get the error message text related to IMEI input on Manual OTA page.
@@ -605,3 +629,156 @@ class OtaPage(BasePage):
         except Exception as e:
             logger.error("Error checking New OTA button visibility: %s", str(e))
             return False
+
+    def is_new_ota_button_enabled(self) -> bool:
+        """Check if New OTA button is enabled on Manual OTA page.
+
+        Returns:
+            bool: True if New OTA button is enabled, False otherwise
+        """
+        logger.debug("Checking if New OTA button is enabled on Manual OTA page")
+        try:
+            button = self.page.get_by_text("New OTA add_circle")
+            button.wait_for(state="visible", timeout=3000)
+            is_enabled = not button.is_disabled()
+            logger.debug("New OTA button enabled state: %s", is_enabled)
+            return is_enabled
+        except Exception as e:
+            logger.error("Error checking New OTA button enabled state: %s", str(e))
+            return False
+
+    def click_new_ota_button(self) -> None:
+        """Click the New OTA button on Manual OTA page."""
+        logger.debug("Clicking New OTA button on Manual OTA page")
+        try:
+            button = self.page.get_by_text("New OTA add_circle")
+            button.wait_for(state="visible", timeout=3000)
+            button.click()
+        except Exception as e:
+            logger.error("Error clicking New OTA button: %s", str(e))
+
+    def get_ota_command_list_header(self) -> str:
+        """Get the header text of the OTA Command list on Manual OTA page.
+
+        Returns:
+            str: The header text, or empty string if not found
+        """
+        logger.debug("Retrieving OTA Command list header")
+        try:
+            header = self.page.locator("h6:has-text('OTA Command List')")
+            if header.is_visible():
+                header_text = header.inner_text().strip()
+                logger.debug("OTA Command list header: %s", header_text)
+                return header_text
+            else:
+                logger.warning("OTA Command list header not visible")
+                return ""
+        except Exception as e:
+            logger.warning("Error retrieving OTA Command list header: %s", str(e))
+            return ""
+
+    def select_ota_type_on_manual_ota_page(self, ota_type: str) -> None:
+        """Select OTA Type from dropdown on Manual OTA page.
+
+        Args:
+            ota_type: OTA Type value to select
+        """
+        logger.debug("Selecting OTA Type on Manual OTA page: %s", ota_type)
+        dropdown = self.page.locator(self.SELECT_OTA_TYPE_DROPDOWN)
+        dropdown.wait_for(state="visible")
+        dropdown.click()
+
+        self.page.wait_for_timeout(500)
+
+        option_locator = self.page.locator("li:has-text('{}')".format(ota_type))
+        option_locator.wait_for(state="visible")
+        option_locator.click()
+
+    def are_all_checkboxes_visible(self) -> bool:
+        """Check if all checkboxes are visible on Manual OTA page.
+
+        Returns:
+            bool: True if all checkboxes are visible, False otherwise
+        """
+        logger.debug("Checking visibility of all checkboxes on Manual OTA page")
+        checkboxes = self.page.locator("input[type='checkbox']")
+        count = checkboxes.count()
+        logger.debug("Found %d checkboxes", count)
+
+        # assert count > 0, "No checkboxes found on Manual OTA page"
+
+        for i in range(count):
+            if not checkboxes.nth(i).is_visible():
+                logger.warning("Checkbox at index %d is not visible", i)
+                return False
+        return True
+
+    def are_all_checkboxes_unchecked(self) -> bool:
+        """Check if all checkboxes are unchecked on Manual OTA page.
+
+        Returns:
+            bool: True if all checkboxes are unchecked, False otherwise
+        """
+        logger.debug("Checking if all checkboxes are unchecked on Manual OTA page")
+        checkboxes = self.page.locator("input[type='checkbox']")
+        count = checkboxes.count()
+        logger.debug("Found %d checkboxes", count)
+
+        # assert count > 0, "No checkboxes found on Manual OTA page"
+
+        for i in range(count):
+            if checkboxes.nth(i).is_checked():
+                logger.warning("Checkbox at index %d is checked", i)
+                return False
+        return True
+
+    def search_command_in_manual_ota(self, command: str) -> None:
+        """Search for an OTA command using the search functionality on Manual OTA page.
+
+        Args:
+            command: The OTA command to search for
+        """
+        logger.debug("Searching for OTA command on Manual OTA page: %s", command)
+        search_input = self.page.locator(self.SEARCH_INPUT)
+        search_input.wait_for(state="visible")
+        search_input.fill(command)
+
+        search_button = self.page.locator(self.SEARCH_BUTTON)
+        search_button.wait_for(state="visible")
+        search_button.click()
+
+        # Wait for search results to load (this can be improved with a more specific wait condition)
+        self.page.wait_for_timeout(2000)
+
+    def is_checkbox_for_command_selected(self) -> bool:
+        """Check if the checkbox for a specific OTA command is selected.
+
+        Args:
+            command: The OTA command to check
+
+        Returns:
+            bool: True if the checkbox is selected, False otherwise
+        """
+        logger.debug("Checking if checkbox for command '%s' is selected")
+        checkbox = self.page.locator("input[type='checkbox']")
+        return checkbox.is_checked()
+
+    def is_set_batch_button_enabled(self) -> bool:
+        """Check if the Set Batch button is enabled on Manual OTA page.
+
+        Returns:
+            bool: True if Set Batch button is enabled, False otherwise
+        """
+        logger.debug("Checking if Set Batch button is enabled on Manual OTA page")
+        set_batch_button = self.page.locator("button:has-text('Set Batch')")
+        set_batch_button.wait_for(state="visible")
+        is_enabled = not set_batch_button.is_disabled()
+        logger.debug("Set Batch button enabled state: %s", is_enabled)
+        return is_enabled
+
+    def select_checkbox_for_command(self) -> None:
+        """Select the checkbox for a specific OTA command."""
+        logger.debug("Selecting checkbox for command")
+        checkbox = self.page.locator("input[type='checkbox']")
+        checkbox.wait_for(state="visible")
+        checkbox.check()

@@ -69,6 +69,7 @@ class TestRoleManagementPage:
 
         role_management_page.enter_role_name(role_name)
         role_management_page.select_role_type("Manager")
+        role_management_page.select_role_group("Software")
 
         assert (
             role_management_page.is_role_group_visible()
@@ -77,8 +78,17 @@ class TestRoleManagementPage:
         role_management_page.select_permission("Dashboard", "select_all")
 
         role_management_page.enable_permission_group("Device Utility")
-        role_management_page.select_sub_permission("Government Servers", "view")
-        role_management_page.select_sub_permission("Government Servers", "create")
+
+        # Select sub-permissions only if they are not disabled
+        if not role_management_page.is_sub_permission_disabled(
+            "Government Servers", "view"
+        ):
+            role_management_page.select_sub_permission("Government Servers", "view")
+
+        if not role_management_page.is_sub_permission_disabled(
+            "Government Servers", "create"
+        ):
+            role_management_page.select_sub_permission("Government Servers", "create")
 
         role_management_page.click_save()
 

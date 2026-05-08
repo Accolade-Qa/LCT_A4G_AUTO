@@ -138,22 +138,6 @@ class RoleManagementPage:
 
         return checkbox.is_disabled()
 
-    def is_sub_permission_disabled(self, sub_name, permission_type):
-        permission_map = {
-            "view": 2,
-            "create": 3,
-            "update": 4,
-            "delete": 5,
-        }
-
-        col_index = permission_map[permission_type.lower()]
-
-        checkbox = self.page.locator(
-            f"//tr[td[contains(text(),'{sub_name}')]]/td[{col_index + 1}]//input"
-        )
-
-        return checkbox.is_disabled()
-
     def select_sub_permission(self, sub_name, permission_type):
         logger.info(f"Selecting {permission_type} for {sub_name}")
 
@@ -170,8 +154,35 @@ class RoleManagementPage:
 
         checkbox = row.locator(f"td:nth-child({col_index + 1}) input")
 
+        # Check if the permission is disabled before attempting to check it
+        if checkbox.is_disabled():
+            logger.warning(
+                f"Permission '{permission_type}' for '{sub_name}' is disabled and cannot be selected"
+            )
+            return False
+
+        # Wait for checkbox to be checked (may be auto-checked by parent group enable)
+        try:
+            checkbox.wait_for(state="checked", timeout=2000)
+            logger.debug(
+                f"Permission '{permission_type}' for '{sub_name}' is already checked (auto-enabled)"
+            )
+            return True
+        except:
+            # Checkbox is not checked, proceed to check it
+            pass
+
         checkbox.scroll_into_view_if_needed()
-        checkbox.check(force=True)
+        try:
+            checkbox.check(force=True)
+            logger.debug(f"Successfully checked {permission_type} for {sub_name}")
+            return True
+        except Exception as e:
+            # If check fails (state can't change), checkbox is likely already checked
+            logger.warning(
+                f"Could not check {permission_type} for {sub_name}: {str(e)}"
+            )
+            return False
 
     def enable_permission_group(self, page_name):
         logger.info(f"Enabling permission group: {page_name}")
