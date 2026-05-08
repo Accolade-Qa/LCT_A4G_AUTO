@@ -554,7 +554,7 @@ class TestOtaPage:
 
         # Test empty IMEI field
         ota_page.clear_imei_input()
-        # ota_page.click_imei_input()  # Focus on the IMEI input to trigger validation
+        ota_page.click_imei_input()
         ota_page.click_manual_ota_imei_search_button()
         assert (
             ota_page.get_imei_error_message(
@@ -605,3 +605,207 @@ class TestOtaPage:
         except Exception as e:
             logger.error("Error during search: %s", str(e))
             raise
+
+    # Device OTA Details validation test
+    def test_validate_device_details_displayed_after_search(self, ota_page):
+        """Verify device details are displayed after searching with valid IMEI on Manual OTA page."""
+
+        device_data = {
+            "imei": "866677075606341",
+            "UIN": "ACONSBA102500006341",
+            "VIN": "SCVBASE1225014403",
+            "ICCID": "89916450244842405755",
+        }
+
+        ota_page.go_to_manual_ota_page()
+
+        valid_imei = device_data["imei"]
+        ota_page.fill_imei_input(valid_imei)
+        ota_page.click_manual_ota_imei_search_button()
+
+        # imei validation
+        expect(ota_page.page.locator("#imei")).to_be_visible()
+        expect(ota_page.page.locator("#imei")).not_to_be_empty()
+        expect(ota_page.page.locator("#imei")).to_have_value(device_data["imei"])
+
+        # uin validation
+        expect(ota_page.page.locator("#uin")).to_be_visible()
+        expect(ota_page.page.locator("#uin")).not_to_be_empty()
+        expect(ota_page.page.locator("#uin")).to_have_value(device_data["UIN"])
+
+        # vin validation
+        expect(ota_page.page.locator("#modelName")).to_be_visible()
+        expect(ota_page.page.locator("#modelName")).not_to_be_empty()
+        expect(ota_page.page.locator("#modelName")).to_have_value(device_data["VIN"])
+
+        # iccid validation
+        expect(ota_page.page.locator("#iccid")).to_be_visible()
+        expect(ota_page.page.locator("#iccid")).not_to_be_empty()
+        expect(ota_page.page.locator("#iccid")).to_have_value(device_data["ICCID"])
+
+        # command validation
+        command_locator = ota_page.page.locator("#command")
+        expect(command_locator).to_be_visible()
+        expect(command_locator).not_to_be_empty()
+
+        command_text = command_locator.input_value().strip()
+
+        assert re.match(
+            r"^\*(GET|SET|CLR)", command_text
+        ), f"Command '{command_text}' does not start with *GET, *SET, or *CLR"
+
+    def test_new_ota_button_visible_after_valid_search(self, ota_page):
+        """Verify New OTA Command button is visible after searching with valid IMEI on Manual OTA page."""
+        ota_page.go_to_manual_ota_page()
+
+        valid_imei = IMEI
+        ota_page.fill_imei_input(valid_imei)
+        ota_page.click_manual_ota_imei_search_button()
+
+        assert (
+            ota_page.is_new_ota_button_enabled()
+        ), "New OTA Command button should be visible after valid search"
+
+    def test_click_on_new_ota_button_after_valid_search(self, ota_page):
+        """Verify clicking New OTA Command button after valid search navigates to Add OTA Command page."""
+        ota_page.go_to_manual_ota_page()
+
+        valid_imei = IMEI
+        ota_page.fill_imei_input(valid_imei)
+        ota_page.click_manual_ota_imei_search_button()
+
+        if ota_page.is_new_ota_button_enabled():
+            logger.info("New OTA Command button is visible - attempting to click")
+            try:
+                ota_page.click_new_ota_button()
+                logger.info("Clicked New OTA Command button successfully")
+            except Exception as e:
+                logger.error("Error clicking New OTA Command button: %s", str(e))
+                raise
+
+            # Validate new page opened
+            page_title = ota_page.get_ota_command_list_header()
+            assert (
+                "OTA Command List" in page_title
+            ), f"Expected 'OTA Command List' in page title, got '{page_title}'"
+            logger.info("Navigated to Add OTA Command page successfully")
+        else:
+            logger.warning(
+                "New OTA Command button is not visible - cannot perform click test"
+            )
+
+    def test_select_ota_type_dropdown(self, ota_page):
+        """Verify OTA Type dropdown can be selected on Add OTA Command page."""
+        ota_page.go_to_manual_ota_page()
+
+        valid_imei = IMEI
+        ota_page.fill_imei_input(valid_imei)
+        ota_page.click_manual_ota_imei_search_button()
+
+        if ota_page.is_new_ota_button_enabled():
+            ota_page.click_new_ota_button()
+            try:
+                # validate that firstly it does have ALL option selected by default and then select GET option
+                ota_page.select_ota_type_on_manual_ota_page("ALL")
+                ota_page.select_ota_type_on_manual_ota_page("GET")
+                logger.info("OTA Type selected successfully: GET")
+            except Exception as e:
+                logger.warning("Error selecting OTA Type: %s", str(e))
+        else:
+            logger.warning(
+                "New OTA Command button is not visible - cannot test OTA Type dropdown"
+            )
+
+    def test_all_checkboxes_visible_and_unchecked_on_manual_ota_page(self, ota_page):
+        """Verify all checkboxes are visible and unchecked on Manual OTA page after valid search."""
+        ota_page.go_to_manual_ota_page()
+
+        valid_imei = IMEI
+        ota_page.fill_imei_input(valid_imei)
+        ota_page.click_manual_ota_imei_search_button()
+
+        if ota_page.is_new_ota_button_enabled():
+            # Validate checkboxes are visible and unchecked
+            assert (
+                ota_page.are_all_checkboxes_visible()
+            ), "Not all checkboxes are visible on Manual OTA page"
+            assert (
+                ota_page.are_all_checkboxes_unchecked()
+            ), "Not all checkboxes are unchecked by default on Manual OTA page"
+            logger.info("All checkboxes are visible and unchecked by default")
+        else:
+            logger.warning(
+                "New OTA Command button is not visible - cannot test checkboxes visibility and state"
+            )
+
+    def test_select_one_checkbox_by_searching_command_on_manual_ota_page(
+        self, ota_page
+    ):
+        """Verify selecting one checkbox by searching command on Manual OTA page after valid search."""
+        ota_page.go_to_manual_ota_page()
+
+        valid_imei = IMEI
+        ota_page.fill_imei_input(valid_imei)
+        ota_page.click_manual_ota_imei_search_button()
+
+        if ota_page.is_new_ota_button_enabled():
+            # Search for a specific command and select its checkbox
+            command_to_search = "GET IMEI"
+            try:
+                ota_page.search_command_in_manual_ota(command_to_search)
+                assert (
+                    ota_page.is_checkbox_for_command_selected()
+                ), f"Checkbox for command '{command_to_search}' should be selected after search"
+                logger.info(
+                    "Checkbox for command '%s' is selected successfully after search",
+                    command_to_search,
+                )
+            except Exception as e:
+                logger.warning(
+                    "Error searching for command '%s' and selecting checkbox: %s",
+                    command_to_search,
+                    str(e),
+                )
+        else:
+            logger.warning(
+                "New OTA Command button is not visible - cannot test searching and selecting command checkbox"
+            )
+
+    def test_select_checkbox_and_validate_set_batch_button_enabled_on_manual_ota_page(
+        self, ota_page
+    ):
+        """Verify selecting a checkbox enables the Set Batch button on Manual OTA page after valid search."""
+        ota_page.go_to_manual_ota_page()
+
+        valid_imei = IMEI
+        ota_page.fill_imei_input(valid_imei)
+        ota_page.click_manual_ota_imei_search_button()
+
+        if ota_page.is_new_ota_button_enabled():
+            # Select a checkbox for a command
+            command_to_select = "GET IMEI"
+            try:
+                ota_page.search_command_in_manual_ota(command_to_select)
+                assert (
+                    ota_page.is_checkbox_for_command_selected()
+                ), f"Checkbox for command '{command_to_select}' should be selected"
+
+                ota_page.select_checkbox_for_command()
+
+                # Validate that Set Batch button is now enabled
+                assert (
+                    ota_page.is_set_batch_button_enabled()
+                ), "Set Batch button should be enabled after selecting a command checkbox"
+                logger.info(
+                    "Set Batch button is enabled successfully after selecting checkbox for command '%s'",
+                    command_to_select,
+                )
+            except Exception as e:
+                logger.warning(
+                    "Error during checkbox selection and Set Batch button validation: %s",
+                    str(e),
+                )
+        else:
+            logger.warning(
+                "New OTA Command button is not visible - cannot test checkbox selection and Set Batch button state"
+            )

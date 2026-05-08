@@ -1,12 +1,14 @@
 import os
 from dotenv import load_dotenv
- 
+
 load_dotenv()
- 
+
 BASE_URL = os.getenv("BASE_URL")
 
 
-DASHBOARD_URL = os.getenv("DASHBOARD_URL","http://lct-a4g-qa.accoladeelectronics.com/device-dashboard-page")
+DASHBOARD_URL = os.getenv(
+    "DASHBOARD_URL", "http://lct-a4g-qa.accoladeelectronics.com/device-dashboard-page"
+)
 
 SIM_DATA_DETAILS_URL = os.getenv(
     "SIM_DATA_DETAILS_URL",
@@ -46,7 +48,9 @@ API_USERNAME = os.getenv("API_USERNAME", USERNAME)
 API_PASSWORD = os.getenv("API_PASSWORD", PASSWORD)
 PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
 
-GOVT_SERVER_URL = os.getenv("GOVT_SERVER_URL", "http://lct-a4g-qa.accoladeelectronics.com/govt-servers")
+GOVT_SERVER_URL = os.getenv(
+    "GOVT_SERVER_URL", "http://lct-a4g-qa.accoladeelectronics.com/govt-servers"
+)
 # PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")
 
 # PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")

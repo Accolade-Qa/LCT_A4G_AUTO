@@ -1,8 +1,4 @@
-from multiprocessing.util import get_logger
-from multiprocessing.util import get_logger
 import re
-from urllib3 import request
-from conftest import page
 from pages.login_page import LoginPage
 from config.config import (
     PAGE_TITLE,
@@ -15,10 +11,9 @@ from config.config import (
 )
 from playwright.sync_api import expect
 from utils.excel_report import write_result
+from utils.logger import get_logger
 
-logger = get_logger()
-
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 def test_login(page, request):

@@ -31,11 +31,11 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# ✅ Single source of truth for page zoom
+# ✅ Single source of truth for page zoom (75% = 0.75)
 ZOOM_SCRIPT = """
 () => {
     const applyZoom = () => {
-        const zoomLevel = '0.8';
+        const zoomLevel = '0.75';
 
         if (document.documentElement) {
             document.documentElement.style.zoom = zoomLevel;
@@ -72,9 +72,13 @@ def browser(playwright_instance):
 
     browser = browser_type.launch(
         headless=HEADLESS,
-        args=["--start-maximized"],
+        args=["--start-maximized", "--kiosk"],
     )
-    logger.info("Launched browser instance (%s) headless=%s", BROWSER, HEADLESS)
+    logger.info(
+        "Launched browser instance (%s) headless=%s in fullscreen mode",
+        BROWSER,
+        HEADLESS,
+    )
 
     yield browser
     logger.info("Browser instance closed")
@@ -82,11 +86,7 @@ def browser(playwright_instance):
 
 # 🔹 Context with zoom applied
 def _new_context_with_zoom(browser, **kwargs):
-    context = browser.new_context(
-        viewport={"width": 1920, "height": 1080},
-        screen={"width": 1920, "height": 1080},
-        **kwargs,
-    )
+    context = browser.new_context(viewport=None)
     context.add_init_script(ZOOM_SCRIPT)
     logger.debug("Created new browser context with zoom applied")
     return context
