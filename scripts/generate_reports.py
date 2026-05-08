@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime
@@ -181,7 +182,14 @@ def generate_excel(data):
 
 # ================= MAIN =================
 def main():
-    exit_code = run_pytest()
+    # Skip pytest if RUN_PYTEST is explicitly set to false
+    run_pytest_flag = os.getenv("RUN_PYTEST", "true").lower() != "false"
+
+    if run_pytest_flag:
+        exit_code = run_pytest()
+    else:
+        print("Skipping pytest (RUN_PYTEST=false)")
+        exit_code = 0
 
     tests, counts, total, data = process_json()
 

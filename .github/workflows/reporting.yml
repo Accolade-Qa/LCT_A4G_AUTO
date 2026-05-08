@@ -10,7 +10,7 @@ on:
 
 env:
   REPORT_HTML: Reports/pytests/report.html
-  # REPORT_JSON: Reports/json/report.json
+  REPORT_JSON: Reports/json/report.json
   REPORT_EXCEL: Reports/excel/pytest-results.xlsx
   REPORT_JUNIT: Reports/junit/report.xml
 
@@ -94,9 +94,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Generate Excel report
+        env:
+          RUN_PYTEST: 'false'
         run: |
           source venv/bin/activate
-          RUN_PYTEST=false python scripts/generate_reports.py
+          python scripts/generate_reports.py
 
       # 📧 SIMPLE EMAIL (STABLE)
       - name: Send report email
