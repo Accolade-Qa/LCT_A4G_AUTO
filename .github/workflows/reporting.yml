@@ -5,14 +5,14 @@ on:
     branches:
       - master
 
-  schedule:
-    - cron: '30 4 * * 1-5'  # 10:00 AM IST (Mon–Fri)
+  # schedule:
+  #   - cron: '30 4 * * 1-5'  # 10:00 AM IST (Mon–Fri)
 
 env:
-  REPORT_HTML: Reports/pytests/report.html
-  REPORT_JSON: Reports/json/report.json
-  REPORT_EXCEL: Reports/excel/pytest-results.xlsx
-  REPORT_JUNIT: Reports/junit/report.xml
+  REPORT_HTML: ${{ github.workspace }}/reports/report.html
+  REPORT_JSON: ${{ github.workspace }}/reports/report.json
+  REPORT_EXCEL: ${{ github.workspace }}/reports/report.xlsx
+  REPORT_JUNIT: ${{ github.workspace }}/reports/report.xml
 
 jobs:
   test-suite:
@@ -52,7 +52,7 @@ jobs:
       - name: Run tests
         run: |
           source venv/bin/activate
-          mkdir -p Reports/pytests Reports/json Reports/junit Reports/excel
+          mkdir -p reports
           xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' \
             python -m pytest \
             --html=$REPORT_HTML --self-contained-html \
@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
-          path: Reports
+          path: reports
 
   report-generator:
     needs: test-suite
@@ -77,7 +77,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: test-reports
-          path: Reports
+          path: reports
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -99,6 +99,13 @@ jobs:
         run: |
           source venv/bin/activate
           python scripts/generate_reports.py
+
+      - name: Verify reports exist
+        run: |
+          echo "Checking for report files..."
+          test -f reports/report.html && echo "✓ HTML report found" || { echo "✗ HTML report missing"; exit 1; }
+          test -f reports/report.xlsx && echo "✓ Excel report found" || { echo "✗ Excel report missing"; exit 1; }
+          echo "All reports verified!"
 
       # 📧 SIMPLE EMAIL (STABLE)
       - name: Send report email
