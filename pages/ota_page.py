@@ -1,6 +1,10 @@
+from pathlib import Path
 import re
 
+from config.global_var import DOWNLOADS_PATH
 from pages.base_page import BasePage
+from pages.common.pagination import PaginationHelper
+from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
 from pages.common.table_section import TableSection
 from utils.logger import get_logger
@@ -9,11 +13,9 @@ logger = get_logger(__name__)
 
 
 class OtaPage(BasePage):
-    """Page object for OTA Batch and OTA Master pages."""
-
     # Locators as class constants
     BUTTON_LOCATOR = "//button"
-    TABLE_LOCATOR = "//div[@class='component-body']"
+    TABLE_LOCATOR = "div.component-body"
     SEARCH_BOX_LOCATOR = "Search and Press Enter"
     OTA_MASTER_BUTTON_TEXT = "OTA Master open_in_new"
     OTA_MASTER_PAGE_TITLE = "span:has-text('OTA Master')"
@@ -44,57 +46,29 @@ class OtaPage(BasePage):
     SET_BATCH_BUTTON = "button:has-text('Set Batch')"
     MANUAL_OTA_SEARCH_BUTTON = "//button[contains(@class,'submit-button')]"
     CHECKBOX_SELECTOR = "input[type='checkbox']"
+    SEARCH_INPUT = "//input[@formcontrolname='searchInput']"
+    SEARCH_BUTTON_ON_MANUAL_OTA = "//button[contains(@class,'search-btn')]"
 
     def __init__(self, page):
-        """Initialize OTA page object.
-
-        Args:
-            page: Playwright page instance
-        """
         super().__init__(page)
         logger.debug("Initialized OtaPage")
 
     def get_title(self) -> str:
-        """Get the page title from parent class.
-
-        Returns:
-            str: The page title
-        """
         return super().get_title()
 
     def get_page_title(self) -> str:
-        """Get the OTA Master page title text.
-
-        Returns:
-            str: The OTA Master page title
-        """
         logger.debug("Retrieving OTA Master page title")
         return self.page.locator(self.OTA_MASTER_PAGE_TITLE).inner_text()
 
     def is_page_loaded(self) -> bool:
-        """Check if OTA Batch page is loaded.
-
-        Returns:
-            bool: True if page loaded, False otherwise
-        """
         logger.debug("Checking if ota batch page is loaded")
         return self.page.url.endswith(self.OTA_BATCH_URL_SUFFIX)
 
     def is_ota_master_page_loaded(self) -> bool:
-        """Check if OTA Master page is loaded.
-
-        Returns:
-            bool: True if OTA Master page loaded, False otherwise
-        """
         logger.debug("Checking if OTA Master page is loaded")
         return self.page.url.endswith(self.OTA_MASTER_URL_SUFFIX)
 
     def is_ota_batch_page_buttons_visible(self) -> bool:
-        """Check if OTA Batch page buttons are visible.
-
-        Returns:
-            bool: True if any button is visible, False otherwise
-        """
         logger.debug("Checking visibility of OTA Batch page buttons")
         ota_page_buttons = self.page.locator(self.BUTTON_LOCATOR)
         for button in ota_page_buttons.all():
@@ -103,177 +77,88 @@ class OtaPage(BasePage):
         return False
 
     def is_ota_batch_table_visible(self) -> bool:
-        """Check if OTA Batch table is visible.
-
-        Returns:
-            bool: True if table is visible, False otherwise
-        """
         logger.debug("Checking visibility of OTA Batch table")
         table = self.page.locator(self.TABLE_LOCATOR)
         return table.is_visible()
 
     def is_search_box_visible(self) -> bool:
-        """Check if search box is visible.
-
-        Returns:
-            bool: True if search box is visible, False otherwise
-        """
         logger.debug("Checking visibility of Search box")
         search_box = self.page.get_by_placeholder(self.SEARCH_BOX_LOCATOR)
         return search_box.is_visible()
 
     def is_ota_master_page_button_visible(self) -> bool:
-        """Check if OTA Master page button is visible.
-
-        Returns:
-            bool: True if button is visible, False otherwise
-        """
         logger.debug("Checking visibility of OTA Master page button")
         ota_master_button = self.page.get_by_text(self.OTA_MASTER_BUTTON_TEXT)
         return ota_master_button.is_visible()
 
     def go_to_ota_master_page(self) -> None:
-        """Navigate to OTA Master page by clicking the button.
-
-        Raises:
-            Exception: If OTA Master page button is not visible
-        """
         logger.debug("Navigating to OTA Master page")
 
         self.page.get_by_text(self.OTA_MASTER_BUTTON_TEXT).click()
         self.page.wait_for_url(self.OTA_MASTER_URL_PATTERN)
 
     def search_in_batch_page(self, query: str) -> dict:
-        """Search for OTA batches using search functionality.
-
-        Args:
-            query: Search query string
-
-        Returns:
-            dict: Search results containing success status, count, and results
-        """
         logger.debug("Searching for OTA batch: %s", query)
         search = SearchHelper(self.page)
         return search.run_search(query)
 
     def search_in_master_page(self, query: str) -> dict:
-        """Search for OTA masters using search functionality.
-
-        Args:
-            query: Search query string
-
-        Returns:
-            dict: Search results containing success status, count, and results
-        """
         logger.debug("Searching for OTA master: %s", query)
         search = SearchHelper(self.page)
         return search.run_search(query)
 
     def get_batch_table_data(self) -> list[str]:
-        """Get all rows from OTA Batch table.
-
-        Returns:
-            list: List of table row contents
-        """
         logger.debug("Retrieving OTA Batch table data")
         table = TableSection(self.page)
         return table.get_rows()
 
     def get_batch_table_headers(self) -> list[str]:
-        """Get headers from OTA Batch table.
-
-        Returns:
-            list: List of table headers
-        """
         logger.debug("Retrieving OTA Batch table headers")
         table = TableSection(self.page)
         return table.get_headers()
 
     def get_batch_table_row_count(self) -> int:
-        """Get row count from OTA Batch table.
-
-        Returns:
-            int: Number of rows in the table
-        """
         logger.debug("Getting OTA Batch table row count")
         table = TableSection(self.page)
         return table.get_row_count()
 
     def is_batch_table_empty(self) -> bool:
-        """Check if OTA Batch table is empty or has 'No Data Found' message.
-
-        Returns:
-            bool: True if table is empty, False otherwise
-        """
         logger.debug("Checking if OTA Batch table is empty")
         table = TableSection(self.page)
         return table.has_no_data()
 
     def get_master_table_data(self) -> list[str]:
-        """Get all rows from OTA Master table.
-
-        Returns:
-            list: List of table row contents
-        """
         logger.debug("Retrieving OTA Master table data")
         table = TableSection(self.page)
         return table.get_rows()
 
     def get_master_table_headers(self) -> list[str]:
-        """Get headers from OTA Master table.
-
-        Returns:
-            list: List of table headers
-        """
         logger.debug("Retrieving OTA Master table headers")
         table = TableSection(self.page)
         return table.get_headers()
 
     def get_master_table_row_count(self) -> int:
-        """Get row count from OTA Master table.
-
-        Returns:
-            int: Number of rows in the table
-        """
         logger.debug("Getting OTA Master table row count")
         table = TableSection(self.page)
         return table.get_row_count()
 
     def is_master_table_empty(self) -> bool:
-        """Check if OTA Master table is empty or has 'No Data Found' message.
-
-        Returns:
-            bool: True if table is empty, False otherwise
-        """
         logger.debug("Checking if OTA Master table is empty")
         table = TableSection(self.page)
         return table.has_no_data()
 
-    """ Add Ota Command Page"""
-
     def validate_add_ota_button_and_click(self) -> None:
-        """Validate Add OTA Command button is visible and click it."""
         logger.debug("Validating Add OTA Command button visibility")
         add_ota_button = self.page.get_by_text(self.ADD_OTA_COMMAND_BUTTON)
         assert add_ota_button.is_visible(), "Add OTA Command button not visible"
         add_ota_button.click()
 
     def is_add_ota_command_button_visible(self) -> bool:
-        """Check if Add OTA Command button is visible.
-
-        Returns:
-            bool: True if button is visible, False otherwise
-        """
         logger.debug("Checking visibility of Add OTA Command button")
         add_ota_button = self.page.get_by_text(self.ADD_OTA_COMMAND_BUTTON)
         return add_ota_button.is_visible()
 
     def is_on_add_ota_command_page(self) -> str:
-        """Get the page title from Add OTA Command page.
-
-        Returns:
-            str: The inner text of the Add OTA Command page title, or empty string if not found
-        """
         logger.debug("Retrieving Add OTA Command page title")
         try:
             # Get page title text
@@ -291,11 +176,6 @@ class OtaPage(BasePage):
 
     # Add OTA Command Form Validation Methods
     def are_add_ota_command_form_fields_visible(self) -> bool:
-        """Check if all Add OTA Command form fields are visible.
-
-        Returns:
-            bool: True if all fields are visible, False otherwise
-        """
         logger.debug("Checking visibility of Add OTA Command form fields")
         try:
             ota_name = self.page.locator(self.OTA_NAME_FIELD).is_visible()
@@ -331,33 +211,18 @@ class OtaPage(BasePage):
             return False
 
     def fill_ota_name(self, name: str) -> None:
-        """Fill OTA Name field.
-
-        Args:
-            name: Name to enter in OTA Name field
-        """
         logger.debug("Filling OTA Name field with: %s", name)
         ota_name_field = self.page.locator(self.OTA_NAME_FIELD)
         ota_name_field.wait_for(state="visible")
         ota_name_field.fill(name)
 
     def fill_ota_command(self, command: str) -> None:
-        """Fill OTA Command field.
-
-        Args:
-            command: Command to enter in OTA Command field
-        """
         logger.debug("Filling OTA Command field with: %s", command)
         ota_command_field = self.page.locator(self.OTA_COMMAND_FIELD)
         ota_command_field.wait_for(state="visible")
         ota_command_field.fill(command)
 
     def select_ota_type(self, ota_type: str) -> None:
-        """Select OTA Type from dropdown.
-
-        Args:
-            ota_type: OTA Type value to select
-        """
         logger.debug("Selecting OTA Type: %s", ota_type)
         ota_type_dropdown = self.page.locator(self.OTA_TYPE_DROPDOWN)
         ota_type_dropdown.wait_for(state="visible")
@@ -369,22 +234,12 @@ class OtaPage(BasePage):
         option_locator.click()
 
     def fill_example(self, example: str) -> None:
-        """Fill Example field.
-
-        Args:
-            example: Example text to enter
-        """
         logger.debug("Filling Example field with: %s", example)
         example_field = self.page.locator(self.EXAMPLE_FIELD)
         example_field.wait_for(state="visible")
         example_field.fill(example)
 
     def select_input_field_required(self, option: str) -> None:
-        """Select Input Field Required dropdown option.
-
-        Args:
-            option: Option to select (e.g., 'Yes', 'No')
-        """
         logger.debug("Selecting Input Field Required: %s", option)
         input_required_dropdown = self.page.locator(self.INPUT_FIELD_REQUIRED_DROPDOWN)
         input_required_dropdown.wait_for(state="visible")
@@ -396,48 +251,27 @@ class OtaPage(BasePage):
         option_locator.click()
 
     def get_ota_name_value(self) -> str:
-        """Get value from OTA Name field.
-
-        Returns:
-            str: Current value in OTA Name field
-        """
         logger.debug("Retrieving OTA Name field value")
         ota_name_field = self.page.locator(self.OTA_NAME_FIELD)
         return ota_name_field.input_value()
 
     def get_ota_command_value(self) -> str:
-        """Get value from OTA Command field.
-
-        Returns:
-            str: Current value in OTA Command field
-        """
         logger.debug("Retrieving OTA Command field value")
         ota_command_field = self.page.locator(self.OTA_COMMAND_FIELD)
         return ota_command_field.input_value()
 
     def get_example_value(self) -> str:
-        """Get value from Example field.
-
-        Returns:
-            str: Current value in Example field
-        """
         logger.debug("Retrieving Example field value")
         example_field = self.page.locator(self.EXAMPLE_FIELD)
         return example_field.input_value()
 
     def click_submit_button(self) -> None:
-        """Click the Submit button."""
         logger.debug("Clicking Submit button")
         submit_button = self.page.locator(self.SUBMIT_BUTTON)
         submit_button.wait_for(state="visible")
         submit_button.click()
 
     def is_submit_button_disabled(self) -> bool:
-        """Check if Submit button is disabled.
-
-        Returns:
-            bool: True if submit button is disabled, False otherwise
-        """
         logger.debug("Checking if Submit button is disabled")
         submit_button = self.page.locator(self.SUBMIT_BUTTON)
         submit_button.wait_for(state="visible")
@@ -446,11 +280,6 @@ class OtaPage(BasePage):
         return is_disabled
 
     def is_search_button_disabled(self) -> bool:
-        """Check if Search button is disabled.
-
-        Returns:
-            bool: True if search button is disabled, False otherwise
-        """
         logger.debug("Checking if Search button is disabled")
         search_button = self.page.locator(self.SEARCH_BUTTON)
         search_button.wait_for(state="visible")
@@ -459,11 +288,6 @@ class OtaPage(BasePage):
         return is_disabled
 
     def is_submit_button_enabled(self) -> bool:
-        """Check if Submit button is enabled.
-
-        Returns:
-            bool: True if submit button is enabled, False otherwise
-        """
         logger.debug("Checking if Submit button is enabled")
         submit_button = self.page.locator(self.SUBMIT_BUTTON)
         submit_button.wait_for(state="visible")
@@ -471,42 +295,24 @@ class OtaPage(BasePage):
         logger.debug("Submit button enabled state: %s", is_enabled)
         return is_enabled
 
-    """ Manual OTA Page Methods"""
-
     def go_to_manual_ota_page(self) -> None:
-        """Navigate to Manual OTA page by clicking the button.
-
-        Raises:
-            Exception: If Manual OTA page button is not visible
-        """
         logger.debug("Navigating to Manual OTA page")
 
         self.page.get_by_text("Manual OTA open_in_new").click()
         self.page.wait_for_url("**/manual-ota*")
 
     def is_manual_ota_button_visible(self) -> bool:
-        """Check if Manual OTA button is visible.
-
-        Returns:
-            bool: True if Manual OTA button is visible, False otherwise
-        """
         logger.debug("Checking visibility of Manual OTA button")
         manual_ota_button = self.page.get_by_text("Manual OTA open_in_new")
         return manual_ota_button.is_visible()
 
     def click_manual_ota_button(self) -> None:
-        """Click the Manual OTA button."""
         logger.debug("Clicking Manual OTA button")
         manual_ota_button = self.page.get_by_text("Manual OTA open_in_new")
         manual_ota_button.wait_for(state="visible")
         manual_ota_button.click()
 
     def get_manual_ota_component_title(self) -> str:
-        """Get the component title text from Manual OTA page.
-
-        Returns:
-            str: The component title text, or empty string if not found
-        """
         logger.debug("Retrieving Manual OTA component title")
         try:
             component_title = self.page.locator("h6:has-text('Search Device')")
@@ -522,40 +328,37 @@ class OtaPage(BasePage):
             return ""
 
     def clear_imei_input(self) -> None:
-        """Clear the IMEI input field on Manual OTA page."""
         logger.debug("Clearing IMEI input field")
         imei_input = self.page.locator("input[formcontrolname='imei']")
         imei_input.wait_for(state="visible")
         imei_input.fill("")
 
     def click_imei_input(self) -> None:
-        """Click the IMEI input field on Manual OTA page to trigger validation."""
         logger.debug("Clicking IMEI input field to trigger validation")
         imei_input = self.page.locator("input[formcontrolname='imei']")
         imei_input.wait_for(state="visible")
         imei_input.click()
 
     def click_manual_ota_imei_search_button(self) -> None:
-        """Click the Search button on Manual OTA page."""
         logger.debug("Clicking Manual OTA Search button")
-        search_button = self.page.locator("//button[contains(@class,'submit-button')]")
-        search_button.wait_for(state="visible")
+
+        search_button_on_manual_ota = self.page.locator(
+            "//button[contains(@class,'submit-button')]"
+        )
+
+        search_button_on_manual_ota.wait_for(state="visible")
+
         # Use force=True to bypass disabled state validation (needed for error validation tests)
-        if search_button.is_disabled():
+        if search_button_on_manual_ota.is_disabled():
             logger.debug(
                 "Search button is disabled, clicking with force=True for error validation"
             )
-            search_button.click(force=True)
+            search_button_on_manual_ota.click(force=True)
         else:
             logger.debug("Search button is enabled, clicking normally")
-            search_button.click()
+            search_button_on_manual_ota.click()
 
     def get_imei_error_message(self, error) -> str:
-        """Get the error message text related to IMEI input on Manual OTA page.
-
-        Returns:
-            str: The error message text, or empty string if not found
-        """
         logger.debug("Retrieving IMEI error message")
         try:
             # Use get_by_text to avoid CSS selector escaping issues with apostrophes
@@ -572,22 +375,12 @@ class OtaPage(BasePage):
             return ""
 
     def fill_imei_input(self, imei: str) -> None:
-        """Fill the IMEI input field on Manual OTA page.
-
-        Args:
-            imei: IMEI number to enter in the input field
-        """
         logger.debug("Filling IMEI input field with: %s", imei)
         imei_input = self.page.locator("input[formcontrolname='imei']")
         imei_input.wait_for(state="visible")
         imei_input.fill(imei)
 
     def is_new_ota_button_visible(self) -> bool:
-        """Check if New OTA button is visible on Manual OTA page.
-
-        Returns:
-            bool: True if New OTA button is visible, False otherwise
-        """
         logger.debug("Checking visibility of New OTA button on Manual OTA page")
         try:
             # Try multiple locator strategies in order of preference
@@ -631,11 +424,6 @@ class OtaPage(BasePage):
             return False
 
     def is_new_ota_button_enabled(self) -> bool:
-        """Check if New OTA button is enabled on Manual OTA page.
-
-        Returns:
-            bool: True if New OTA button is enabled, False otherwise
-        """
         logger.debug("Checking if New OTA button is enabled on Manual OTA page")
         try:
             button = self.page.get_by_text("New OTA add_circle")
@@ -648,7 +436,6 @@ class OtaPage(BasePage):
             return False
 
     def click_new_ota_button(self) -> None:
-        """Click the New OTA button on Manual OTA page."""
         logger.debug("Clicking New OTA button on Manual OTA page")
         try:
             button = self.page.get_by_text("New OTA add_circle")
@@ -657,12 +444,17 @@ class OtaPage(BasePage):
         except Exception as e:
             logger.error("Error clicking New OTA button: %s", str(e))
 
-    def get_ota_command_list_header(self) -> str:
-        """Get the header text of the OTA Command list on Manual OTA page.
+    def click_abort_button(self) -> None:
+        logger.debug("Clicking Abort button on Manual OTA page")
+        try:
+            abort_button = self.page.locator("button:has-text('ABORT')")
+            abort_button.wait_for(state="visible", timeout=3000)
+            abort_button.click()
+            logger.info("Clicked Abort button successfully")
+        except Exception as e:
+            logger.error("Error clicking Abort button: %s", str(e))
 
-        Returns:
-            str: The header text, or empty string if not found
-        """
+    def get_ota_command_list_header(self) -> str:
         logger.debug("Retrieving OTA Command list header")
         try:
             header = self.page.locator("h6:has-text('OTA Command List')")
@@ -678,11 +470,6 @@ class OtaPage(BasePage):
             return ""
 
     def select_ota_type_on_manual_ota_page(self, ota_type: str) -> None:
-        """Select OTA Type from dropdown on Manual OTA page.
-
-        Args:
-            ota_type: OTA Type value to select
-        """
         logger.debug("Selecting OTA Type on Manual OTA page: %s", ota_type)
         dropdown = self.page.locator(self.SELECT_OTA_TYPE_DROPDOWN)
         dropdown.wait_for(state="visible")
@@ -695,11 +482,6 @@ class OtaPage(BasePage):
         option_locator.click()
 
     def are_all_checkboxes_visible(self) -> bool:
-        """Check if all checkboxes are visible on Manual OTA page.
-
-        Returns:
-            bool: True if all checkboxes are visible, False otherwise
-        """
         logger.debug("Checking visibility of all checkboxes on Manual OTA page")
         checkboxes = self.page.locator("input[type='checkbox']")
         count = checkboxes.count()
@@ -714,11 +496,6 @@ class OtaPage(BasePage):
         return True
 
     def are_all_checkboxes_unchecked(self) -> bool:
-        """Check if all checkboxes are unchecked on Manual OTA page.
-
-        Returns:
-            bool: True if all checkboxes are unchecked, False otherwise
-        """
         logger.debug("Checking if all checkboxes are unchecked on Manual OTA page")
         checkboxes = self.page.locator("input[type='checkbox']")
         count = checkboxes.count()
@@ -733,42 +510,31 @@ class OtaPage(BasePage):
         return True
 
     def search_command_in_manual_ota(self, command: str) -> None:
-        """Search for an OTA command using the search functionality on Manual OTA page.
-
-        Args:
-            command: The OTA command to search for
-        """
         logger.debug("Searching for OTA command on Manual OTA page: %s", command)
         search_input = self.page.locator(self.SEARCH_INPUT)
         search_input.wait_for(state="visible")
         search_input.fill(command)
 
-        search_button = self.page.locator(self.SEARCH_BUTTON)
+        search_button = self.page.locator(self.SEARCH_BUTTON_ON_MANUAL_OTA)
         search_button.wait_for(state="visible")
         search_button.click()
 
         # Wait for search results to load (this can be improved with a more specific wait condition)
         self.page.wait_for_timeout(2000)
 
+    def get_size_of_checkbox_list(self) -> int:
+        logger.debug("Getting size of checkbox list on Manual OTA page")
+        checkboxes = self.page.locator("input[type='checkbox']")
+        count = checkboxes.count()
+        logger.debug("Number of checkboxes found: %d", count)
+        return count
+
     def is_checkbox_for_command_selected(self) -> bool:
-        """Check if the checkbox for a specific OTA command is selected.
-
-        Args:
-            command: The OTA command to check
-
-        Returns:
-            bool: True if the checkbox is selected, False otherwise
-        """
         logger.debug("Checking if checkbox for command '%s' is selected")
         checkbox = self.page.locator("input[type='checkbox']")
         return checkbox.is_checked()
 
     def is_set_batch_button_enabled(self) -> bool:
-        """Check if the Set Batch button is enabled on Manual OTA page.
-
-        Returns:
-            bool: True if Set Batch button is enabled, False otherwise
-        """
         logger.debug("Checking if Set Batch button is enabled on Manual OTA page")
         set_batch_button = self.page.locator("button:has-text('Set Batch')")
         set_batch_button.wait_for(state="visible")
@@ -777,8 +543,214 @@ class OtaPage(BasePage):
         return is_enabled
 
     def select_checkbox_for_command(self) -> None:
-        """Select the checkbox for a specific OTA command."""
         logger.debug("Selecting checkbox for command")
         checkbox = self.page.locator("input[type='checkbox']")
         checkbox.wait_for(state="visible")
         checkbox.check()
+
+    def click_set_batch_button(self) -> None:
+        logger.debug("Clicking Set Batch button on Manual OTA page")
+        set_batch_button = self.page.locator("button:has-text('Set Batch')")
+        set_batch_button.wait_for(state="visible")
+        set_batch_button.click()
+
+    def is_set_configuration_component_visible(self) -> bool:
+        logger.debug(
+            "Checking visibility of Set Configuration component after clicking Set Batch"
+        )
+        set_configuration_component = self.page.locator(
+            "h6:has-text('Set Configuration Value')"
+        )
+        return set_configuration_component.is_visible()
+
+    def get_set_configuration_table_headers(self) -> list[str]:
+        logger.debug("Retrieving Set Configuration table headers")
+        table = TableSection(self.page)
+        return table.get_headers()
+
+    def setup_manual_ota_and_enable_set_batch(
+        self, valid_imei: str, command_to_search: str = "GET IMEI"
+    ) -> None:
+        """
+        Helper method to set up Manual OTA page and enable Set Batch button.
+        Performs complete workflow: navigate -> search IMEI -> click New OTA -> search command -> select checkbox.
+
+        Args:
+            valid_imei: Valid 15-digit IMEI to search
+            command_to_search: Command to search for (default: "GET IMEI")
+
+        Raises:
+            AssertionError: If any step fails
+        """
+        logger.info(
+            "Setting up Manual OTA page and enabling Set Batch button with IMEI: %s, Command: %s",
+            valid_imei,
+            command_to_search,
+        )
+
+        # Step 1: Navigate to Manual OTA page
+        self.go_to_manual_ota_page()
+        logger.info("Step 1: Navigated to Manual OTA page")
+
+        # Step 2: Fill and search IMEI
+        self.fill_imei_input(valid_imei)
+        self.click_manual_ota_imei_search_button()
+        logger.info("Step 2: Searched with IMEI: %s", valid_imei)
+
+        # Step 3 : Abort previous batch if it exists
+        if self.is_abort_button_visible():
+            self.click_abort_button()
+            logger.info("Step 3: Aborted existing batch before proceeding")
+
+        # Step 4: Click New OTA button
+        if not self.is_new_ota_button_enabled():
+            raise AssertionError(
+                f"New OTA button should be enabled after searching with IMEI {valid_imei}"
+            )
+        self.click_new_ota_button()
+        logger.info("Step 4: Clicked New OTA button")
+
+        # Step 5: Search for specific command
+        self.search_command_in_manual_ota(command_to_search)
+        logger.info("Step 5: Searched for command: %s", command_to_search)
+
+        # Step 6: Select checkbox for the command
+        if self.get_size_of_checkbox_list() <= 0:
+            raise AssertionError("No checkboxes found after searching for command")
+
+        if self.get_size_of_checkbox_list() == 1:
+            # Single checkbox found for the searched command
+            if not self.is_checkbox_for_command_selected():
+                self.select_checkbox_for_command()
+                logger.info(
+                    "Step 6: Selected checkbox for command: %s", command_to_search
+                )
+            else:
+                logger.info(
+                    "Step 6: Checkbox already selected for command: %s",
+                    command_to_search,
+                )
+        else:
+            raise AssertionError(
+                f"Expected 1 checkbox after searching for '{command_to_search}', found {self.get_size_of_checkbox_list()}"
+            )
+
+        # Step 7: Verify Set Batch button is now enabled
+        if not self.is_set_batch_button_enabled():
+            raise AssertionError(
+                "Set Batch button should be enabled after selecting a command checkbox"
+            )
+        logger.info("Step 7: Set Batch button is enabled - workflow complete")
+
+    def is_submit_button_on_set_configuration_visible(self) -> bool:
+        logger.debug(
+            "Checking visibility of Submit button on Set Configuration component"
+        )
+        submit_button = self.page.locator("button:has-text('Submit')")
+        return submit_button.is_visible()
+
+    def click_submit_button_on_set_configuration(self) -> None:
+        logger.debug("Clicking Submit button on Set Configuration component")
+        submit_button = self.page.locator("button:has-text('Submit')")
+        submit_button.wait_for(state="visible")
+        submit_button.click()
+        # # accept alert if it appears
+        # try:
+        #     self.page.wait_for_event("dialog", timeout=3000)
+        #     dialog = self.page.on("dialog")
+        #     dialog.accept()
+        #     logger.info(
+        #         "Accepted alert dialog after clicking Submit on Set Configuration"
+        #     )
+        # except Exception as e:
+        #     logger.debug("No alert dialog appeared after clicking Submit: %s", str(e))
+
+    def is_abort_button_visible(self) -> bool:
+        logger.debug("Checking visibility of Abort button on Manual OTA page")
+        abort_button = self.page.locator("button:has-text('ABORT')")
+        return abort_button.is_visible()
+
+    def is_ota_history_component_visible(self) -> bool:
+        logger.debug("Checking visibility of OTA History component")
+        ota_history_component = self.page.locator("h6:has-text('OTA History')")
+        return ota_history_component.is_visible()
+
+    def get_ota_history_table_headers(self) -> list[str]:
+        logger.debug("Retrieving OTA History table headers")
+        table = TableSection(self.page)
+        return table.get_headers()
+
+    def get_first_row_data_from_ota_history(self) -> dict[str, str]:
+        logger.debug("Retrieving first row data from OTA History table")
+        # Find all tables on the page
+        all_tables = self.page.locator("table")
+        table_count = all_tables.count()
+        logger.debug(f"Found {table_count} tables on the page")
+
+        # Find the OTA History table by checking headers
+        for i in range(table_count):
+            table = all_tables.nth(i)
+            headers_in_table = table.locator("thead th")
+
+            if headers_in_table.count() > 0:
+                first_header = headers_in_table.first.inner_text().strip()
+                logger.debug(f"Table {i} first header: {first_header}")
+
+                # OTA History table should have "BATCH ID" as first header
+                if "BATCH" in first_header.upper():
+                    logger.debug(f"Found OTA History table at index {i}")
+                    # Extract headers
+                    headers = [
+                        headers_in_table.nth(j).inner_text().strip()
+                        for j in range(headers_in_table.count())
+                    ]
+
+                    # Extract first row data
+                    rows = table.locator("tbody tr")
+                    if rows.count() > 0:
+                        cells = rows.first.locator("td")
+                        row_data = {
+                            headers[j]: cells.nth(j).inner_text().strip()
+                            for j in range(cells.count())
+                        }
+                        logger.debug(f"OTA History first row data: {row_data}")
+                        return row_data
+
+        raise Exception("OTA History table not found on page")
+
+    def is_export_button_visible_on_ota_history(self) -> bool:
+        logger.debug("Checking visibility of Export button on OTA History component")
+        export_button = self.page.locator("button:has-text('Export download')")
+        return export_button.is_visible()
+
+    def click_export_button_on_ota_history(self) -> None:
+        logger.debug("Clicking Export button on OTA History component")
+        export_button = self.page.locator("button:has-text('Export download')")
+        export_button.wait_for(state="visible")
+
+        # Set up dialog handler to accept any dialogs that appear during download
+        def handle_dialog(dialog):
+            logger.info(
+                "Dialog appeared with message: %s, accepting it", dialog.message
+            )
+            dialog.accept()
+
+        self.page.once("dialog", handle_dialog)
+
+        with self.page.expect_download() as download_info:
+            export_button.click()
+
+        download = download_info.value
+        logger.info("Export button clicked, waiting for download to complete")
+        download_path = Path(DOWNLOADS_PATH) / download.suggested_filename
+        download.save_as(str(download_path))
+        logger.info("Download completed and saved to: %s", download_path)
+
+    def verify_pagination_on_manual_ota_history(self) -> dict:
+        logger.debug("Verifying pagination on Manual OTA History component")
+        pagination = PaginationHelper(
+            self.page,
+            content_selector=self.page.locator("div.component-body table").last,
+            max_forward_steps=5,
+        )
+        return pagination.verify()

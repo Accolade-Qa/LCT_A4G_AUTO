@@ -1,55 +1,99 @@
+from datetime import datetime
+import re
+
+import pytest
+
 from utils.helpers import Helpers
 from pages.common import TableSection, PaginationHelper, SearchHelper
 from utils.logger import get_logger
-import re
-from datetime import datetime
 
 logger = get_logger(__name__)
 
 
 class TestRoleGroupPage:
-    group = f"Test{Helpers.generate_random_string(4)}"
+    group = None
 
-    def test_role_group_page_title(self, role_group_page):
+    @pytest.fixture(autouse=True)
+    def log_test_case(self, request):
+        if self.__class__.group is None:
+            self.__class__.group = f"Test{Helpers.generate_random_string(4)}"
+
+        test_name = request.node.name
+        logger.info("Starting Role Group test: %s", test_name)
+        logger.debug("Executing test node: %s", request.node.nodeid)
+        yield
+        report = getattr(request.node, "rep_call", None)
+        if report is None:
+            logger.debug("Role Group test finished without call report: %s", test_name)
+        elif report.passed:
+            logger.info("Role Group test passed: %s", test_name)
+        elif report.failed:
+            logger.error("Role Group test failed: %s", test_name)
+            logger.debug(
+                "Role Group failure details for %s: %s", test_name, report.longrepr
+            )
+        elif report.skipped:
+            logger.warning("Role Group test skipped: %s", test_name)
+
+    def test_role_group_page_title(self, role_group_page, report_case):
         logger.info("Testing Role Group page title")
         title = role_group_page.get_title()
+        logger.debug(
+            "Role Group title check | expected=%s | actual=%s",
+            "Group Management",
+            title,
+        )
+        report_case(expected="Group Management", actual=title)
         assert (
             title == "Group Management"
         ), f"Expected page title 'Group Management', but got '{title}'"
 
-    def test_role_group_page_elements(self, role_group_page):
+    def test_role_group_page_elements(self, role_group_page, report_case):
         logger.info("Testing Role Group page elements")
-        assert (
-            role_group_page.is_page_loaded()
-        ), "Role Group page did not load correctly"
+        page_loaded = role_group_page.is_page_loaded()
+        add_group_visible = role_group_page.is_add_group_button_visible()
+        table_visible = role_group_page.is_role_group_table_visible()
+        search_visible = role_group_page.is_search_box_visible()
+        report_case(
+            expected="Page loaded=True, Add Group visible=True, table visible=True, search visible=True",
+            actual=(
+                f"Page loaded={page_loaded}, Add Group visible={add_group_visible}, "
+                f"table visible={table_visible}, search visible={search_visible}"
+            ),
+        )
+        assert page_loaded, "Role Group page did not load correctly"
 
-        assert (
-            role_group_page.is_add_group_button_visible()
-        ), "Add Group button is not visible"
+        assert add_group_visible, "Add Group button is not visible"
 
-        assert (
-            role_group_page.is_role_group_table_visible()
-        ), "Role Group table is not visible"
+        assert table_visible, "Role Group table is not visible"
 
-        assert role_group_page.is_search_box_visible(), "Search box is not visible"
+        assert search_visible, "Search box is not visible"
 
         logger.info("All Role Group page elements are present and visible")
 
-    def test_go_to_add_group_page_and_validate(self, role_group_page):
+    def test_go_to_add_group_page_and_validate(self, role_group_page, report_case):
         logger.info("Testing navigation to Add Group page")
 
         if role_group_page.is_add_group_button_visible():
+            logger.debug("Add Group button visible, clicking it")
             role_group_page.click_add_group()
 
+        logger.debug(
+            "Role Group page URL after Add Group click: %s", role_group_page.page.url
+        )
         assert role_group_page.page.url.endswith(
             "/role-group"
         ), f"Expected URL to end with '/role-group', but got '{role_group_page.page.url}'"
 
-        assert (
-            role_group_page.get_component_title() == "Add Group"
-        ), "Add Group page did not load correctly"
+        component_title = role_group_page.get_component_title()
+        logger.debug("Add Group component title: %s", component_title)
+        report_case(
+            expected="URL ends with /role-group and component title is Add Group",
+            actual=f"URL={role_group_page.page.url}, component title={component_title}",
+        )
+        assert component_title == "Add Group", "Add Group page did not load correctly"
 
-    def test_input_box_errors_on_different_inputs(self, role_group_page):
+    def test_input_box_errors_on_different_inputs(self, role_group_page, report_case):
         logger.info("Testing input box errors on different inputs")
 
         role_group_page.click_add_group()
@@ -58,6 +102,8 @@ class TestRoleGroupPage:
         role_group_page.enter_role_group_name("")
         role_group_page.click_save()
         error_message = role_group_page.get_input_box_error_message()
+        logger.debug("Empty group name error: %s", error_message)
+        results = {"empty": error_message}
         assert (
             error_message == "This field is required and can't be empty."
         ), f"Expected error message 'Group Name is required', but got '{error_message}'"
@@ -66,6 +112,8 @@ class TestRoleGroupPage:
         role_group_page.enter_role_group_name("   ")
         role_group_page.click_save()
         error_message = role_group_page.get_input_box_error_message()
+        logger.debug("Spaces-only group name error: %s", error_message)
+        results["spaces"] = error_message
         assert (
             error_message == "This field is required and can't be only spaces."
         ), f"Expected error message 'Group Name is required', but got '{error_message}'"
@@ -74,6 +122,8 @@ class TestRoleGroupPage:
         role_group_page.enter_role_group_name("@#$%^&*")
         role_group_page.click_save()
         error_message = role_group_page.get_input_box_error_message()
+        logger.debug("Special-character group name error: %s", error_message)
+        results["special_characters"] = error_message
         assert (
             error_message == "Only alphabets and spaces are allowed."
         ), f"Expected error message 'Group Name is required', but got '{error_message}'"
@@ -82,12 +132,29 @@ class TestRoleGroupPage:
         role_group_page.enter_role_group_name(self.group)
         role_group_page.click_save()
         error_message = role_group_page.get_input_box_error_message()
+        logger.debug(
+            "Valid group name error state for %s: %s", self.group, error_message
+        )
+        results["valid_error"] = error_message
         assert error_message is None, f"Unexpected error message '{error_message}'"
-        assert (
-            "Success" in role_group_page.get_success_message()
-        ), "Expected success message not found"
+        success_message = role_group_page.get_success_message()
+        logger.debug("Valid group creation success message: %s", success_message)
+        results["success_message"] = success_message
+        report_case(
+            expected={
+                "empty": "This field is required and can't be empty.",
+                "spaces": "This field is required and can't be only spaces.",
+                "special_characters": "Only alphabets and spaces are allowed.",
+                "valid_error": None,
+                "success_message": "Success",
+            },
+            actual=results,
+        )
+        assert "Success" in success_message, "Expected success message not found"
 
-    def test_search_functionality_on_role_group_table(self, role_group_page):
+    def test_search_functionality_on_role_group_table(
+        self, role_group_page, report_case
+    ):
         logger.info("Testing search functionality on Role Group table")
 
         assert (
@@ -98,7 +165,13 @@ class TestRoleGroupPage:
         search = SearchHelper(role_group_page.page)
         result = search.run_search(self.group)
 
-        logger.info(f"Search result: {result}")
+        logger.info("Search result: %s", result)
+        logger.debug("Role Group search rows for %s: %s", self.group, result["results"])
+        report_case(
+            expected=f"Search for {self.group} should succeed and show matching results or no-data state",
+            actual=result,
+            message=result.get("error", ""),
+        )
 
         assert result["success"], f"Search failed: {result['error']}"
 
@@ -115,7 +188,7 @@ class TestRoleGroupPage:
                 self.group.lower() in row.lower() for row in rows
             ), f"Group '{self.group}' not found in search results. Results: {rows}"
 
-    def test_table_data_validation(self, role_group_page):
+    def test_table_data_validation(self, role_group_page, report_case):
         logger.info("Validating Role Group table data")
 
         table = TableSection(role_group_page.page)
@@ -123,20 +196,33 @@ class TestRoleGroupPage:
         assert role_group_page.is_role_group_table_visible()
 
         row_count = table.get_row_count()
+        logger.debug("Role Group table row count: %s", row_count)
+        report_case(
+            expected="Role Group table should be visible and data state valid",
+            actual=f"row_count={row_count}",
+        )
 
         if row_count == 0:
             logger.warning("Table is empty")
             assert table.has_no_data()
             return
 
-    def test_search_with_helper(self, role_group_page):
+    def test_search_with_helper(self, role_group_page, report_case):
         logger.info("Testing search using SearchHelper")
 
         search = SearchHelper(role_group_page.page)
 
         result = search.run_search(self.group)
 
-        logger.info(f"Search result: {result}")
+        logger.info("Search result: %s", result)
+        logger.debug(
+            "Role Group helper search rows for %s: %s", self.group, result["results"]
+        )
+        report_case(
+            expected=f"SearchHelper should succeed for {self.group}",
+            actual=result,
+            message=result.get("error", ""),
+        )
 
         assert result["success"], f"Search failed: {result['error']}"
 
@@ -147,7 +233,7 @@ class TestRoleGroupPage:
             for row in result["results"]:
                 assert self.group.lower() in row.lower()
 
-    def test_pagination_on_role_group_table(self, role_group_page):
+    def test_pagination_on_role_group_table(self, role_group_page, report_case):
         logger.info("Testing pagination on Role Group table")
 
         # Check if pagination elements exist
@@ -157,19 +243,38 @@ class TestRoleGroupPage:
         )
 
         if page_input.count() > 0 and next_button.count() > 0:
+            logger.debug(
+                "Pagination elements count | page_input=%s | next_button=%s",
+                page_input.count(),
+                next_button.count(),
+            )
             assert page_input.is_visible(), "Pagination input not visible"
             assert next_button.is_visible(), "Next button not visible"
             logger.info("Pagination elements are present")
+            report_case(
+                expected="Pagination input and next button visible",
+                actual="Pagination elements are visible",
+            )
         else:
             logger.info("No pagination elements found, assuming single page")
+            report_case(
+                expected="Pagination visible when multiple pages exist",
+                actual="No pagination elements found; assuming single page",
+            )
 
-    def test_search_and_validate_table_data(self, role_group_page):
+    def test_search_and_validate_table_data(self, role_group_page, report_case):
         logger.info("Testing search + table validation")
 
         search = SearchHelper(role_group_page.page)
         table = TableSection(role_group_page.page)
 
         result = search.run_search(self.group)
+        logger.debug("Role Group search and validate result: %s", result)
+        report_case(
+            expected=f"Rows should contain search term {self.group} or no-data state should show",
+            actual=result,
+            message=result.get("error", ""),
+        )
 
         assert result["success"]
 
@@ -177,36 +282,48 @@ class TestRoleGroupPage:
             assert table.has_no_data()
         else:
             rows = table.get_rows()
+            logger.debug("Role Group table rows after search: %s", rows)
             for row in rows:
                 assert self.group.lower() in row.lower()
 
-    def test_table_headers(self, role_group_page):
+    def test_table_headers(self, role_group_page, report_case):
         logger.info("Validating table headers")
 
         table = TableSection(role_group_page.page)
 
         headers = table.get_headers()
+        logger.debug("Role Group table headers: %s", headers)
 
         expected_headers = ["GROUP NAME", "CREATED AT", "ACTION"]
+        report_case(expected=expected_headers, actual=headers)
 
         for header in expected_headers:
             assert header in headers, f"{header} not found in table headers"
 
-    def test_created_at_not_future(self, role_group_page):
+    def test_created_at_not_future(self, role_group_page, report_case):
         logger.info("Validating 'Created At' is not a future date")
 
         from datetime import datetime
 
         rows = role_group_page.page.locator("div.component-body table tbody tr")
         today = datetime.today()
+        created_dates = []
 
         for i in range(rows.count()):
             created_at = rows.nth(i).locator("td").nth(1).inner_text().strip()
+            created_dates.append(created_at)
+            logger.debug(
+                "Validating Created At is not future | row=%s | value=%s", i, created_at
+            )
             date_obj = datetime.strptime(created_at, "%d/%m/%Y")
 
             assert date_obj <= today, f"Future date found: {created_at}"
+        report_case(
+            expected=f"All Created At dates should be <= {today.date()}",
+            actual=created_dates,
+        )
 
-    def test_created_at_sorted(self, role_group_page):
+    def test_created_at_sorted(self, role_group_page, report_case):
         logger.info("Validating 'Created At' column sorting")
 
         rows = role_group_page.page.locator("div.component-body table tbody tr")
@@ -216,26 +333,38 @@ class TestRoleGroupPage:
 
         for i in range(row_count):
             created_at = rows.nth(i).locator("td").nth(1).inner_text().strip()
+            logger.debug(
+                "Collected Created At for sorting | row=%s | value=%s", i, created_at
+            )
             date_obj = datetime.strptime(created_at, "%d/%m/%Y")
             dates.append(date_obj)
 
         # ✅ Check ascending order (oldest first)
+        report_case(expected=sorted(dates), actual=dates)
         assert dates == sorted(dates), "Dates are not sorted in ascending order"
 
-    def test_created_at_column_format(self, role_group_page):
+    def test_created_at_column_format(self, role_group_page, report_case):
         logger.info("Validating 'Created At' column format")
 
         table = TableSection(role_group_page.page)
 
         rows = role_group_page.page.locator("div.component-body table tbody tr")
         row_count = rows.count()
+        logger.debug(
+            "Role Group row count for Created At format validation: %s", row_count
+        )
 
         assert row_count > 0, "Table is empty"
 
         date_pattern = re.compile(r"\d{2}/\d{2}/\d{4}")
+        created_dates = []
 
         for i in range(row_count):
             created_at = rows.nth(i).locator("td").nth(1).inner_text().strip()
+            created_dates.append(created_at)
+            logger.debug(
+                "Validating Created At format | row=%s | value=%s", i, created_at
+            )
 
             # ✅ Check format
             assert date_pattern.match(created_at), f"Invalid date format: {created_at}"
@@ -245,3 +374,7 @@ class TestRoleGroupPage:
                 datetime.strptime(created_at, "%d/%m/%Y")
             except ValueError:
                 assert False, f"Invalid date value: {created_at}"
+        report_case(
+            expected="All Created At values should match dd/mm/yyyy format",
+            actual=created_dates,
+        )

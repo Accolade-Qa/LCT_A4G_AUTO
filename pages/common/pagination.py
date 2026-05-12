@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from playwright.sync_api import Page
+from playwright.sync_api import Page, Locator
 
 from utils.logger import get_logger
 
@@ -10,13 +10,14 @@ logger = get_logger(__name__)
 
 
 class PaginationHelper:
+
     def __init__(
         self,
         page: Page,
         page_input: str = "input.page-input",
         next_button: str = "button:has(mat-icon:has-text('chevron_right'))",
         prev_button: Optional[str] = None,
-        content_selector: str = "div.component-body table",
+        content_selector: str | Locator = "div.component-body table",
         total_pages_selector: str = "text=/\\d+\\s*/\\s*\\d+/",
         max_forward_steps: Optional[int] = 8,
         max_backward_steps: Optional[int] = None,
@@ -72,7 +73,11 @@ class PaginationHelper:
 
         try:
             input_locator = self.page.locator(self.page_input)
-            content_locator = self.page.locator(self.content_selector)
+            content_locator = (
+                self.content_selector
+                if not isinstance(self.content_selector, str)
+                else self.page.locator(self.content_selector)
+            )
             input_locator.wait_for(state="visible")
             content_locator.wait_for(state="visible")
             current_page = self._get_current_page(input_locator)

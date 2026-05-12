@@ -5,13 +5,17 @@ logger = get_logger(__name__)
 
 class RoleGroupPage:
     def __init__(self, page):
+        logger.debug("Initializing RoleGroupPage with page object")
         self.page = page
+        logger.info("RoleGroupPage initialized successfully")
 
     def go_to_role_group_page(self, url):
         logger.info("Navigating to Role Group page: %s", url)
+        logger.debug("Calling page.goto() with URL")
         self.page.goto(url)
+        logger.debug("Waiting for network to be idle")
         self.page.wait_for_load_state("networkidle")
-        logger.info("Role Group page loaded")
+        logger.info("Successfully navigated to and loaded Role Group page")
 
     def get_title(self):
         logger.info("Retrieving Role Group page title")
@@ -53,17 +57,22 @@ class RoleGroupPage:
 
     def get_success_message(self):
         logger.info("Waiting for success snackbar message")
-
+        logger.debug("Locating snackbar container")
         snackbar = self.page.locator(".mat-mdc-snack-bar-container")
+        logger.debug("Waiting for snackbar to be visible")
         snackbar.wait_for(state="visible")
-
+        logger.debug("Extracting snackbar message text")
         message = snackbar.inner_text().strip()
-        logger.info(f"Snackbar message: {message}")
+        logger.info("Snackbar message: %s", message)
         return message
 
     def enter_role_group_name(self, role_name):
-        logger.info(f"Entering role group name: {role_name}")
-        self.page.get_by_role("textbox", name="Group Name").fill(role_name)
+        logger.info("Entering role group name: %s", role_name)
+        logger.debug("Locating Group Name textbox")
+        textbox = self.page.get_by_role("textbox", name="Group Name")
+        logger.debug("Filling Group Name field with: %s", role_name)
+        textbox.fill(role_name)
+        logger.debug("Role group name entered successfully")
 
     def get_component_title(self):
         logger.info("Retrieving component title")
@@ -75,17 +84,24 @@ class RoleGroupPage:
 
     def get_input_box_error_message(self):
         logger.info("Retrieving input box error message")
+        logger.debug("Locating mat-error element")
         error_locator = self.page.locator("mat-error")
         if error_locator.is_visible():
+            logger.debug("Error locator is visible, extracting message")
             error_message = error_locator.text_content().strip()
             logger.info("Error message found: %s", error_message)
             return error_message
+        logger.debug("No error locator visible")
         logger.info("No error message visible")
         return None
 
     def get_created_at_values(self):
+        logger.debug("Retrieving created_at values from table")
         rows = self.page.locator("div.component-body table tbody tr")
-        return [
+        logger.debug("Found %s rows in table", rows.count())
+        created_at_values = [
             rows.nth(i).locator("td").nth(1).inner_text().strip()
             for i in range(rows.count())
         ]
+        logger.info("Created_at values retrieved: %s", created_at_values)
+        return created_at_values

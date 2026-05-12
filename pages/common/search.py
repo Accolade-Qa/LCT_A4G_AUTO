@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from playwright.sync_api import Page
+from playwright.sync_api import Locator, Page
 
 from utils.logger import get_logger
 
@@ -13,12 +13,34 @@ class SearchHelper:
     def __init__(
         self,
         page: Page,
-        input_selector: str = "//input[@placeholder='Search and Press Enter']",
+        input_selector: str = "input[placeholder='Search and Press Enter']",
         row_selector: str = "tr.ng-star-inserted",
     ):
         self.page = page
         self.input_selector = input_selector
         self.row_selector = row_selector
+
+    def _search_input_candidates(self) -> list[Locator]:
+        return [
+            self.page.locator(self.input_selector),
+            self.page.get_by_placeholder("Search and Press Enter"),
+            self.page.locator("input[placeholder*='Search']"),
+            self.page.locator("//input[contains(@placeholder,'Search')]"),
+        ]
+
+    def _visible_search_input(self) -> Locator:
+        errors = []
+
+        for search_input in self._search_input_candidates():
+            try:
+                candidate = search_input.first
+                candidate.wait_for(state="visible", timeout=5000)
+                return candidate
+            except Exception as exc:
+                errors.append(str(exc))
+
+        logger.debug("Search input locator attempts failed: %s", errors)
+        raise TimeoutError("No visible search input found on the current page")
 
     def run_search(self, query: str) -> dict[str, Sequence[str] | int | bool | None]:
         result = {
@@ -29,9 +51,9 @@ class SearchHelper:
         }
 
         try:
-            search_input = self.page.locator(self.input_selector)
-            search_input.wait_for(state="visible")
+            search_input = self._visible_search_input()
             logger.info("Executing search for query '%s'", query)
+            search_input.scroll_into_view_if_needed()
             search_input.fill(query)
             search_input.press("Enter")
             self.page.wait_for_timeout(1000)

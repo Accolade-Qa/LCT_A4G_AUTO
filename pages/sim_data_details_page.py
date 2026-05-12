@@ -12,9 +12,12 @@ logger = get_logger(__name__)
 
 class SimDataDetailsPage:
     def __init__(self, page):
+        logger.debug("Initializing SimDataDetailsPage with page object")
         self.page = page
         logger.info("SimDataDetailsPage initialized with URL %s", page.url)
+        logger.debug("Setting up main TableSection")
         self.table_section = TableSection(page)
+        logger.debug("Setting up PaginationHelper for main table")
         self.pagination_helper = PaginationHelper(
             page,
             prev_button="button:has(mat-icon:has-text('chevron_left'))",
@@ -22,28 +25,32 @@ class SimDataDetailsPage:
             max_forward_steps=5,
             max_backward_steps=5,
         )
+        logger.debug("Setting up TableSection for Valid ICCID Details")
         # inside __init__
 
         self.valid_table_section = TableSection(
             page,
             table_selector='page.locator("h6.component-title").has-text("Valid ICCID Details") ~ div table',
         )
-
+        logger.debug("Setting up TableSection for Duplicate ICCID Details")
         self.duplicate_table_section = TableSection(
             page,
             table_selector='page.locator("h6.component-title").has-text("Duplicate ICCID Details") ~ div table',
         )
-
+        logger.debug("Setting up TableSection for Not Present Details")
         self.error_table_section = TableSection(
             page,
             table_selector='page.locator("h6.component-title").has-text("Not Present Details") ~ div table',
         )
+        logger.info("All SimDataDetailsPage table sections initialized successfully")
 
     def go_to_simbatchpage(self, url):
         logger.info("Navigating to SIM Data Details page: %s", url)
+        logger.debug("Calling page.goto() with URL")
         self.page.goto(url)
+        logger.debug("Waiting for network to be idle")
         self.page.wait_for_load_state("networkidle")
-        logger.debug("Navigation complete for SIM Data Details")
+        logger.info("Successfully navigated to and loaded SIM Data Details page")
 
     def get_title(self):
         logger.info("Retrieving SIM data page title")
@@ -55,8 +62,11 @@ class SimDataDetailsPage:
 
     def _get_button_by_text(self, text: str):
         logger.debug("Resolving button with text '%s'", text)
+        logger.debug("Building button locator with has-text selector")
         locator = self.page.locator(f"button:has-text('{text}')")
+        logger.debug("Waiting for button to be visible")
         locator.wait_for(state="visible")
+        logger.debug("Button locator resolved successfully")
         return locator
 
     def is_manual_upload_button_visible(self):
@@ -107,10 +117,14 @@ class SimDataDetailsPage:
         return disabled
 
     def click_manual_upload_button(self):
+        logger.info("Clicking Manual Upload button")
+        logger.debug("Retrieving Manual Upload button")
         manual_upload_button = self._get_button_by_text("Manual Upload")
-        logger.info("Sending click to Manual Upload button")
+        logger.debug("Starting navigation expectation before click")
         with self.page.expect_navigation(wait_until="networkidle"):
+            logger.debug("Clicking Manual Upload button")
             manual_upload_button.click()
+        logger.info("Manual Upload button clicked and page navigated")
 
     def validate_blank_input_error_message(self):
         logger.info("Validating blank ICCID upload error text")
@@ -190,14 +204,17 @@ class SimDataDetailsPage:
 
     def click_download_sample_button(self):
         logger.info("Clicking Download Sample button")
-
+        logger.debug("Retrieving Download Sample button")
         download_sample_button = self._get_button_by_text("Download Sample")
+        logger.debug("Waiting for Download Sample button to be visible")
         download_sample_button.wait_for(state="visible")
-
+        logger.debug("Starting download listener with 60s timeout")
         with self.page.expect_download() as download_info:
+            logger.debug("Clicking Download Sample button")
             download_sample_button.click()
-
+        logger.debug("Download capture started")
         download = download_info.value
+        logger.info("Download captured: %s", download.suggested_filename)
         return download
 
     def is_sample_file_downloaded(
@@ -248,19 +265,30 @@ class SimDataDetailsPage:
 
     def upload_valid_file(self, filename):
         logger.info("Uploading valid file: %s", filename)
-
+        logger.debug("Locating file input element")
         # self.page.locator("mat-icon:has-text('attach_file')").click()
 
         file_input = self.page.locator("input[type='file']")
+        logger.debug("Setting input files with: %s", filename)
         file_input.set_input_files(filename)
+        logger.info("File uploaded successfully")
 
     def validate_tables_against_api(self, api_data: dict):
+        logger.info("Validating UI tables against API response")
+        logger.debug("Extracting valid SIM details from API response")
         valid_list = api_data.get("simDetails", {}).get("simDetailEntity", [])
+        logger.debug("Extracting duplicate rows from API response")
         duplicate_list = api_data.get("duplicateRows", [])
+        logger.debug("Extracting error rows from API response")
         error_list = api_data.get("errors", [])
 
-        logger.info("Validating UI tables against API response")
+        logger.info("Validating UI tables against API data (valid: %s items, duplicates: %s items, errors: %s items)", 
+                    len(valid_list), len(duplicate_list), len(error_list))
 
+        logger.debug("Validating valid table section")
         self.valid_table_section.validate_table_data(valid_list)
+        logger.debug("Validating duplicate table section")
         self.duplicate_table_section.validate_table_data(duplicate_list)
+        logger.debug("Validating error table section")
         self.error_table_section.validate_table_data(error_list, iccid_key="iccid")
+        logger.info("All table validations completed successfully")

@@ -1,5 +1,8 @@
-from config.config import SIM_DATA_DETAILS_URL
 from pathlib import Path
+
+import pytest
+
+from config.config import SIM_DATA_DETAILS_URL
 from pages.api.sim_batch_details import SIMBatchDetailsAPI
 from utils.logger import get_logger
 
@@ -9,23 +12,59 @@ TEST_DATA_DIR = Path(__file__).resolve().parents[1] / "test_data"
 
 
 class TestSimBatchDataDetails:
-    def test_go_to_simbatchpage(self, page, sim_data_details_page):
+    @pytest.fixture(autouse=True)
+    def log_test_case(self, request):
+        test_name = request.node.name
+        logger.info("Starting SIM Batch Data Details test: %s", test_name)
+        logger.debug("Executing test node: %s", request.node.nodeid)
+        yield
+        report = getattr(request.node, "rep_call", None)
+        if report is None:
+            logger.debug(
+                "SIM Batch Data Details test finished without call report: %s",
+                test_name,
+            )
+        elif report.passed:
+            logger.info("SIM Batch Data Details test passed: %s", test_name)
+        elif report.failed:
+            logger.error("SIM Batch Data Details test failed: %s", test_name)
+            logger.debug(
+                "SIM Batch Data Details failure details for %s: %s",
+                test_name,
+                report.longrepr,
+            )
+        elif report.skipped:
+            logger.warning("SIM Batch Data Details test skipped: %s", test_name)
+
+    def test_go_to_simbatchpage(self, page, sim_data_details_page, report_case):
         logger.info("Navigating to SIM Data Details page")
         sim_data_details_page.go_to_simbatchpage(SIM_DATA_DETAILS_URL)
+        logger.debug(
+            "SIM Data Details URL check | expected=%s | actual=%s",
+            SIM_DATA_DETAILS_URL,
+            page.url,
+        )
+        report_case(expected=SIM_DATA_DETAILS_URL, actual=page.url)
         assert (
             page.url == SIM_DATA_DETAILS_URL
         ), f"Expected URL to be '{SIM_DATA_DETAILS_URL}', got {page.url}"
 
-    def test_simbatchpage_title(self, sim_data_details_page):
+    def test_simbatchpage_title(self, sim_data_details_page, report_case):
         logger.info("Asserting SIM Data Details title")
         sim_data_details_page.go_to_simbatchpage(SIM_DATA_DETAILS_URL)
         expected_title = "Sensorise SIM Data Details"
         actual_title = sim_data_details_page.get_title()
+        logger.debug(
+            "SIM Data Details title check | expected=%s | actual=%s",
+            expected_title,
+            actual_title,
+        )
+        report_case(expected=expected_title, actual=actual_title)
         assert (
             actual_title == expected_title
         ), f"Expected title to be '{expected_title}', got '{actual_title}'"
 
-    def test_manual_upload_and_download_buttons(self, sim_data_details_page):
+    def test_manual_upload_and_download_buttons(self, sim_data_details_page, report_case):
         logger.info("Validating manual upload and download buttons")
         assert (
             sim_data_details_page.is_manual_upload_button_visible()
@@ -35,6 +74,15 @@ class TestSimBatchDataDetails:
         ), "Download Sample button should be visible"
         manual_button_text = sim_data_details_page.get_manual_upload_button_text()
         download_button_text = sim_data_details_page.get_download_sample_button_text()
+        logger.debug(
+            "SIM action button text | manual=%s | download=%s",
+            manual_button_text,
+            download_button_text,
+        )
+        report_case(
+            expected="Manual Upload and Download Sample buttons should be visible with correct text",
+            actual=f"Manual='{manual_button_text}', Download='{download_button_text}'",
+        )
         assert (
             "Manual Upload" in manual_button_text
         ), "Manual Upload button text mismatch"
@@ -42,40 +90,60 @@ class TestSimBatchDataDetails:
             "Download Sample" in download_button_text
         ), "Download Sample button text mismatch"
 
-    def test_upload_instruction_and_placeholder(self, sim_data_details_page):
+    def test_upload_instruction_and_placeholder(self, sim_data_details_page, report_case):
         logger.info("Checking upload instruction and placeholder copy")
         expected_instruction = "Upload ICCID's to get SIM Data Details"
+        actual_instruction = sim_data_details_page.get_upload_instruction_text()
+        logger.debug(
+            "SIM upload instruction check | expected=%s | actual=%s",
+            expected_instruction,
+            actual_instruction,
+        )
+        report_case(expected=expected_instruction, actual=actual_instruction)
         assert (
-            sim_data_details_page.get_upload_instruction_text() == expected_instruction
+            actual_instruction == expected_instruction
         ), "Upload instruction text mismatch"
         # placeholder = sim_data_details_page.get_iccid_upload_placeholder()
         # assert "ICCID" in (placeholder or ""), "ICCID placeholder should mention ICCID"
 
-    def test_submit_button_initial_state(self, sim_data_details_page):
+    def test_submit_button_initial_state(self, sim_data_details_page, report_case):
         logger.info("Verifying submit button is disabled before upload")
-        assert (
-            sim_data_details_page.is_submit_button_disabled()
-        ), "Submit button should be disabled before upload"
+        is_disabled = sim_data_details_page.is_submit_button_disabled()
+        report_case(expected=True, actual=is_disabled)
+        assert is_disabled, "Submit button should be disabled before upload"
 
-    def test_manual_button_click_opens_manual_upload_page(self, sim_data_details_page):
+    def test_manual_button_click_opens_manual_upload_page(
+        self, sim_data_details_page, report_case
+    ):
         logger.info("Opening manual upload page")
         sim_data_details_page.click_manual_upload_button()
+        logger.debug("Manual upload page URL: %s", sim_data_details_page.page.url)
+        report_case(
+            expected="URL should contain sensorise-sim-manual-upload",
+            actual=sim_data_details_page.page.url,
+        )
         assert (
             "sensorise-sim-manual-upload" in sim_data_details_page.page.url
         ), f"Expected manual upload URL fragment in '{sim_data_details_page.page.url}'"
 
-    def test_manual_upload_blank_input_error(self, sim_data_details_page):
+    def test_manual_upload_blank_input_error(self, sim_data_details_page, report_case):
         logger.info("Validating blank input error message on manual upload form")
         expected_error_message = "This field is required and can't be only spaces."
         sim_data_details_page.click_manual_upload_button()
         actual_error_message = (
             sim_data_details_page.validate_blank_input_error_message()
         )
+        logger.debug(
+            "Blank ICCID error check | expected=%s | actual=%s",
+            expected_error_message,
+            actual_error_message,
+        )
+        report_case(expected=expected_error_message, actual=actual_error_message)
         assert (
             actual_error_message == expected_error_message
         ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
 
-    def test_manual_upload_20_characters_error(self, sim_data_details_page):
+    def test_manual_upload_20_characters_error(self, sim_data_details_page, report_case):
         """this error is for the less than 20 and more thann 20 characters"""
         logger.info("Checking error message for input exceeding 20 characters")
         expected_error_message = "Value must be exactly 20 characters long."
@@ -83,32 +151,46 @@ class TestSimBatchDataDetails:
         actual_error_message = (
             sim_data_details_page.validate_20_characters_error_message()
         )
+        logger.debug(
+            "ICCID length error check | expected=%s | actual=%s",
+            expected_error_message,
+            actual_error_message,
+        )
+        report_case(expected=expected_error_message, actual=actual_error_message)
         assert (
             actual_error_message == expected_error_message
         ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
 
-    def test_submit_button_enabled_after_valid_input(self, sim_data_details_page):
+    def test_submit_button_enabled_after_valid_input(
+        self, sim_data_details_page, report_case
+    ):
         logger.info("Ensuring submit button is enabled after valid input")
         sim_data_details_page.click_manual_upload_button()
         sim_data_details_page.enter_valid_iccid(
             "89916450244842405755"
         )  # Example valid ICCID
-        assert (
-            not sim_data_details_page.is_submit_button_disabled()
-        ), "Submit button should be enabled after valid input"
+        logger.debug("Entered valid ICCID for submit button enablement check")
+        is_disabled = sim_data_details_page.is_submit_button_disabled()
+        report_case(expected=False, actual=is_disabled)
+        assert not is_disabled, "Submit button should be enabled after valid input"
 
-    def test_click_on_submit_is_opening_the_table(self, sim_data_details_page):
+    def test_click_on_submit_is_opening_the_table(
+        self, sim_data_details_page, report_case
+    ):
         logger.info("Testing that clicking submit opens the results table")
         sim_data_details_page.click_manual_upload_button()
         sim_data_details_page.enter_valid_iccid(
             "89916450244842405755"
         )  # Example valid ICCID
         sim_data_details_page.click_submit_button()
-        assert (
-            sim_data_details_page.is_results_table_visible()
-        ), "Results table should be visible after submitting valid ICCID"
+        logger.debug("Submitted valid ICCID and checking results table visibility")
+        is_visible = sim_data_details_page.is_results_table_visible()
+        report_case(expected=True, actual=is_visible)
+        assert is_visible, "Results table should be visible after submitting valid ICCID"
 
-    def test_is_table_component_header_visible_and_correct(self, sim_data_details_page):
+    def test_is_table_component_header_visible_and_correct(
+        self, sim_data_details_page, report_case
+    ):
         logger.info("Verifying results table header is visible and correct")
         sim_data_details_page.click_manual_upload_button()
         sim_data_details_page.enter_valid_iccid(
@@ -119,11 +201,17 @@ class TestSimBatchDataDetails:
             "Uploaded ICCID's Sensorise SIM Details List"  # Example expected headers
         )
         actual_headers = sim_data_details_page.get_results_table_component_header()
+        logger.debug(
+            "SIM results component header | expected=%s | actual=%s",
+            expected_header,
+            actual_headers,
+        )
+        report_case(expected=expected_header, actual=actual_headers)
         assert (
             actual_headers == expected_header
         ), f"Expected table headers to be {expected_header}, got {actual_headers}"
 
-    def test_table_headers(self, sim_data_details_page):
+    def test_table_headers(self, sim_data_details_page, report_case):
         logger.info("Validating table headers")
         sim_data_details_page.click_manual_upload_button()
         sim_data_details_page.enter_valid_iccid(
@@ -149,12 +237,17 @@ class TestSimBatchDataDetails:
             "ACTIVE SR NUMBER",
         ]
         actual_headers = sim_data_details_page.table_section.get_headers()
-        print(f"Actual headers: {actual_headers}")
+        logger.debug(
+            "SIM results table headers | expected=%s | actual=%s",
+            expected_headers,
+            actual_headers,
+        )
+        report_case(expected=expected_headers, actual=actual_headers)
         assert (
             actual_headers == expected_headers
         ), f"Expected table headers {expected_headers}, got {actual_headers}"
 
-    def test_pagination(self, sim_data_details_page):
+    def test_pagination(self, sim_data_details_page, report_case):
         logger.info("Executing pagination workflow")
         sim_data_details_page.click_manual_upload_button()
         sim_data_details_page.enter_valid_iccid(
@@ -165,6 +258,12 @@ class TestSimBatchDataDetails:
             2000
         )  # Wait for table to load before checking pagination
         result = sim_data_details_page.pagination_helper.verify(include_backward=True)
+        logger.debug("SIM results pagination result: %s", result)
+        report_case(
+            expected="Pagination success=True and pages visited in order",
+            actual=result,
+            message=result.get("error", ""),
+        )
         assert result["success"], f"Pagination failed: {result['error']}"
         # assert result["total_pages"] > 1, "Pagination did not move beyond first page"
         assert result["pages_visited"] == sorted(
@@ -173,39 +272,57 @@ class TestSimBatchDataDetails:
 
     ## Batch upload test cases
 
-    def test_batch_upload_input_validation(self, sim_data_details_page):
+    def test_batch_upload_input_validation(self, sim_data_details_page, report_case):
         logger.info("Validating batch upload input")
         expected_error_message = "This field is mandatory."
         actual_error_message = (
             sim_data_details_page.validate_batch_upload_input_error_message()
         )
+        logger.debug(
+            "Batch upload input error check | expected=%s | actual=%s",
+            expected_error_message,
+            actual_error_message,
+        )
+        report_case(expected=expected_error_message, actual=actual_error_message)
         assert (
             actual_error_message == expected_error_message
         ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
 
-    def test_download_sample_button_functionality(self, sim_data_details_page):
+    def test_download_sample_button_functionality(
+        self, sim_data_details_page, report_case
+    ):
         logger.info("Testing Download Sample button functionality")
 
         download = sim_data_details_page.click_download_sample_button()
-
-        assert sim_data_details_page.is_sample_file_downloaded(
+        logger.debug("Sample download suggested filename: %s", download.suggested_filename)
+        is_downloaded = sim_data_details_page.is_sample_file_downloaded(
             download=download, expected_filename="Sensorise_SIM_data_Details.xlsx"
-        ), "Sample file validation failed"
+        )
+        report_case(
+            expected="Sensorise_SIM_data_Details.xlsx should download successfully",
+            actual=f"filename={download.suggested_filename}, downloaded={is_downloaded}",
+        )
 
-    def test_submit_button_disabled_after_no_input(self, sim_data_details_page):
+        assert is_downloaded, "Sample file validation failed"
+
+    def test_submit_button_disabled_after_no_input(
+        self, sim_data_details_page, report_case
+    ):
         logger.info("Testing the submit button is disabled if no input")
-        assert (
-            sim_data_details_page.is_submit_button_disabled_on_no_input()
-        ), "Submit button should not be enabled"
+        is_disabled = sim_data_details_page.is_submit_button_disabled_on_no_input()
+        report_case(expected=True, actual=is_disabled)
+        assert is_disabled, "Submit button should not be enabled"
 
-    def test_submit_button_enabled_after_valid_file_upload(self, sim_data_details_page):
+    def test_submit_button_enabled_after_valid_file_upload(
+        self, sim_data_details_page, report_case
+    ):
         logger.info("Testing submit button enabled after valid file upload")
-        sim_data_details_page.upload_valid_file(
-            str(TEST_DATA_DIR / "Sensorise_SIM_data_Details.xlsx")
-        )  # Example valid file
-        assert (
-            not sim_data_details_page.is_submit_button_disabled_on_no_input()
-        ), "Submit button should be enabled after valid file upload"
+        file_path = str(TEST_DATA_DIR / "Sensorise_SIM_data_Details.xlsx")
+        logger.debug("Uploading SIM data details file: %s", file_path)
+        sim_data_details_page.upload_valid_file(file_path)  # Example valid file
+        is_disabled = sim_data_details_page.is_submit_button_disabled_on_no_input()
+        report_case(expected=False, actual=is_disabled)
+        assert not is_disabled, "Submit button should be enabled after valid file upload"
 
         if not sim_data_details_page.is_submit_button_disabled_on_no_input():
             sim_data_details_page.click_submit_button()

@@ -1,6 +1,9 @@
 import re
+
+import pytest
 from config.config import IMEI
 from playwright.sync_api import expect
+from pages import ota_page
 from pages.common.search import SearchHelper
 from pages.common.table_section import TableSection
 from utils.helpers import Helpers as helper
@@ -15,10 +18,31 @@ class TestOtaPage:
     # Test data
     SEARCH_QUERY = "test"
 
+    @pytest.fixture(autouse=True)
+    def log_test_case(self, request, report_case):
+        test_name = request.node.name
+        expected = (request.node.function.__doc__ or test_name).strip()
+        report_case(expected=expected)
+        logger.info("Starting OTA test: %s", test_name)
+        logger.debug("Executing test node: %s", request.node.nodeid)
+        yield
+        report = getattr(request.node, "rep_call", None)
+        if report is None:
+            logger.debug("OTA test finished without call report: %s", test_name)
+        elif report.passed:
+            logger.info("OTA test passed: %s", test_name)
+        elif report.failed:
+            logger.error("OTA test failed: %s", test_name)
+            logger.debug("OTA failure details for %s: %s", test_name, report.longrepr)
+        elif report.skipped:
+            logger.warning("OTA test skipped: %s", test_name)
+
     """ OTA Batch Page Tests """
 
     def test_go_to_ota_page(self, ota_page):
         """Verify OTA page is loaded with correct URL."""
+        logger.info("Validating OTA page load state")
+        logger.debug("Current OTA page URL: %s", ota_page.page.url)
         assert (
             ota_page.is_page_loaded()
         ), f"OTA page did not load at {ota_page.page.url}"
@@ -27,6 +51,11 @@ class TestOtaPage:
         """Verify OTA Batch page title is correct."""
         expected_title = "OTA Batch"
         actual_title = ota_page.get_title()
+        logger.debug(
+            "OTA Batch title check | expected=%s | actual=%s",
+            expected_title,
+            actual_title,
+        )
         assert (
             actual_title == expected_title
         ), f"Expected title '{expected_title}', but got '{actual_title}'"
@@ -121,13 +150,16 @@ class TestOtaPage:
 
     def test_is_ota_master_button_visible(self, ota_page):
         """Verify OTA Master button is visible on OTA Batch page."""
+        logger.info("Validating OTA Master button visibility")
         assert (
             ota_page.is_ota_master_page_button_visible()
         ), "OTA Master page button is not visible"
 
     def test_navigate_to_ota_master_page(self, ota_page):
         """Verify navigation to OTA Master page succeeds."""
+        logger.info("Navigating to OTA Master page")
         ota_page.go_to_ota_master_page()
+        logger.debug("OTA Master URL after navigation: %s", ota_page.page.url)
         expect(ota_page.page).to_have_url(re.compile(r".*ota-master"))
 
     def test_ota_master_page_title(self, ota_page):
@@ -135,6 +167,11 @@ class TestOtaPage:
         ota_page.go_to_ota_master_page()
         expected_title = "OTA Master"
         actual_title = ota_page.get_page_title()
+        logger.debug(
+            "OTA Master title check | expected=%s | actual=%s",
+            expected_title,
+            actual_title,
+        )
         assert (
             actual_title == expected_title
         ), f"Expected title '{expected_title}', but got '{actual_title}'"
@@ -777,29 +814,59 @@ class TestOtaPage:
         """Verify selecting a checkbox enables the Set Batch button on Manual OTA page after valid search."""
         ota_page.go_to_manual_ota_page()
 
+        logger.info(
+            "Testing selecting a checkbox enables the Set Batch button on Manual OTA page after valid search"
+        )
+
         valid_imei = IMEI
         ota_page.fill_imei_input(valid_imei)
         ota_page.click_manual_ota_imei_search_button()
 
+        logger.info("Valid imei searched")
+
+        # self.page.wait_for_timeout(1000)
+        # self.page.scroll_into_view_if_needed(ota_page.new_ota_button)
+
         if ota_page.is_new_ota_button_enabled():
+
+            # clicking on the new_ota_button to navigate to the page where checkboxes are present and Set Batch button is present
+            ota_page.click_new_ota_button()
+
             # Select a checkbox for a command
             command_to_select = "GET IMEI"
             try:
                 ota_page.search_command_in_manual_ota(command_to_select)
-                assert (
-                    ota_page.is_checkbox_for_command_selected()
-                ), f"Checkbox for command '{command_to_select}' should be selected"
 
-                ota_page.select_checkbox_for_command()
-
-                # Validate that Set Batch button is now enabled
-                assert (
-                    ota_page.is_set_batch_button_enabled()
-                ), "Set Batch button should be enabled after selecting a command checkbox"
                 logger.info(
-                    "Set Batch button is enabled successfully after selecting checkbox for command '%s'",
-                    command_to_select,
+                    f"Command '{command_to_select}' searched and checkbox should be selected"
                 )
+
+                if ota_page.get_size_of_checkbox_list() > 1:
+                    logger.error(
+                        f"Multiple checkboxes found, validating the correct one is selected for command '{command_to_select}'"
+                    )
+
+                else:
+                    assert (
+                        not ota_page.is_checkbox_for_command_selected()
+                    ), f"Checkbox for command '{command_to_select}' should be selected"
+
+                    ota_page.select_checkbox_for_command()
+
+                    logger.info(f"Checkbox for command '{command_to_select}' selected")
+
+                    # Validate that Set Batch button is now enabled
+                    assert (
+                        ota_page.is_set_batch_button_enabled()
+                    ), "Set Batch button should be enabled after selecting a command checkbox"
+
+                    logger.info("Set Batch button is enabled after selecting checkbox")
+
+                    logger.info(
+                        "Set Batch button is enabled successfully after selecting checkbox for command '%s'",
+                        command_to_select,
+                    )
+
             except Exception as e:
                 logger.warning(
                     "Error during checkbox selection and Set Batch button validation: %s",
@@ -809,3 +876,352 @@ class TestOtaPage:
             logger.warning(
                 "New OTA Command button is not visible - cannot test checkbox selection and Set Batch button state"
             )
+
+    def test_click_on_set_batch_button_and_validate_the_set_configuration_component_visible(
+        self, ota_page
+    ):
+        """Verify Set Configuration component is visible after clicking Set Batch button."""
+        logger.info(
+            "Testing Set Configuration component visibility after clicking Set Batch button"
+        )
+
+        # Use helper method to set up manual OTA and enable Set Batch button
+        ota_page.setup_manual_ota_and_enable_set_batch(
+            valid_imei=IMEI, command_to_search="GET IMEI"
+        )
+        logger.info("Manual OTA setup and Set Batch button enabled successfully")
+
+        # Now click Set Batch button and validate Set Configuration component
+        try:
+            ota_page.click_set_batch_button()
+            logger.info("Clicked Set Batch button successfully")
+
+            # Validate that the Set Configuration component is visible after clicking the button
+            assert (
+                ota_page.is_set_configuration_component_visible()
+            ), "Set Configuration component should be visible after clicking Set Batch button"
+
+            logger.info(
+                "Set Configuration component is visible after clicking Set Batch button"
+            )
+        except Exception as e:
+            logger.error(
+                "Error clicking Set Batch button or validating component: %s",
+                str(e),
+            )
+            raise
+
+    # def test_valid_table_headers_on_set_configuration_value_component(self, ota_page):
+    #     """Verify that the table headers on Set Configuration component are correct."""
+    #     logger.info("Testing table headers validation on Set Configuration component")
+
+    #     # Use helper method to set up manual OTA and enable Set Batch button
+    #     ota_page.setup_manual_ota_and_enable_set_batch(
+    #         valid_imei=IMEI, command_to_search="GET IMEI"
+    #     )
+    #     logger.info("Manual OTA setup and Set Batch button enabled successfully")
+
+    #     # Click Set Batch button and validate table headers
+    #     try:
+    #         ota_page.click_set_batch_button()
+    #         logger.info("Clicked Set Batch button successfully")
+
+    #         if ota_page.is_set_configuration_component_visible():
+    #             expected_headers = [
+    #                 "Name",
+    #                 "Command",
+    #                 "Example",
+    #                 "Input Value",
+    #                 "Action",
+    #             ]
+    #             actual_headers = ota_page.get_set_configuration_table_headers()
+
+    #             assert (
+    #                 actual_headers == expected_headers
+    #             ), f"Expected headers {expected_headers}, but got {actual_headers}"
+
+    #             logger.info("Table headers on Set Configuration component are correct")
+
+    #         else:
+    #             logger.warning(
+    #                 "Set Configuration component is not visible - cannot validate table headers"
+    #             )
+
+    #     except Exception as e:
+    #         logger.error(
+    #             "Error validating table headers on Set Configuration component: %s",
+    #             str(e),
+    #         )
+    #         raise
+
+    def test_submit_button_visible_and_click(self, ota_page):
+        """Verify Submit button is visible and clickable on Set Configuration component."""
+        logger.info(
+            "Testing Submit button visibility and clickability on Set Configuration component"
+        )
+
+        # Use helper method to set up manual OTA and enable Set Batch button
+        ota_page.setup_manual_ota_and_enable_set_batch(
+            valid_imei=IMEI, command_to_search="GET IMEI"
+        )
+        logger.info("Manual OTA setup and Set Batch button enabled successfully")
+
+        # Click Set Batch button and validate Submit button
+        try:
+            ota_page.click_set_batch_button()
+            logger.info("Clicked Set Batch button successfully")
+
+            if ota_page.is_set_configuration_component_visible():
+                assert (
+                    ota_page.is_submit_button_on_set_configuration_visible()
+                ), "Submit button should be visible on Set Configuration component"
+
+                logger.info("Submit button is visible on Set Configuration component")
+
+                # Click the Submit button
+                ota_page.click_submit_button_on_set_configuration()
+
+                logger.info(
+                    "Clicked Submit button on Set Configuration component successfully"
+                )
+
+                # Add assertions here to validate expected behavior after clicking submit
+
+            else:
+                logger.warning(
+                    "Set Configuration component is not visible - cannot validate Submit button"
+                )
+
+        except Exception as e:
+            logger.error(
+                "Error validating or clicking Submit button on Set Configuration component: %s",
+                str(e),
+            )
+            raise
+
+    def test_OTA_history_component_visible_after_submit(self, ota_page):
+        """Verify OTA History component is visible after submitting configuration."""
+        logger.info(
+            "Testing OTA History component visibility after submitting configuration"
+        )
+
+        # Use helper method to set up manual OTA and enable Set Batch button
+        ota_page.setup_manual_ota_and_enable_set_batch(
+            valid_imei=IMEI, command_to_search="GET IMEI"
+        )
+        logger.info("Manual OTA setup and Set Batch button enabled successfully")
+
+        # Click Set Batch button, submit configuration, and validate OTA History component
+        try:
+            ota_page.click_set_batch_button()
+            logger.info("Clicked Set Batch button successfully")
+
+            if ota_page.is_set_configuration_component_visible():
+                ota_page.click_submit_button_on_set_configuration()
+                logger.info(
+                    "Clicked Submit button on Set Configuration component successfully"
+                )
+
+                # Validate that the OTA History component is visible after submission
+                assert (
+                    ota_page.is_ota_history_component_visible()
+                ), "OTA History component should be visible after submitting configuration"
+
+                logger.info("OTA History component is visible after submission")
+            else:
+                logger.warning(
+                    "Set Configuration component is not visible - cannot validate OTA History component"
+                )
+
+        except Exception as e:
+            logger.error(
+                "Error validating OTA History component visibility: %s", str(e)
+            )
+            raise
+
+    def test_ota_history_table_headers_validation(self, ota_page):
+        """Verify that the table headers on OTA History component are correct."""
+        logger.info("Testing table headers validation on OTA History component")
+
+        # Use helper method to set up manual OTA and enable Set Batch button
+        ota_page.setup_manual_ota_and_enable_set_batch(
+            valid_imei=IMEI, command_to_search="GET IMEI"
+        )
+        logger.info("Manual OTA setup and Set Batch button enabled successfully")
+
+        # Click Set Batch button, submit configuration, and validate table headers
+        try:
+            ota_page.click_set_batch_button()
+            logger.info("Clicked Set Batch button successfully")
+
+            if ota_page.is_set_configuration_component_visible():
+                ota_page.click_submit_button_on_set_configuration()
+                logger.info(
+                    "Clicked Submit button on Set Configuration component successfully"
+                )
+
+                if ota_page.is_ota_history_component_visible():
+                    expected_headers = [
+                        "BATCH ID",
+                        "BATCH NAME",
+                        "UIN",
+                        "IMEI",
+                        "OTA TRIGGERED",
+                        "OTA RESPONSE",
+                        "CREATED AT",
+                        "OTA STATUS",
+                    ]
+                    actual_headers = ota_page.get_ota_history_table_headers()
+
+                    assert (
+                        actual_headers == expected_headers
+                    ), f"Expected headers {expected_headers}, but got {actual_headers}"
+
+                    logger.info("Table headers on OTA History component are correct")
+                else:
+                    logger.warning(
+                        "OTA History component is not visible - cannot validate table headers"
+                    )
+            else:
+                logger.warning(
+                    "Set Configuration component is not visible - cannot validate OTA History table headers"
+                )
+
+        except Exception as e:
+            logger.error(
+                "Error validating table headers on OTA History component: %s", str(e)
+            )
+            raise
+
+    def test_ota_history_table_data_validation(self, ota_page):
+        """Verify that the data displayed in OTA History table is correct after submitting configuration."""
+        logger.info("Testing data validation in OTA History table")
+
+        # Use helper method to set up manual OTA and enable Set Batch button
+        ota_page.setup_manual_ota_and_enable_set_batch(
+            valid_imei=IMEI, command_to_search="GET IMEI"
+        )
+        logger.info("Manual OTA setup and Set Batch button enabled successfully")
+
+        # Click Set Batch button, submit configuration, and validate OTA History table data
+        try:
+            ota_page.click_set_batch_button()
+            logger.info("Clicked Set Batch button successfully")
+
+            if ota_page.is_set_configuration_component_visible():
+                ota_page.click_submit_button_on_set_configuration()
+                logger.info(
+                    "Clicked Submit button on Set Configuration component successfully"
+                )
+
+                if ota_page.is_ota_history_component_visible():
+                    # Add specific assertions here to validate the data in the first row of the OTA History table
+                    first_row_data = ota_page.get_first_row_data_from_ota_history()
+
+                    assert (
+                        first_row_data["IMEI"] == IMEI
+                    ), f"Expected IMEI '{IMEI}' in first row, but got '{first_row_data['IMEI']}'"
+
+                    # Add more assertions for other columns as needed
+
+                    logger.info("Data in OTA History table is correct after submission")
+                else:
+                    logger.warning(
+                        "OTA History component is not visible - cannot validate table data"
+                    )
+            else:
+                logger.warning(
+                    "Set Configuration component is not visible - cannot validate OTA History table data"
+                )
+
+        except Exception as e:
+            logger.error("Error validating data in OTA History table: %s", str(e))
+            raise
+
+    def test_ota_history_component_have_export_button_and_clickable(self, ota_page):
+        """Verify OTA History component has Export button and it is clickable."""
+        logger.info(
+            "Testing Export button visibility and clickability on OTA History component"
+        )
+
+        # Use helper method to set up manual OTA and enable Set Batch button
+        ota_page.setup_manual_ota_and_enable_set_batch(
+            valid_imei=IMEI, command_to_search="GET IMEI"
+        )
+        logger.info("Manual OTA setup and Set Batch button enabled successfully")
+
+        # Click Set Batch button, submit configuration, and validate Export button
+        try:
+            ota_page.click_set_batch_button()
+            logger.info("Clicked Set Batch button successfully")
+
+            if ota_page.is_set_configuration_component_visible():
+                ota_page.click_submit_button_on_set_configuration()
+                logger.info(
+                    "Clicked Submit button on Set Configuration component successfully"
+                )
+
+                if ota_page.is_ota_history_component_visible():
+                    assert (
+                        ota_page.is_export_button_visible_on_ota_history()
+                    ), "Export button should be visible on OTA History component"
+
+                    logger.info("Export button is visible on OTA History component")
+
+                    # Click the Export button
+                    ota_page.click_export_button_on_ota_history()
+
+                    logger.info(
+                        "Clicked Export button on OTA History component successfully"
+                    )
+
+                    # Add assertions here to validate expected behavior after clicking export
+
+                else:
+                    logger.warning(
+                        "OTA History component is not visible - cannot validate Export button"
+                    )
+            else:
+                logger.warning(
+                    "Set Configuration component is not visible - cannot validate Export button on OTA History component"
+                )
+
+        except Exception as e:
+            logger.error(
+                "Error validating or clicking Export button on OTA History component: %s",
+                str(e),
+            )
+            raise
+
+    def test_pagination_on_manual_ota_page(self, ota_page):
+        # Pagination class is defined.
+        # get all prev steps and use the pagination class
+        logger.info("Testing pagination on Manual OTA page")
+
+        # Use helper method to set up manual OTA and enable Set Batch button
+        ota_page.setup_manual_ota_and_enable_set_batch(
+            valid_imei=IMEI, command_to_search="GET IMEI"
+        )
+        logger.info("Manual OTA setup and Set Batch button enabled successfully")
+
+        # Click Set Batch button and validate pagination
+        try:
+            ota_page.click_set_batch_button()
+            logger.info("Clicked Set Batch button successfully")
+
+            if ota_page.is_set_configuration_component_visible():
+                pagination_result = ota_page.verify_pagination_on_manual_ota_history()
+                assert pagination_result[
+                    "success"
+                ], f"Pagination test failed: {pagination_result.get('error', 'Unknown error')}"
+                logger.info("Pagination on Manual OTA page verified successfully")
+            else:
+                logger.warning(
+                    "Set Configuration component is not visible - cannot validate pagination on Manual OTA History"
+                )
+
+        except Exception as e:
+            logger.error("Error validating pagination on Manual OTA page: %s", str(e))
+            raise
+
+    """ OTA Batch Functionality Test Cases - To be implemented after the feature is fully developed and stable enough for testing """

@@ -116,11 +116,51 @@ def page(browser):
     context.close()
 
 
+@pytest.fixture
+def report_case(record_property):
+    def _report_case(expected="", actual="", result="", message=""):
+        # Always record properties, even if empty, to ensure they're in the report
+        record_property("expected", str(expected) if expected != "" else "")
+        record_property("actual", str(actual) if actual != "" else "")
+        if result:
+            record_property("result", result)
+        if message:
+            record_property("message", message)
+
+    return _report_case
+
+
 # 🔹 Screenshot on failure
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
+    setattr(item, f"rep_{report.when}", report)
+
+    if report.when == "call":
+        existing_properties = {name for name, _ in item.user_properties}
+
+        # 🔹 Extract expected from docstring or test name
+        expected = (getattr(item.function, "__doc__", "") or "").strip()
+        if not expected:
+            expected = item.name.strip()
+
+        # 🔹 Extract actual based on test outcome
+        if report.passed:
+            actual = "Test passed"
+        elif report.skipped:
+            actual = "Test skipped"
+        else:
+            # For failed tests, use the failure reason
+            actual = str(report.longrepr) if report.longrepr else "Test failed"
+
+        # 🔹 Only add default properties if they weren't explicitly set by report_case
+        if "expected" not in existing_properties and expected:
+            item.user_properties.append(("expected", expected))
+        if "actual" not in existing_properties and actual:
+            item.user_properties.append(("actual", actual))
+        if "result" not in existing_properties:
+            item.user_properties.append(("result", report.outcome))
 
     if report.when == "call" and report.failed:
         page = item.funcargs.get("page")
