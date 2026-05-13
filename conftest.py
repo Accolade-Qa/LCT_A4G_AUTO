@@ -4,6 +4,7 @@ import pytest
 from playwright.sync_api import sync_playwright
 from config.config import (
     BASE_URL,
+    DISPATCHED_DEVICE_URL,
     IMEI,
     BROWSER,
     DASHBOARD_URL,
@@ -242,6 +243,18 @@ def ota_page(page):
 
     base.navigate_to(OTA_URL)
     return ota
+
+
+@pytest.fixture
+def dispatched_device_page(page):
+    from pages.dispatched_device_page import DispatchedDevicePage
+    from pages.base_page import BasePage
+
+    dispatched_device = DispatchedDevicePage(page)
+    base = BasePage(page)
+    base.navigate_to(DISPATCHED_DEVICE_URL)
+    logger.info("Dispatched Device page fixture ready")
+    return dispatched_device
 
 
 @pytest.fixture

@@ -49,6 +49,19 @@ class BasePage:
 
         return title_text
 
+    def get_component_title(self):
+        logger.info("Fetching component title")
+
+        locator = self.page.locator(".component-title")
+
+        locator.wait_for(state="visible")
+
+        title_text = locator.text_content()
+
+        logger.info("Component title: %s", title_text)
+
+        return title_text
+
     def navigate_to(self, url: str):
         logger.info("Navigating to URL: %s", url)
 
