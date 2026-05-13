@@ -63,3 +63,20 @@ class DispatchedDevicePage:
         headers = table.get_headers()
         logger.info("Table headers retrieved: %s", headers)
         return headers
+
+    def get_customer_list(self):
+        logger.debug("Retrieving customer list from Select Customer dropdown")
+        dropdown = self.page.locator("div.dropdown-placeholder-wrapper")
+        dropdown.click()
+        options = self.page.locator("div.list-items ul li").all_inner_texts()
+        dropdown.press("Escape")
+        logger.info("Customer list retrieved: %s", options)
+        return options
+
+    def select_customer(self, customer_name):
+        logger.debug("Selecting customer '%s' from dropdown", customer_name)
+        dropdown = self.page.locator("div.dropdown-placeholder-wrapper")
+        dropdown.click()
+        option = self.page.locator(f"div.list-items ul li:has-text('{customer_name}')")
+        option.click()
+        logger.info("Customer '%s' selected from dropdown", customer_name)
