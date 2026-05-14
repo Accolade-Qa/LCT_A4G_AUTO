@@ -35,7 +35,7 @@ class TestRoleGroupPage:
         elif report.skipped:
             logger.warning("Role Group test skipped: %s", test_name)
 
-    def test_role_group_page_title(self, role_group_page, report_case):
+    def test_role_group_page_title_is_correct(self, role_group_page, report_case):
         logger.info("Testing Role Group page title")
         title = role_group_page.get_title()
         logger.debug(
@@ -48,7 +48,9 @@ class TestRoleGroupPage:
             title == "Group Management"
         ), f"Expected page title 'Group Management', but got '{title}'"
 
-    def test_role_group_page_elements(self, role_group_page, report_case):
+    def test_role_group_page_all_elements_are_visible(
+        self, role_group_page, report_case
+    ):
         logger.info("Testing Role Group page elements")
         page_loaded = role_group_page.is_page_loaded()
         add_group_visible = role_group_page.is_add_group_button_visible()
@@ -71,7 +73,9 @@ class TestRoleGroupPage:
 
         logger.info("All Role Group page elements are present and visible")
 
-    def test_go_to_add_group_page_and_validate(self, role_group_page, report_case):
+    def test_role_group_page_add_button_navigates_to_form(
+        self, role_group_page, report_case
+    ):
         logger.info("Testing navigation to Add Group page")
 
         if role_group_page.is_add_group_button_visible():
@@ -93,7 +97,9 @@ class TestRoleGroupPage:
         )
         assert component_title == "Add Group", "Add Group page did not load correctly"
 
-    def test_input_box_errors_on_different_inputs(self, role_group_page, report_case):
+    def test_role_group_page_form_shows_validation_errors_for_invalid_input(
+        self, role_group_page, report_case
+    ):
         logger.info("Testing input box errors on different inputs")
 
         role_group_page.click_add_group()
@@ -152,7 +158,7 @@ class TestRoleGroupPage:
         )
         assert "Success" in success_message, "Expected success message not found"
 
-    def test_search_functionality_on_role_group_table(
+    def test_role_group_page_table_search_filters_results(
         self, role_group_page, report_case
     ):
         logger.info("Testing search functionality on Role Group table")
@@ -188,7 +194,9 @@ class TestRoleGroupPage:
                 self.group.lower() in row.lower() for row in rows
             ), f"Group '{self.group}' not found in search results. Results: {rows}"
 
-    def test_table_data_validation(self, role_group_page, report_case):
+    def test_role_group_page_table_displays_valid_group_data(
+        self, role_group_page, report_case
+    ):
         logger.info("Validating Role Group table data")
 
         table = TableSection(role_group_page.page)
@@ -207,7 +215,9 @@ class TestRoleGroupPage:
             assert table.has_no_data()
             return
 
-    def test_search_with_helper(self, role_group_page, report_case):
+    def test_role_group_page_table_search_helper_finds_groups(
+        self, role_group_page, report_case
+    ):
         logger.info("Testing search using SearchHelper")
 
         search = SearchHelper(role_group_page.page)
@@ -233,7 +243,9 @@ class TestRoleGroupPage:
             for row in result["results"]:
                 assert self.group.lower() in row.lower()
 
-    def test_pagination_on_role_group_table(self, role_group_page, report_case):
+    def test_role_group_page_table_pagination_navigates_across_pages(
+        self, role_group_page, report_case
+    ):
         logger.info("Testing pagination on Role Group table")
 
         # Check if pagination elements exist
@@ -262,7 +274,9 @@ class TestRoleGroupPage:
                 actual="No pagination elements found; assuming single page",
             )
 
-    def test_search_and_validate_table_data(self, role_group_page, report_case):
+    def test_role_group_page_search_results_match_table_data(
+        self, role_group_page, report_case
+    ):
         logger.info("Testing search + table validation")
 
         search = SearchHelper(role_group_page.page)
@@ -286,7 +300,9 @@ class TestRoleGroupPage:
             for row in rows:
                 assert self.group.lower() in row.lower()
 
-    def test_table_headers(self, role_group_page, report_case):
+    def test_role_group_page_table_headers_are_correct(
+        self, role_group_page, report_case
+    ):
         logger.info("Validating table headers")
 
         table = TableSection(role_group_page.page)
@@ -300,7 +316,9 @@ class TestRoleGroupPage:
         for header in expected_headers:
             assert header in headers, f"{header} not found in table headers"
 
-    def test_created_at_not_future(self, role_group_page, report_case):
+    def test_role_group_page_created_at_timestamps_are_not_future_dates(
+        self, role_group_page, report_case
+    ):
         logger.info("Validating 'Created At' is not a future date")
 
         from datetime import datetime
@@ -323,7 +341,9 @@ class TestRoleGroupPage:
             actual=created_dates,
         )
 
-    def test_created_at_sorted(self, role_group_page, report_case):
+    def test_role_group_page_created_at_column_is_sorted_correctly(
+        self, role_group_page, report_case
+    ):
         logger.info("Validating 'Created At' column sorting")
 
         rows = role_group_page.page.locator("div.component-body table tbody tr")
@@ -343,7 +363,9 @@ class TestRoleGroupPage:
         report_case(expected=sorted(dates), actual=dates)
         assert dates == sorted(dates), "Dates are not sorted in ascending order"
 
-    def test_created_at_column_format(self, role_group_page, report_case):
+    def test_role_group_page_created_at_column_has_correct_date_format(
+        self, role_group_page, report_case
+    ):
         logger.info("Validating 'Created At' column format")
 
         table = TableSection(role_group_page.page)

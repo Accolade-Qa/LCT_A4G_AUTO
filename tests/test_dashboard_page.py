@@ -29,7 +29,7 @@ class TestDashboardPage:
         elif report.skipped:
             logger.warning("Dashboard test skipped: %s", test_name)
 
-    def test_go_to_dashboard(self, dashboard_page, report_case):
+    def test_dashboard_page_navigates_to_correct_url(self, dashboard_page, report_case):
         logger.info("Validating dashboard landing URL")
 
         actual_url = dashboard_page.go_to_dashboard(DASHBOARD_URL)
@@ -45,7 +45,7 @@ class TestDashboardPage:
             actual_url == DASHBOARD_URL
         ), f"Expected {DASHBOARD_URL}, got {actual_url}"
 
-    def test_dashboard_title(self, dashboard_page, report_case):
+    def test_dashboard_page_title_is_correct(self, dashboard_page, report_case):
         base_page = BasePage(dashboard_page.page)
         logger.info("Validating dashboard page title")
         actual_title = base_page.get_title()
@@ -58,7 +58,7 @@ class TestDashboardPage:
 
         assert actual_title == "Device Dashboard", "Dashboard title is incorrect"
 
-    def test_dashboard_page_all_elements(self, dashboard_page, report_case):
+    def test_dashboard_page_all_elements_are_visible(self, dashboard_page, report_case):
         logger.info("Checking all dashboard elements (cards/graph/table)")
         cards_visible = dashboard_page._is_cards_visible()
         cards_count = dashboard_page.get_cards_count()
@@ -77,13 +77,13 @@ class TestDashboardPage:
         assert table_visible, "Dashboard table is not visible"
         # assert dashboard_page._is_buttons_visible(), "Dashboard buttons are not visible"
 
-    def test_dashboard_card_visibility(self, dashboard_page, report_case):
+    def test_dashboard_page_cards_are_visible(self, dashboard_page, report_case):
         logger.info("Confirming dashboard cards are visible")
         cards_visible = dashboard_page._is_cards_visible()
         report_case(expected=True, actual=cards_visible)
         assert cards_visible, "Dashboard cards are not visible"
 
-    def test_dashboard_cards_count(self, dashboard_page, report_case):
+    def test_dashboard_page_displays_four_cards(self, dashboard_page, report_case):
         expected_cards_count = 4
         actual_cards_count = dashboard_page.get_cards_count()
         logger.info("Comparing dashboard card counts")
@@ -102,7 +102,7 @@ class TestDashboardPage:
             card = dashboard_page.get_card_element(index)
             assert card.is_visible(), f"Card {index} is missing or not visible"
 
-    def test_dashboard_card_title(self, dashboard_page, report_case):
+    def test_dashboard_page_card_titles_are_correct(self, dashboard_page, report_case):
         expected_title = [
             "TOTAL PRODUCTION DEVICES",
             "TOTAL DISPATCHED DEVICES",
@@ -124,7 +124,9 @@ class TestDashboardPage:
             assert actual_title == title, f"Expected '{title}', got '{actual_title}'"
         report_case(expected=expected_title, actual=actual_titles)
 
-    def test_dashboard_card_inner_actual_count(self, page, dashboard_page, report_case):
+    def test_dashboard_page_card_counts_match_api_data(
+        self, page, dashboard_page, report_case
+    ):
         logger.info("Verifying dashboard card counts against API")
         api_results = dashboard_api.DashboardAPI._fetch_dashboard_cards_from_api(page)
         logger.debug("Dashboard API card counts: %s", api_results)
@@ -144,13 +146,13 @@ class TestDashboardPage:
             ), f"For '{title}', expected count '{expected_count}', got '{actual_count}'"
         report_case(expected=api_results, actual=actual_results)
 
-    def test_graph_visibility(self, dashboard_page, report_case):
+    def test_dashboard_page_graph_is_visible(self, dashboard_page, report_case):
         logger.info("Checking graph visibility on dashboard")
         graph_visible = dashboard_page._is_graph_visible()
         report_case(expected=True, actual=graph_visible)
         assert graph_visible, "Dashboard graph is not visible"
 
-    def test_graph_title(self, dashboard_page, report_case):
+    def test_dashboard_page_graph_title_is_correct(self, dashboard_page, report_case):
         logger.info("Validating each graph title")
         expected_graph_title = ["Device Activity Overview", "Firmware Wise Devices"]
 
@@ -168,13 +170,15 @@ class TestDashboardPage:
             ), f"Expected graph title '{title}', got '{actual_graph_title}'"
         report_case(expected=expected_graph_title, actual=actual_graph_titles)
 
-    def test_table_visibility(self, dashboard_page, report_case):
+    def test_dashboard_page_table_is_visible(self, dashboard_page, report_case):
         logger.info("Verifying table visibility")
         table_visible = dashboard_page._is_table_visible()
         report_case(expected=True, actual=table_visible)
         assert table_visible, "Dashboard table is not visible"
 
-    def test_cards_and_graph_clicks_have_table_title(self, dashboard_page, report_case):
+    def test_dashboard_page_card_and_graph_clicks_update_table_title(
+        self, dashboard_page, report_case
+    ):
         logger.info("Ensuring table titles match card/graph clicks")
         expected_table_title = [
             "Total Production Devices",
@@ -197,17 +201,23 @@ class TestDashboardPage:
             ), f"Expected table title '{title}', got '{actual_table_title}'"
         report_case(expected=expected_table_title, actual=actual_table_titles)
 
-    def test_export_button_functionality(self, dashboard_page, report_case):
+    def test_dashboard_page_export_button_is_visible_and_functional(
+        self, dashboard_page, report_case
+    ):
         logger.info("Testing export button functionality")
         result = dashboard_page.check_export_button()
         logger.debug("Dashboard export button result: %s", result)
-        report_case(expected=True, actual=result.get("success"), message=result.get("error", ""))
+        report_case(
+            expected=True, actual=result.get("success"), message=result.get("error", "")
+        )
 
         assert result[
             "success"
         ], f"Export button functionality failed: {result['error']}"
 
-    def test_search_functionality(self, dashboard_page, report_case):
+    def test_dashboard_page_search_filters_table_data(
+        self, dashboard_page, report_case
+    ):
         logger.info("Running search functionality test with query")
         search_query = "866677075606341"
         result = dashboard_page.search_helper.run_search(search_query)
@@ -226,7 +236,9 @@ class TestDashboardPage:
             search_query in item for item in result["results"]
         ), "Search results do not match the query"
 
-    def test_table_headers(self, dashboard_page, report_case):
+    def test_dashboard_page_table_headers_are_correct(
+        self, dashboard_page, report_case
+    ):
         logger.info("Validating table headers")
         expected_headers = ["UIN NO.", "IMEI NO.", "ICCID NO.", "MODEL NAME.", "ACTION"]
         actual_headers = dashboard_page.table_section.get_headers()
@@ -240,11 +252,15 @@ class TestDashboardPage:
             actual_headers == expected_headers
         ), f"Expected table headers {expected_headers}, got {actual_headers}"
 
-    def test_pagination(self, dashboard_page, report_case):
+    def test_dashboard_page_pagination_navigates_across_pages(
+        self, dashboard_page, report_case
+    ):
         logger.info("Executing pagination workflow")
         result = dashboard_page.pagination_helper.verify()
         logger.debug("Dashboard pagination result: %s", result)
-        report_case(expected="Pagination success=True and pages visited in order", actual=result)
+        report_case(
+            expected="Pagination success=True and pages visited in order", actual=result
+        )
         assert result["success"], f"Pagination failed: {result['error']}"
         # assert result["total_pages"] > 1, "Pagination did not move beyond first page"
         assert result["pages_visited"] == sorted(

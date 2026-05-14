@@ -1,9 +1,14 @@
+import os
+from random import randint
+
 from pages.common.table_section import TableSection
 from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
+from test_data.device_data import DeviceData
 from utils.logger import get_logger
 from config.config import DISPATCHED_DEVICE_URL, IMEI
 import pytest
+from utils.helpers import Helpers
 from pages.base_page import BasePage
 from pages.api.customer_details import CustomerDetailsAPI
 
@@ -34,7 +39,9 @@ class TestDispatchedDevicePage:
         elif report.skipped:
             logger.warning("Dispatched Device test skipped: %s", test_name)
 
-    def test_dispatched_device_page(self, dispatched_device_page, report_case):
+    def test_dispatched_device_page_url_is_correct(
+        self, dispatched_device_page, report_case
+    ):
         logger.info("Starting validation of Dispatched Device page URL")
 
         actual_url = dispatched_device_page.page.url
@@ -60,7 +67,9 @@ class TestDispatchedDevicePage:
 
     """ Dispatched Device Page Test Cases """
 
-    def test_dispatched_device_page_title(self, dispatched_device_page, report_case):
+    def test_dispatched_device_page_title_is_correct(
+        self, dispatched_device_page, report_case
+    ):
         logger.info("Starting validation of Dispatched Device page title")
 
         expected_title = "Dispatched Devices"
@@ -90,7 +99,9 @@ class TestDispatchedDevicePage:
 
         logger.info("Dispatched Device page title validated successfully")
 
-    def test_dispatched_device_page_elements(self, dispatched_device_page, report_case):
+    def test_dispatched_device_page_all_elements_are_visible(
+        self, dispatched_device_page, report_case
+    ):
         logger.info("Starting validation of Dispatched Device page elements")
 
         logger.debug("Checking visibility of page elements")
@@ -146,7 +157,7 @@ class TestDispatchedDevicePage:
 
         logger.info("All Dispatched Device page elements validated successfully")
 
-    def test_component_title_dispatched_device_page(
+    def test_dispatched_device_page_component_title_is_correct(
         self, dispatched_device_page, report_case
     ):
         logger.info("Starting validation of Dispatched Device component title")
@@ -180,7 +191,7 @@ class TestDispatchedDevicePage:
 
         logger.info("Dispatched Device component title validated successfully")
 
-    def test_table_headers_dispatched_device_page(
+    def test_dispatched_device_page_table_headers_are_correct(
         self, dispatched_device_page, report_case
     ):
         logger.info("Starting validation of Dispatched Device table headers")
@@ -224,7 +235,7 @@ class TestDispatchedDevicePage:
 
         logger.info("Dispatched Device table headers validated successfully")
 
-    def test_table_data_dispatched_device_page(
+    def test_dispatched_device_page_table_data_contains_valid_device_information(
         self, dispatched_device_page, report_case
     ):
         logger.info("Starting validation of Dispatched Device table data")
@@ -338,7 +349,7 @@ class TestDispatchedDevicePage:
 
         logger.info("Dispatched Device table data validation completed successfully")
 
-    def test_no_data_message_dispatched_device_page_if_no_data(
+    def test_dispatched_device_page_shows_no_data_message_when_table_is_empty(
         self, dispatched_device_page, report_case
     ):
         logger.info(
@@ -402,7 +413,7 @@ class TestDispatchedDevicePage:
             "Completed validation of 'No Data Found' message on Dispatched Device page"
         )
 
-    def test_select_customer_checkbox_dispatched_device_page(
+    def test_dispatched_device_page_customer_dropdown_matches_api_list(
         self, dispatched_device_page, report_case
     ):
         logger.info(
@@ -412,19 +423,19 @@ class TestDispatchedDevicePage:
 
         logger.debug("Fetching customer list from API")
 
-        listofcust = CustomerDetailsAPI._fetch_customer_details_from_api(
+        list_of_customers = CustomerDetailsAPI._fetch_customer_details_from_api(
             dispatched_device_page.page
         )
 
         # All added because on ui dropdown first option is All and then followed by customer list from api
-        listofcust.insert(0, "All")
+        list_of_customers.insert(0, "All")
 
         logger.info(
             "Customer list fetched successfully from API | total customers=%s",
-            len(listofcust),
+            len(list_of_customers),
         )
 
-        logger.debug("Customer list fetched from API: %s", listofcust)
+        logger.debug("Customer list fetched from API: %s", list_of_customers)
 
         logger.debug("Fetching customer list from Select Customer dropdown")
 
@@ -441,21 +452,22 @@ class TestDispatchedDevicePage:
         )
 
         report_case(
-            expected=listofcust,
+            expected=list_of_customers,
             actual=actual_customers,
             message="Validate Select Customer dropdown values",
         )
 
         logger.info("Comparing customer list fetched from API with UI dropdown values")
 
-        assert actual_customers == listofcust, (
-            f"Expected customer list {listofcust}, " f"but got {actual_customers}"
+        assert actual_customers == list_of_customers, (
+            f"Expected customer list {list_of_customers}, "
+            f"but got {actual_customers}"
         )
 
         logger.info("Select Customer dropdown values validated successfully")
 
     # test select dropdown one by one and validate the table data with if no data then with no data found message
-    def test_select_customer_dropdown_values_dispatched_device_page(
+    def test_dispatched_device_page_customer_dropdown_filters_table_by_selected_customer(
         self, dispatched_device_page, report_case
     ):
         logger.info(
@@ -465,24 +477,24 @@ class TestDispatchedDevicePage:
 
         logger.debug("Fetching customer list from API")
 
-        listofcust = CustomerDetailsAPI._fetch_customer_details_from_api(
+        list_of_customers = CustomerDetailsAPI._fetch_customer_details_from_api(
             dispatched_device_page.page
         )
 
         # All added because on ui dropdown first option is All and then followed by customer list from api
-        listofcust.insert(0, "All")
+        list_of_customers.insert(0, "All")
 
         logger.info(
             "Customer list fetched successfully from API | total customers=%s",
-            len(listofcust),
+            len(list_of_customers),
         )
 
-        logger.debug("Customer list fetched from API: %s", listofcust)
+        logger.debug("Customer list fetched from API: %s", list_of_customers)
 
-        for customer in listofcust:
+        for customer in list_of_customers:
             logger.info("Validating Select Customer dropdown value: %s", customer)
 
-            dispatched_device_page.select_customer(customer)
+            dispatched_device_page.select_customer_dispatched_device_page(customer)
 
             table = TableSection(dispatched_device_page.page)
 
@@ -539,7 +551,7 @@ class TestDispatchedDevicePage:
                     )
 
     # Test the search functionality by entering a value in search box and validating the table data with that value if no data then with no data found message
-    def test_search_functionality_dispatched_device_page(
+    def test_dispatched_device_page_search_finds_devices_by_imei(
         self, dispatched_device_page, report_case
     ):
         logger.info(
@@ -589,7 +601,7 @@ class TestDispatchedDevicePage:
             )
 
     ## Pagination test case should be added
-    def test_pagination_dispatched_device_page(
+    def test_dispatched_device_page_pagination_navigates_across_pages(
         self, dispatched_device_page, report_case
     ):
         logger.info("Starting validation of pagination on Dispatched Device page")
@@ -619,3 +631,651 @@ class TestDispatchedDevicePage:
         ], f"Pagination verification failed: {result.get('error', 'Unknown error')}"
 
         logger.info("Pagination on Dispatched Device page validated successfully")
+
+    """ Manual Upload Test Cases should be added here """
+
+    # test the manual upload button is visible and on clicking it should open the manual upload form and then validate it.
+    def test_dispatched_device_page_manual_upload_button_opens_form(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Manual Upload button functionality "
+            "on Dispatched Device page"
+        )
+
+        is_manual_upload_visible = (
+            dispatched_device_page.is_manual_upload_button_visible()
+        )
+
+        logger.debug(
+            "Manual Upload button visibility check | expected=True | actual=%s",
+            is_manual_upload_visible,
+        )
+
+        report_case(
+            expected=True,
+            actual=is_manual_upload_visible,
+            message="Validate Manual Upload button visibility",
+        )
+
+        assert is_manual_upload_visible, "Expected Manual Upload button to be visible"
+
+        dispatched_device_page.click_manual_upload_button()
+
+        assert (
+            "Create Dispatched Device"
+            in dispatched_device_page.get_manual_upload_page_title()
+        ), "Expected to navigate to Manual Upload form with title 'Create Dispatched Device' after clicking Manual Upload button"
+
+        logger.info("Manual Upload button is visible on Dispatched Device page")
+        logger.info(
+            "Manual Upload button functionality validated successfully on Dispatched Device page"
+        )
+
+    def test_manual_upload_form_uid_field_shows_error_when_empty(
+        self, dispatched_device_page, report_case
+    ):
+        """Validate error message for empty UID field in Manual Upload form"""
+        logger.info(
+            "Starting validation of empty UID field error message "
+            "in Manual Upload form"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+        dispatched_device_page.clear_uid_input_and_click()
+        dispatched_device_page.click_on_outside()
+
+        uid_error_message = dispatched_device_page.get_uid_error_message()
+        expected_uid_error = "This field is required and can't be only spaces."
+
+        logger.debug(
+            "UID empty field error message check | expected=%s | actual=%s",
+            expected_uid_error,
+            uid_error_message,
+        )
+
+        report_case(
+            expected=expected_uid_error,
+            actual=uid_error_message,
+            message="Validate error message for empty UID field",
+        )
+
+        assert (
+            uid_error_message == expected_uid_error
+        ), "Expected error message for empty UID field not shown"
+
+        logger.info("Empty UID field validation completed successfully")
+
+    def test_manual_upload_form_uid_field_shows_error_for_special_characters(
+        self, dispatched_device_page, report_case
+    ):
+        """Validate error message for UID with special characters"""
+        logger.info(
+            "Starting validation of UID special characters error message "
+            "in Manual Upload form"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+        dispatched_device_page.fill_uid_input("abc123!@#abc123!@#$")
+        dispatched_device_page.click_on_outside()
+
+        uid_error_message = dispatched_device_page.get_uid_error_message()
+        expected_uid_error = "Special characters are not allowed."
+
+        logger.debug(
+            "UID special characters error message check | expected=%s | actual=%s",
+            expected_uid_error,
+            uid_error_message,
+        )
+
+        report_case(
+            expected=expected_uid_error,
+            actual=uid_error_message,
+            message="Validate error message for UID with special characters",
+        )
+
+        assert (
+            uid_error_message == expected_uid_error
+        ), "Expected error message for special characters not shown"
+
+        logger.info("UID special characters validation completed successfully")
+
+    def test_manual_upload_form_uid_field_accepts_valid_alphanumeric_input(
+        self, dispatched_device_page, report_case
+    ):
+        """Validate no error message for valid UID input (19 alphanumeric characters)"""
+        logger.info(
+            "Starting validation of valid UID input acceptance " "in Manual Upload form"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+        valid_uid = "abc123def456ghi7890"
+        dispatched_device_page.fill_uid_input(valid_uid)
+        dispatched_device_page.click_on_outside()
+
+        uid_error_message = dispatched_device_page.get_uid_error_message()
+
+        logger.debug(
+            "UID valid input error message check | expected='' | actual=%s",
+            uid_error_message,
+        )
+
+        report_case(
+            expected="",
+            actual=uid_error_message,
+            message="Validate no error message for valid UID input",
+        )
+
+        assert uid_error_message == "", "Expected no error message for valid UID input"
+
+        logger.info("Valid UID input validation completed successfully")
+
+    def test_manual_upload_form_uid_field_shows_error_for_leading_trailing_spaces(
+        self, dispatched_device_page, report_case
+    ):
+        """Validate error message for UID with leading/trailing spaces"""
+        logger.info(
+            "Starting validation of UID leading/trailing spaces error message "
+            "in Manual Upload form"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+        dispatched_device_page.fill_uid_input("   abc123def456ghi7890   ")
+        dispatched_device_page.click_on_outside()
+
+        uid_error_message = dispatched_device_page.get_uid_error_message()
+        expected_uid_error = "Remove leading or trailing spaces."
+
+        logger.debug(
+            "UID leading/trailing spaces error message check | expected=%s | actual=%s",
+            expected_uid_error,
+            uid_error_message,
+        )
+
+        report_case(
+            expected=expected_uid_error,
+            actual=uid_error_message,
+            message="Validate error message for UID with leading/trailing spaces",
+        )
+
+        assert (
+            uid_error_message == expected_uid_error
+        ), "Expected error message for leading/trailing spaces not shown"
+
+        logger.info("UID leading/trailing spaces validation completed successfully")
+
+    def test_manual_upload_form_customer_part_number_shows_error_when_empty(
+        self, dispatched_device_page, report_case
+    ):
+        """Validate error message for empty Customer Part Number field"""
+        logger.info(
+            "Starting validation of empty Customer Part Number field error message "
+            "in Manual Upload form"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+        dispatched_device_page.clear_customer_part_number_input()
+        dispatched_device_page.click_on_outside()
+
+        cpn_error_message = (
+            dispatched_device_page.get_customer_part_number_error_message()
+        )
+        expected_cpn_error = "This field is required and can't be only spaces."
+
+        logger.debug(
+            "Customer Part Number empty field error message check | expected=%s | actual=%s",
+            expected_cpn_error,
+            cpn_error_message,
+        )
+
+        report_case(
+            expected=expected_cpn_error,
+            actual=cpn_error_message,
+            message="Validate error message for empty Customer Part Number field",
+        )
+
+        assert (
+            cpn_error_message == expected_cpn_error
+        ), "Expected error message for empty Customer Part Number field not shown"
+
+        logger.info(
+            "Empty Customer Part Number field validation completed successfully"
+        )
+
+    def test_manual_upload_form_customer_part_number_shows_error_for_leading_trailing_spaces(
+        self, dispatched_device_page, report_case
+    ):
+        """Validate error message for Customer Part Number with leading/trailing spaces"""
+        logger.info(
+            "Starting validation of Customer Part Number leading/trailing spaces error message "
+            "in Manual Upload form"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+        dispatched_device_page.fill_customer_part_number_input("   CPN12345   ")
+        dispatched_device_page.click_on_outside()
+
+        cpn_error_message = (
+            dispatched_device_page.get_customer_part_number_error_message()
+        )
+        expected_cpn_error = "Remove leading or trailing spaces."
+
+        logger.debug(
+            "Customer Part Number leading/trailing spaces error message check | expected=%s | actual=%s",
+            expected_cpn_error,
+            cpn_error_message,
+        )
+
+        report_case(
+            expected=expected_cpn_error,
+            actual=cpn_error_message,
+            message="Validate error message for Customer Part Number with leading/trailing spaces",
+        )
+
+        assert (
+            cpn_error_message == expected_cpn_error
+        ), "Expected error message for leading/trailing spaces not shown"
+
+        logger.info(
+            "Customer Part Number leading/trailing spaces validation completed successfully"
+        )
+
+    # test the select customer dropdown is present and validate the values of the customers on the dropdown
+    def test_manual_upload_form_customer_dropdown_matches_api_list(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Select Customer dropdown in Manual Upload form "
+            "on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+
+        # assertion on the is select customer dropdown visible.
+        assert (
+            dispatched_device_page.is_select_customer_dropdown_visible()
+        ), "Expected Select Customer dropdown to be visible in Manual Upload form"
+
+        logger.debug("Fetching customer list from API")
+
+        list_of_customers = CustomerDetailsAPI._fetch_customer_details_from_api(
+            dispatched_device_page.page
+        )
+
+        logger.info(
+            "Customer list fetched successfully from API | total customers=%s",
+            len(list_of_customers),
+        )
+
+        logger.debug("Customer list fetched from API: %s", list_of_customers)
+
+        logger.debug(
+            "Fetching customer list from Select Customer dropdown in Manual Upload form"
+        )
+
+        actual_customers = dispatched_device_page.get_customer_list_from_manual_upload()
+
+        logger.info(
+            "Customer list fetched successfully from UI dropdown in Manual Upload form | total customers=%s",
+            len(actual_customers),
+        )
+
+        logger.debug(
+            "Customer list fetched from UI dropdown in Manual Upload form: %s",
+            actual_customers,
+        )
+
+        report_case(
+            expected=list_of_customers,
+            actual=actual_customers,
+            message="Validate Select Customer dropdown values in Manual Upload form",
+        )
+
+        logger.info(
+            "Comparing customer list fetched from API with UI dropdown values in Manual Upload form"
+        )
+
+        assert actual_customers == list_of_customers, (
+            f"Expected customer list {list_of_customers}, "
+            f"but got {actual_customers}"
+        )
+
+        logger.info(
+            "Select Customer dropdown values validated successfully in Manual Upload form"
+        )
+
+    # test that all if fields are not filled then the submit button should be disabled
+    def test_manual_upload_form_submit_button_is_disabled_when_required_fields_empty(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Submit button disabled state when required fields are empty "
+            "in Manual Upload form on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+        dispatched_device_page.clear_uid_input_and_click()
+        dispatched_device_page.clear_customer_part_number_input()
+        dispatched_device_page.click_on_outside()
+
+        is_submit_disabled = dispatched_device_page.is_save_button_disabled()
+
+        logger.debug(
+            "Submit button disabled state check with empty required fields | expected=True | actual=%s",
+            is_submit_disabled,
+        )
+
+        report_case(
+            expected=True,
+            actual=is_submit_disabled,
+            message="Validate Submit button is disabled when required fields are empty in Manual Upload form",
+        )
+
+        assert (
+            is_submit_disabled
+        ), "Expected Submit button to be disabled when required fields are empty in Manual Upload form"
+
+        logger.info(
+            "Submit button disabled state validation completed successfully for empty required fields in Manual Upload form"
+        )
+
+    def test_manual_upload_form_submit_button_is_disabled_when_fields_invalid(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Submit button disabled state when required fields have invalid input "
+            "in Manual Upload form on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+        dispatched_device_page.fill_uid_input("abc123!@#abc123!@#$")
+        dispatched_device_page.fill_customer_part_number_input("   CPN12345   ")
+        dispatched_device_page.click_on_outside()
+
+        is_submit_disabled = dispatched_device_page.is_save_button_disabled()
+
+        logger.debug(
+            "Submit button disabled state check with invalid input in required fields | expected=True | actual=%s",
+            is_submit_disabled,
+        )
+
+        report_case(
+            expected=True,
+            actual=is_submit_disabled,
+            message="Validate Submit button is disabled when required fields have invalid input in Manual Upload form",
+        )
+
+        assert (
+            is_submit_disabled
+        ), "Expected Submit button to be disabled when required fields have invalid input in Manual Upload form"
+
+        logger.info(
+            "Submit button disabled state validation completed successfully for invalid input in required fields in Manual Upload form"
+        )
+
+    def test_manual_upload_form_submit_button_is_enabled_when_all_fields_valid(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Submit button enabled state when required fields have valid input "
+            "in Manual Upload form on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+        valid_uid = "ACONSBA102500006341"
+        dispatched_device_page.fill_uid_input(valid_uid)
+        dispatched_device_page.fill_customer_part_number_input("PART343")
+        dispatched_device_page.select_customer("DEMO SURAJ")
+        dispatched_device_page.click_on_outside()
+        dispatched_device_page.click_save_button_on_manual_upload_form()
+
+        is_submit_disabled = dispatched_device_page.is_save_button_disabled()
+
+        logger.debug(
+            "Submit button disabled state check with valid input in required fields | expected=False | actual=%s",
+            is_submit_disabled,
+        )
+
+        report_case(
+            expected=False,
+            actual=is_submit_disabled,
+            message="Validate Submit button is enabled when required fields have valid input in Manual Upload form",
+        )
+
+        assert (
+            not is_submit_disabled
+        ), "Expected Submit button to be enabled when required fields have valid input in Manual Upload form"
+
+        logger.info(
+            "Submit button enabled state validation completed successfully for valid input in required fields in Manual Upload form"
+        )
+
+    def test_manual_upload_form_submission_succeeds_with_valid_device_uid(
+        self, dispatched_device_page, report_case
+    ):
+        device_data = DeviceData()
+        device_valid_uin_list = device_data.device_valid_uin
+
+        logger.debug(
+            "Randomly selected valid UID for testing successful submission of Manual Upload form: %s",
+            device_valid_uin_list,
+        )
+
+        logger.info(
+            "Starting validation of successful submission of Manual Upload form "
+            "on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_manual_upload_button()
+
+        valid_uid = device_valid_uin_list[randint(0, len(device_valid_uin_list) - 1)]
+
+        dispatched_device_page.fill_uid_input(valid_uid)
+        dispatched_device_page.fill_customer_part_number_input("PART343")
+        dispatched_device_page.select_customer("DEMO SURAJ")
+        dispatched_device_page.click_on_outside()
+        dispatched_device_page.click_save_button_on_manual_upload_form()
+
+        result_message = dispatched_device_page.get_manual_upload_success_message()
+
+        logger.debug(
+            "Result message from Manual Upload submission: %s",
+            result_message,
+        )
+
+        report_case(
+            expected="Valid success message",
+            actual=result_message,
+            message="Validate Manual Upload form submission result message",
+        )
+
+        # Assert that result_message is not empty
+        assert (
+            result_message.strip() != ""
+        ), "Expected a non-empty result message from Manual Upload form submission"
+
+        # Assert that result_message contains one of the valid scenarios
+        valid_scenarios = [
+            f"Device already dispatched for {valid_uid}",
+            f"Device details not found for UID: {valid_uid}",
+            f"Data Fetched Successfully",
+        ]
+
+        result_contains_valid_scenario = any(
+            scenario in result_message for scenario in valid_scenarios
+        )
+
+        assert result_contains_valid_scenario, (
+            f"Expected result message to contain one of the valid scenarios: {valid_scenarios}, "
+            f"but got: {result_message}"
+        )
+
+        if f"Device already dispatched for {valid_uid}" in result_message:
+            logger.info(
+                "Manual Upload form submission validated successfully - Device already dispatched"
+            )
+
+        elif f"Device details not found for UID: {valid_uid}" in result_message:
+            logger.info(
+                "Manual Upload form submission validated successfully - Device details not found"
+            )
+
+        elif f"Data Fetched Successfully" in result_message:
+            logger.info(
+                "Manual Upload form submission validated successfully - Data fetched successfully"
+            )
+
+    """ Bulk Upload Test Cases should be added here """
+
+    def test_dispatched_device_page_bulk_upload_button_opens_form(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Bulk Upload button functionality "
+            "on Dispatched Device page"
+        )
+
+        is_bulk_upload_visible = dispatched_device_page.is_bulk_upload_button_visible()
+
+        logger.debug(
+            "Bulk Upload button visibility check | expected=True | actual=%s",
+            is_bulk_upload_visible,
+        )
+
+        report_case(
+            expected=True,
+            actual=is_bulk_upload_visible,
+            message="Validate Bulk Upload button visibility",
+        )
+
+        assert is_bulk_upload_visible, "Expected Bulk Upload button to be visible"
+
+        dispatched_device_page.click_bulk_upload_button()
+
+        assert (
+            "Add Dispatch Devices"
+            in dispatched_device_page.get_bulk_upload_page_title()
+        ), "Expected to navigate to Bulk Upload form with title containing 'Bulk Upload' after clicking Bulk Upload button"
+
+        logger.info("Bulk Upload button is visible on Dispatched Device page")
+        logger.info(
+            "Bulk Upload button functionality validated successfully on Dispatched Device page"
+        )
+
+    def test_dispatched_device_page_bulk_upload_button_navigates_to_add_devices_form(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Bulk Upload button click and navigation "
+            "to Bulk Upload page on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_bulk_upload_button()
+
+        page_title = dispatched_device_page.get_bulk_upload_page_title()
+
+        logger.debug(
+            "Bulk Upload page title after clicking Bulk Upload button: %s",
+            page_title,
+        )
+
+        expected_title_substring = "Add Dispatch Devices"
+
+        report_case(
+            expected=f"Page title containing '{expected_title_substring}'",
+            actual=page_title,
+            message="Validate navigation to Bulk Upload page after clicking Bulk Upload button",
+        )
+
+        assert (
+            expected_title_substring in page_title
+        ), f"Expected to navigate to a page with title containing '{expected_title_substring}' after clicking Bulk Upload button, but got '{page_title}'"
+
+        logger.info(
+            "Bulk Upload button click and navigation to Bulk Upload page validated successfully on Dispatched Device page"
+        )
+
+    # def test_dispatched_device_page_bulk_upload_page_download_sample_file(
+    #     self,
+    #     dispatched_device_page,
+    #     report_case,
+    # ):
+    #     """
+    #     Verify sample file download functionality on Bulk Upload page.
+    #     """
+
+    #     logger.info(
+    #         "Starting validation of Download Sample File functionality "
+    #         "on Bulk Upload page of Dispatched Device page"
+    #     )
+
+    #     # Go to Bulk Upload page
+    #     dispatched_device_page.click_bulk_upload_button()
+
+    #     logger.info("Navigated to Bulk Upload page")
+
+    #     # Download sample file
+    #     downloaded_file_path = (
+    #         dispatched_device_page.click_download_sample_file_button()
+    #     )
+
+    #     logger.debug(
+    #         "Downloaded sample file path: %s",
+    #         downloaded_file_path,
+    #     )
+
+    #     # Validate path is returned
+    #     assert downloaded_file_path is not None, (
+    #         "Expected sample file to be downloaded successfully, "
+    #         "but no file path was returned"
+    #     )
+
+    #     # Validate file exists
+    #     assert os.path.exists(downloaded_file_path), (
+    #         f"Expected downloaded sample file to exist at path "
+    #         f"'{downloaded_file_path}', but file does not exist"
+    #     )
+
+    #     # Validate file is not empty
+    #     file_size = os.path.getsize(downloaded_file_path)
+
+    #     logger.info(
+    #         "Downloaded sample file size: %s bytes",
+    #         file_size,
+    #     )
+
+    #     assert (
+    #         file_size > 0
+    #     ), "Expected downloaded sample file to contain data, but file is empty"
+
+    #     # Validate extension if needed
+    #     expected_extensions = [".csv", ".xlsx", ".xls"]
+
+    #     file_extension = Path(downloaded_file_path).suffix.lower()
+
+    #     logger.info(
+    #         "Downloaded sample file extension: %s",
+    #         file_extension,
+    #     )
+
+    #     assert file_extension in expected_extensions, (
+    #         f"Expected downloaded file extension to be one of "
+    #         f"{expected_extensions}, but got '{file_extension}'"
+    #     )
+
+    #     report_case(
+    #         expected="Sample file downloaded successfully",
+    #         actual=(
+    #             f"Sample file downloaded successfully at path: "
+    #             f"{downloaded_file_path}"
+    #         ),
+    #         message=(
+    #             "Validate sample file download from Bulk Upload page "
+    #             "of Dispatched Device page"
+    #         ),
+    #     )
+
+    #     logger.info(
+    #         "Sample file downloaded successfully from Bulk Upload page "
+    #         "of Dispatched Device page"
+    #     )

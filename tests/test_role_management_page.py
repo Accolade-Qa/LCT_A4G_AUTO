@@ -19,16 +19,22 @@ class TestRoleManagementPage:
         yield
         report = getattr(request.node, "rep_call", None)
         if report is None:
-            logger.debug("Role Management test finished without call report: %s", test_name)
+            logger.debug(
+                "Role Management test finished without call report: %s", test_name
+            )
         elif report.passed:
             logger.info("Role Management test passed: %s", test_name)
         elif report.failed:
             logger.error("Role Management test failed: %s", test_name)
-            logger.debug("Role Management failure details for %s: %s", test_name, report.longrepr)
+            logger.debug(
+                "Role Management failure details for %s: %s", test_name, report.longrepr
+            )
         elif report.skipped:
             logger.warning("Role Management test skipped: %s", test_name)
 
-    def test_go_to_rolemanagementpage(self, page, role_management_page, report_case):
+    def test_role_management_page_navigates_correctly(
+        self, page, role_management_page, report_case
+    ):
         logger.info("Navigating to Role Management page")
         role_management_page.go_to_rolemanagementpage(ROLE_MANAGEMENT_URL)
         logger.debug(
@@ -42,7 +48,9 @@ class TestRoleManagementPage:
             page.url == ROLE_MANAGEMENT_URL
         ), f"Expected URL to be '{ROLE_MANAGEMENT_URL}', got {page.url}"
 
-    def test_role_management_page_elements(self, role_management_page, report_case):
+    def test_role_management_page_all_elements_are_visible(
+        self, role_management_page, report_case
+    ):
         logger.info("Validating Role Management page elements")
 
         page_loaded = role_management_page.is_page_loaded()
@@ -67,7 +75,9 @@ class TestRoleManagementPage:
 
         logger.info("All Role Management page elements are present and visible")
 
-    def test_add_Administrator_role(self, role_management_page, report_case):
+    def test_role_management_page_form_creates_administrator_role(
+        self, role_management_page, report_case
+    ):
         logger.info("Creating Administrator role")
         role_management_page.click_add_role()
 
@@ -83,7 +93,9 @@ class TestRoleManagementPage:
             expected="Role Group visible=False for Administrator role",
             actual=f"Role name={role_name}, role group visible={role_group_visible}",
         )
-        assert not role_group_visible, "Role Group should NOT be visible for Administrator"
+        assert (
+            not role_group_visible
+        ), "Role Group should NOT be visible for Administrator"
         logger.debug("Role group field hidden for Administrator as expected")
 
         role_management_page.select_permission("Dashboard", "select_all")
@@ -105,7 +117,9 @@ class TestRoleManagementPage:
         # # ✅ Optional stability step
         # role_management_page.wait_for_snackbar_to_disappear()
 
-    def test_add_manager_role_with_group(self, role_management_page, report_case):
+    def test_role_management_page_form_creates_manager_role_with_group(
+        self, role_management_page, report_case
+    ):
         logger.info("Creating Manager role with group")
         role_management_page.click_add_role()
 
@@ -142,7 +156,9 @@ class TestRoleManagementPage:
         role_management_page.click_save()
         logger.info("Submitted Manager role creation form: %s", role_name)
 
-    def test_manager_role_without_group(self, role_management_page, report_case):
+    def test_role_management_page_form_creates_manager_role_without_group(
+        self, role_management_page, report_case
+    ):
         logger.info("Validating Manager role requires role group")
         role_management_page.click_add_role()
 
@@ -158,7 +174,9 @@ class TestRoleManagementPage:
         report_case(expected="Role Group is mandatory", actual=error)
         assert "Role Group is mandatory" in error
 
-    def test_role_name_required(self, role_management_page, report_case):
+    def test_role_management_page_form_shows_error_when_role_name_empty(
+        self, role_management_page, report_case
+    ):
         logger.info("Validating role name required error")
         role_management_page.click_add_role()
 
@@ -170,7 +188,9 @@ class TestRoleManagementPage:
         report_case(expected=" This field is mandatory.", actual=error)
         assert " This field is mandatory." in error
 
-    def test_invalid_role_name(self, role_management_page, report_case):
+    def test_role_management_page_form_shows_error_for_invalid_role_name(
+        self, role_management_page, report_case
+    ):
         logger.info("Validating invalid role name error")
         role_management_page.click_add_role()
 
@@ -184,7 +204,9 @@ class TestRoleManagementPage:
         report_case(expected="Please enter a valid User Role.", actual=error)
         assert "Please enter a valid User Role." in error
 
-    def test_select_all_permissions(self, role_management_page, report_case):
+    def test_role_management_page_form_allows_selecting_all_permissions(
+        self, role_management_page, report_case
+    ):
         logger.info("Creating Administrator role with all permissions selected")
         role_management_page.click_add_role()
 
@@ -203,7 +225,9 @@ class TestRoleManagementPage:
         report_case(expected="Success", actual=success_message)
         assert "Success" in success_message, "Select all permissions failed"
 
-    def test_role_type_switch(self, role_management_page, report_case):
+    def test_role_management_page_form_role_type_toggle_works(
+        self, role_management_page, report_case
+    ):
         logger.info("Validating role group visibility when switching role type")
         role_management_page.click_add_role()
 
@@ -224,7 +248,9 @@ class TestRoleManagementPage:
         )
         assert not admin_group_visible
 
-    def test_search_role(self, role_management_page, report_case):
+    def test_role_management_page_table_search_finds_roles(
+        self, role_management_page, report_case
+    ):
         logger.info("Creating and searching role")
         role_management_page.click_add_role()
 
@@ -258,7 +284,9 @@ class TestRoleManagementPage:
         )
         assert role_found, f"Role '{role_name}' not found in search results"
 
-    def test_table_data(self, role_management_page, report_case):
+    def test_role_management_page_table_displays_valid_role_data(
+        self, role_management_page, report_case
+    ):
         logger.info("Validating role table data")
 
         assert role_management_page.is_role_table_visible(), "Role table is not visible"
@@ -270,7 +298,9 @@ class TestRoleManagementPage:
         # Handle empty table case
         if row_count == 0:
             logger.warning("No roles found in the table to validate data")
-            report_case(expected="No data message should be visible", actual="Row count=0")
+            report_case(
+                expected="No data message should be visible", actual="Row count=0"
+            )
             assert table_section.has_no_data()
             return
 
@@ -286,7 +316,9 @@ class TestRoleManagementPage:
             "Administrator" in first_row_data or "Manager" in first_row_data
         ), f"Unexpected role type in first row: {first_row_data}"
 
-    def test_pagination_on_role_table(self, role_management_page, report_case):
+    def test_role_management_page_table_pagination_navigates_across_pages(
+        self, role_management_page, report_case
+    ):
         logger.info("Testing pagination on role table")
 
         pagination = PaginationHelper(

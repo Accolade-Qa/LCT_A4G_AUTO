@@ -30,18 +30,24 @@ class TestDeviceDetailsPage:
         yield
         report = getattr(request.node, "rep_call", None)
         if report is None:
-            logger.debug("Device Details test finished without call report: %s", test_name)
+            logger.debug(
+                "Device Details test finished without call report: %s", test_name
+            )
         elif report.passed:
             logger.info("Device Details test passed: %s", test_name)
         elif report.failed:
             logger.error("Device Details test failed: %s", test_name)
-            logger.debug("Device Details failure details for %s: %s", test_name, report.longrepr)
+            logger.debug(
+                "Device Details failure details for %s: %s", test_name, report.longrepr
+            )
         elif report.skipped:
             logger.warning("Device Details test skipped: %s", test_name)
 
     # ------------------ PAGE VALIDATIONS ------------------
 
-    def test_device_details_page_title(self, device_details_page, report_case):
+    def test_device_details_page_title_is_correct(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: device_details_page_title")
 
         title = device_details_page.get_title()
@@ -52,11 +58,15 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: device_details_page_title")
 
-    def test_device_details_page_elements(self, device_details_page, report_case):
+    def test_device_details_page_all_elements_are_visible(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: device_details_page_elements")
 
         page_loaded = device_details_page.is_page_loaded()
-        buttons_visible = device_details_page.is_device_details_page_buttons_are_visible()
+        buttons_visible = (
+            device_details_page.is_device_details_page_buttons_are_visible()
+        )
         kpi_visible = device_details_page.is_device_kpi_cards_visible()
         report_case(
             expected="Page loaded=True, buttons visible=True, KPI cards visible=True",
@@ -71,7 +81,7 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: device_details_page_elements")
 
-    def test_go_on_device_details_page_for_particular_device(
+    def test_device_details_page_navigates_correctly_for_device(
         self, device_details_page, report_case
     ):
         logger.info("Starting test: navigation to device details page")
@@ -89,7 +99,9 @@ class TestDeviceDetailsPage:
 
     # ------------------ KPI CARDS ------------------
 
-    def test_dashboard_card_title(self, device_details_page, report_case):
+    def test_device_details_page_kpi_card_titles_are_correct(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: dashboard_card_title")
 
         expected_titles = [
@@ -116,7 +128,9 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: dashboard_card_title")
 
-    def test_kpi_cards_have_values(self, device_details_page, report_case):
+    def test_device_details_page_kpi_cards_display_values(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: kpi_cards_have_values")
 
         count = device_details_page.get_cards_count()
@@ -133,7 +147,9 @@ class TestDeviceDetailsPage:
 
     # ------------------ COMPONENT TITLES ------------------
 
-    def test_all_table_component_titles(self, device_details_page, report_case):
+    def test_device_details_page_all_table_component_titles_are_correct(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: component titles")
 
         expected_titles = [
@@ -161,7 +177,9 @@ class TestDeviceDetailsPage:
 
     # ------------------ HEADERS ------------------
 
-    def test_headers_of_all_component_sections(self, device_details_page, report_case):
+    def test_device_details_page_all_section_headers_are_correct(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: all component headers")
 
         headers = device_details_page.get_table_component_headers()
@@ -178,7 +196,9 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: all component headers")
 
-    def test_device_details_table_headers(self, device_details_page, report_case):
+    def test_device_details_page_table_headers_are_correct(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: login packet table headers")
 
         expected_headers = [
@@ -204,7 +224,9 @@ class TestDeviceDetailsPage:
 
     # ------------------ TABLE DATA ------------------
 
-    def test_device_details_table_data(self, device_details_page, report_case):
+    def test_device_details_page_table_displays_device_information(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: login packet table data")
 
         actual_data = device_details_page.get_device_details_table_data()
@@ -225,7 +247,9 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: login packet table data")
 
-    def test_device_details_table_row_count(self, device_details_page, report_case):
+    def test_device_details_page_table_row_count_is_accurate(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: table row count")
 
         rows = device_details_page.get_device_details_table_data()
@@ -236,7 +260,9 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: table row count")
 
-    def test_device_details_no_data_state(self, device_details_page, report_case):
+    def test_device_details_page_shows_no_data_message_when_empty(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: no data state")
 
         # Intentional validation (current state has data)
@@ -274,7 +300,9 @@ class TestDeviceDetailsPage:
 
     # ------------------ PAGINATION ------------------
 
-    def test_device_details_pagination(self, device_details_page, report_case):
+    def test_device_details_page_pagination_navigates_forward(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: pagination")
 
         pagination = device_details_page.get_login_packet_pagination()
@@ -293,7 +321,9 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: pagination")
 
-    def test_device_details_pagination_bidirectional(self, device_details_page, report_case):
+    def test_device_details_page_pagination_navigates_bidirectionally(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: bidirectional pagination")
 
         pagination = device_details_page.get_login_packet_pagination()
@@ -310,7 +340,9 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: bidirectional pagination")
 
-    def test_pagination_last_page_behavior(self, device_details_page, report_case):
+    def test_device_details_page_pagination_handles_last_page_correctly(
+        self, device_details_page, report_case
+    ):
         logger.info("Starting test: last page behavior")
 
         base = "//h6[text()='Last 50 Login Packets']/ancestor::div[contains(@class,'component-container')]"
@@ -322,7 +354,9 @@ class TestDeviceDetailsPage:
             next_btn.click()
 
         is_disabled = next_btn.is_disabled()
-        report_case(expected="Next button disabled=True on last page", actual=is_disabled)
+        report_case(
+            expected="Next button disabled=True on last page", actual=is_disabled
+        )
         assert is_disabled, "Next button should be disabled on last page"
 
         logger.info("Test passed: last page behavior")

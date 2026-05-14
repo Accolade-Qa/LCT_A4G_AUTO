@@ -39,7 +39,7 @@ class TestOtaPage:
 
     """ OTA Batch Page Tests """
 
-    def test_go_to_ota_page(self, ota_page):
+    def test_ota_page_navigates_correctly(self, ota_page):
         """Verify OTA page is loaded with correct URL."""
         logger.info("Validating OTA page load state")
         logger.debug("Current OTA page URL: %s", ota_page.page.url)
@@ -47,7 +47,7 @@ class TestOtaPage:
             ota_page.is_page_loaded()
         ), f"OTA page did not load at {ota_page.page.url}"
 
-    def test_ota_page_title(self, ota_page):
+    def test_ota_page_title_is_correct(self, ota_page):
         """Verify OTA Batch page title is correct."""
         expected_title = "OTA Batch"
         actual_title = ota_page.get_title()
@@ -60,7 +60,7 @@ class TestOtaPage:
             actual_title == expected_title
         ), f"Expected title '{expected_title}', but got '{actual_title}'"
 
-    def test_ota_page_elements(self, ota_page):
+    def test_ota_page_all_elements_are_visible(self, ota_page):
         """Verify all OTA Batch page elements are visible and loaded."""
         logger.info("Validating OTA Batch page elements")
 
@@ -73,7 +73,7 @@ class TestOtaPage:
 
         logger.info("All OTA Batch page elements are present and visible")
 
-    def test_search_functionality_on_ota_batch_table(self, ota_page):
+    def test_ota_batch_table_search_filters_results(self, ota_page):
         """Verify search functionality on OTA Batch page."""
         logger.info("Testing search functionality on OTA Batch table")
 
@@ -97,7 +97,7 @@ class TestOtaPage:
                 self.SEARCH_QUERY.lower() in row.lower() for row in rows
             ), f"Search query '{self.SEARCH_QUERY}' not found in results"
 
-    def test_table_data_validation_on_ota_batch(self, ota_page):
+    def test_ota_batch_table_displays_valid_data(self, ota_page):
         """Verify OTA Batch table data is visible and valid."""
         logger.info("Validating OTA Batch table data")
 
@@ -129,7 +129,7 @@ class TestOtaPage:
         except Exception as e:
             logger.warning("Could not retrieve rows: %s", str(e))
 
-    def test_search_with_helper_on_ota_batch(self, ota_page):
+    def test_ota_batch_table_search_helper_finds_records(self, ota_page):
         """Test search using SearchHelper on OTA Batch page."""
         logger.info("Testing search using SearchHelper on OTA Batch")
 
@@ -148,21 +148,21 @@ class TestOtaPage:
 
     """ OTA Master Page Tests """
 
-    def test_is_ota_master_button_visible(self, ota_page):
+    def test_ota_page_master_button_is_visible(self, ota_page):
         """Verify OTA Master button is visible on OTA Batch page."""
         logger.info("Validating OTA Master button visibility")
         assert (
             ota_page.is_ota_master_page_button_visible()
         ), "OTA Master page button is not visible"
 
-    def test_navigate_to_ota_master_page(self, ota_page):
+    def test_ota_page_master_button_navigates_to_master_form(self, ota_page):
         """Verify navigation to OTA Master page succeeds."""
         logger.info("Navigating to OTA Master page")
         ota_page.go_to_ota_master_page()
         logger.debug("OTA Master URL after navigation: %s", ota_page.page.url)
         expect(ota_page.page).to_have_url(re.compile(r".*ota-master"))
 
-    def test_ota_master_page_title(self, ota_page):
+    def test_ota_master_page_title_is_correct(self, ota_page):
         """Verify OTA Master page title is correct after navigation."""
         ota_page.go_to_ota_master_page()
         expected_title = "OTA Master"
@@ -176,7 +176,7 @@ class TestOtaPage:
             actual_title == expected_title
         ), f"Expected title '{expected_title}', but got '{actual_title}'"
 
-    def test_ota_master_page_elements(self, ota_page):
+    def test_ota_master_page_all_elements_are_visible(self, ota_page):
         """Verify OTA Master page elements are visible after navigation."""
         ota_page.go_to_ota_master_page()
 
@@ -193,7 +193,7 @@ class TestOtaPage:
 
         logger.info("OTA Master page elements are present and visible")
 
-    def test_search_functionality_on_ota_master_table(self, ota_page):
+    def test_ota_master_table_search_filters_results(self, ota_page):
         """Verify search functionality on OTA Master page."""
         logger.info("Testing search functionality on OTA Master table")
 
@@ -218,7 +218,7 @@ class TestOtaPage:
                 self.SEARCH_QUERY.lower() in row.lower() for row in rows
             ), f"Search query '{self.SEARCH_QUERY}' not found in results"
 
-    def test_table_data_validation_on_ota_master(self, ota_page):
+    def test_ota_master_table_displays_valid_data(self, ota_page):
         """Verify OTA Master table data is visible and valid."""
         logger.info("Validating OTA Master table data")
 
@@ -251,7 +251,7 @@ class TestOtaPage:
         except Exception as e:
             logger.warning("Could not retrieve rows: %s", str(e))
 
-    def test_search_with_helper_on_ota_master(self, ota_page):
+    def test_ota_master_table_search_helper_finds_records(self, ota_page):
         """Test search using SearchHelper on OTA Master page."""
         logger.info("Testing search using SearchHelper on OTA Master")
 
@@ -270,7 +270,7 @@ class TestOtaPage:
 
     """ Add Ota Command Page"""
 
-    def test_add_ota_command_button(self, ota_page):
+    def test_ota_page_add_command_button_is_visible(self, ota_page):
         """Verify Add OTA Command button is visible on OTA Master page."""
         ota_page.go_to_ota_master_page()
         assert (
@@ -289,7 +289,7 @@ class TestOtaPage:
             "Add OTA Command" in page_title
         ), f"Expected 'Add OTA Command' in page title, got '{page_title}'"
 
-    def test_add_ota_command_form_fields_visible(self, ota_page):
+    def test_ota_page_add_command_form_fields_are_visible(self, ota_page):
         """Verify all Add OTA Command form fields are visible."""
         logger.info("Validating Add OTA Command form fields visibility")
         ota_page.go_to_ota_master_page()
@@ -301,7 +301,7 @@ class TestOtaPage:
 
         logger.info("All Add OTA Command form fields are visible")
 
-    def test_fill_ota_name_field(self, ota_page):
+    def test_ota_page_add_command_form_ota_name_field_accepts_input(self, ota_page):
         """Verify OTA Name field can be filled."""
         logger.info("Testing OTA Name field fill")
         ota_page.go_to_ota_master_page()
@@ -316,7 +316,7 @@ class TestOtaPage:
         ), f"Expected '{test_name}', but got '{actual_value}'"
         logger.info("OTA Name field filled successfully: %s", test_name)
 
-    def test_fill_ota_command_field(self, ota_page):
+    def test_ota_page_add_command_form_ota_command_field_accepts_input(self, ota_page):
         """Verify OTA Command field can be filled."""
         logger.info("Testing OTA Command field fill")
         ota_page.go_to_ota_master_page()
@@ -331,7 +331,7 @@ class TestOtaPage:
         ), f"Expected '{test_command}', but got '{actual_value}'"
         logger.info("OTA Command field filled successfully: %s", test_command)
 
-    def test_fill_example_field(self, ota_page):
+    def test_ota_page_add_command_form_example_field_accepts_input(self, ota_page):
         """Verify Example field can be filled."""
         logger.info("Testing Example field fill")
         ota_page.go_to_ota_master_page()
@@ -346,7 +346,7 @@ class TestOtaPage:
         ), f"Expected '{test_example}', but got '{actual_value}'"
         logger.info("Example field filled successfully: %s", test_example)
 
-    def test_select_ota_type_dropdown(self, ota_page):
+    def test_ota_page_add_command_form_ota_type_dropdown_works(self, ota_page):
         """Verify OTA Type dropdown can be selected."""
         logger.info("Testing OTA Type dropdown selection")
         ota_page.go_to_ota_master_page()
@@ -359,7 +359,9 @@ class TestOtaPage:
         except Exception as e:
             logger.warning("Error selecting OTA Type: %s", str(e))
 
-    def test_select_input_field_required_dropdown(self, ota_page):
+    def test_ota_page_add_command_form_input_field_required_dropdown_works(
+        self, ota_page
+    ):
         """Verify Input Field Required dropdown can be selected."""
         logger.info("Testing Input Field Required dropdown selection")
         ota_page.go_to_ota_master_page()
@@ -372,7 +374,9 @@ class TestOtaPage:
         except Exception as e:
             logger.warning("Error selecting Input Field Required: %s", str(e))
 
-    def test_add_ota_command_form_complete_flow(self, ota_page):
+    def test_ota_page_add_command_form_submission_succeeds_with_valid_data(
+        self, ota_page
+    ):
         """Test complete Add OTA Command form flow with all fields."""
         logger.info("Testing complete Add OTA Command form flow")
         ota_page.go_to_ota_master_page()
