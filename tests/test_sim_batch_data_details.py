@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from config.config import SIM_DATA_DETAILS_URL
-from pages.api.sim_batch_details import SIMBatchDetailsAPI
+from pages.api.sim_batch_api import SIMBatchAPI
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -368,7 +368,7 @@ class TestSimBatchDataDetails:
     # page.wait_for_load_state("networkidle")
 
     # # Fetch API data
-    # api_data = SIMBatchDetailsAPI._fetch_sim_details_from_api(page)
+    # api_data = SIMBatchAPI.get_sim_batch_details(page)
 
     # # Validate UI vs API
     # sim_data_details_page.validate_tables_against_api(api_data)

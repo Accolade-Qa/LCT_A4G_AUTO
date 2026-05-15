@@ -8,11 +8,6 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# Load login packet data
-data_dir = Path(__file__).resolve().parent.parent / "test_data"
-with open(data_dir / "login_packet.json") as f:
-    lp = json.load(f)
-
 device_info = {
     "IMEI": "866677075606341",
     "ICCID": "89916450244842405755",

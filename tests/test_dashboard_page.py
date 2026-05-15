@@ -1,6 +1,6 @@
 from config.config import DASHBOARD_URL
 from conftest import page
-from pages.api import dashboard_api
+from pages.api import DeviceDashboardAPI
 from pages.base_page import BasePage
 import pytest
 
@@ -128,7 +128,7 @@ class TestDashboardPage:
         self, page, dashboard_page, report_case
     ):
         logger.info("Verifying dashboard card counts against API")
-        api_results = dashboard_api.DashboardAPI._fetch_dashboard_cards_from_api(page)
+        api_results = DeviceDashboardAPI.get_device_counts(page)
         logger.debug("Dashboard API card counts: %s", api_results)
         actual_results = {}
         for i, title in enumerate(api_results.keys()):

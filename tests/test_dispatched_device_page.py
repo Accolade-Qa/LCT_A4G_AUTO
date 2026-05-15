@@ -10,7 +10,7 @@ from config.config import DISPATCHED_DEVICE_URL, IMEI
 import pytest
 from utils.helpers import Helpers
 from pages.base_page import BasePage
-from pages.api.customer_details import CustomerDetailsAPI
+from pages.api.customer_api import CustomerAPI
 
 logger = get_logger(__name__)
 
@@ -423,9 +423,7 @@ class TestDispatchedDevicePage:
 
         logger.debug("Fetching customer list from API")
 
-        list_of_customers = CustomerDetailsAPI._fetch_customer_details_from_api(
-            dispatched_device_page.page
-        )
+        list_of_customers = CustomerAPI.get_customer_list(dispatched_device_page.page)
 
         # All added because on ui dropdown first option is All and then followed by customer list from api
         list_of_customers.insert(0, "All")
@@ -477,9 +475,7 @@ class TestDispatchedDevicePage:
 
         logger.debug("Fetching customer list from API")
 
-        list_of_customers = CustomerDetailsAPI._fetch_customer_details_from_api(
-            dispatched_device_page.page
-        )
+        list_of_customers = CustomerAPI.get_customer_list(dispatched_device_page.page)
 
         # All added because on ui dropdown first option is All and then followed by customer list from api
         list_of_customers.insert(0, "All")
@@ -898,9 +894,7 @@ class TestDispatchedDevicePage:
 
         logger.debug("Fetching customer list from API")
 
-        list_of_customers = CustomerDetailsAPI._fetch_customer_details_from_api(
-            dispatched_device_page.page
-        )
+        list_of_customers = CustomerAPI.get_customer_list(dispatched_device_page.page)
 
         logger.info(
             "Customer list fetched successfully from API | total customers=%s",
