@@ -1120,7 +1120,7 @@ class TestDispatchedDevicePage:
                 "Manual Upload form submission validated successfully - Data fetched successfully"
             )
 
-    """ Bulk Upload Test Cases should be added here """
+    """ Bulk Upload Test Cases added here """
 
     def test_dispatched_device_page_bulk_upload_button_opens_form(
         self, dispatched_device_page, report_case
