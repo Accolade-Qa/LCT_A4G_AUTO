@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 ZOOM_SCRIPT = """
 () => {
     const applyZoom = () => {
-        const zoomLevel = '0.8';
+        const zoomLevel = '0.6';
 
         if (document.documentElement) {
             document.documentElement.style.zoom = zoomLevel;
@@ -80,10 +80,14 @@ def browser(playwright_instance):
 # 🔹 Context with zoom applied
 def _new_context_with_zoom(browser, **kwargs):
     context = browser.new_context(
-        viewport={"width": 1920, "height": 1080},
-        screen={"width": 1920, "height": 1080},
+        # viewport = None
+        
+        viewport={"width": 1280, "height": 800},
+        screen={"width": 1280, "height": 800},
         **kwargs,
+        
     )
+    page = context.new_page()
     context.add_init_script(ZOOM_SCRIPT)
     logger.debug("Created new browser context with zoom applied")
     return context
