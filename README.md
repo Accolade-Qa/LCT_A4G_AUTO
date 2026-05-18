@@ -1,4 +1,4 @@
-# LCT-A4G Automation Testing Framework
+# LCT-A4G Automation Testing Framework demo
 
 [![Playwright](https://img.shields.io/badge/Playwright-45ba4b?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -78,16 +78,16 @@ Additional browser launch arguments can be injected in `conftest.py` via the `ar
 ## Project layout
 
 ```
-README.md                 — project guide
-requirements.txt          — pinned dependencies
-pytest.ini                — pytest defaults and markers
-conftest.py               — fixtures, hooks, Playwright setup
-config/                   — environment helpers and global variables
-pages/                    — Playwright page objects grouped by screen
-tests/                    — pytest test modules
-utils/                    — shared helper functions
-scripts/                  — automation helpers (e.g., report generation)
-reports/                  — stored test artifacts (Allure, HTML, screenshots)
+README.md                 ï¿½ project guide
+requirements.txt          ï¿½ pinned dependencies
+pytest.ini                ï¿½ pytest defaults and markers
+conftest.py               ï¿½ fixtures, hooks, Playwright setup
+config/                   ï¿½ environment helpers and global variables
+pages/                    ï¿½ Playwright page objects grouped by screen
+tests/                    ï¿½ pytest test modules
+utils/                    ï¿½ shared helper functions
+scripts/                  ï¿½ automation helpers (e.g., report generation)
+reports/                  ï¿½ stored test artifacts (Allure, HTML, screenshots)
 ```
 
 ## Running tests
