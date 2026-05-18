@@ -226,32 +226,255 @@ class DispatchedDevicePage:
         logger.info("Bulk Upload page title retrieved: %s", title)
         return title
 
-    def click_download_sample_file_button(self):
-        logger.debug("Clicking Download Sample File button")
+    def click_on_file_upload_input_box(self):
+        logger.debug("Clicking on file upload input box")
+        file_input = self.page.locator("input[formcontrolname='file']")
+        file_input.click()
+        logger.info("File upload input box clicked")
 
-        before_files = set(os.listdir(DOWNLOADS_PATH))
+    def get_file_upload_error_message(self):
+        logger.debug("Retrieving file upload error message")
+        error_message_element = self.page.locator(
+            "//mat-error[contains(@id, 'mat-mdc-error-0')]"
+        )
+        error_message = (
+            error_message_element.text_content().strip()
+            if error_message_element.is_visible()
+            else ""
+        )
+        logger.info("File upload error message retrieved: %s", error_message)
+        return error_message
 
-        download_button = self.page.locator(
-            "//button[contains(text(), 'Download Sample')]"
+    def is_bulk_upload_submit_button_disabled(self):
+        logger.debug("Checking if Submit button on Bulk Upload form is disabled")
+        submit_button = self.page.locator("//button[contains(text(), 'Submit')]")
+        is_disabled = submit_button.is_disabled()
+        logger.info("Submit button disabled state: %s", is_disabled)
+        return is_disabled
+
+    def simulate_file_selection(self, file_path):
+        logger.debug(
+            "Simulating file selection for bulk upload with file: %s",
+            file_path,
         )
 
-        download_button.click(force=True)
+        file_input = self.page.locator("input[type='file']")
 
-        self.page.wait_for_timeout(5000)
+        file_input.set_input_files(file_path)
 
-        after_files = set(os.listdir(DOWNLOADS_PATH))
-
-        new_files = after_files - before_files
-
-        assert new_files, "No file downloaded"
-
-        downloaded_file = list(new_files)[0]
-
-        download_path = os.path.join(
-            DOWNLOADS_PATH,
-            downloaded_file,
+        logger.info(
+            "File selection simulated for bulk upload with file: %s",
+            file_path,
         )
 
-        logger.info("Downloaded file path: %s", download_path)
+    def click_bulk_upload_submit_button(self):
+        logger.debug("Clicking Submit button on Bulk Upload form")
+        submit_button = self.page.locator("//button[contains(text(), 'Submit')]")
+        submit_button.click()
+        logger.info("Submit button clicked on Bulk Upload form")
 
-        return download_path
+    def get_bulk_upload_result_message(self):
+        logger.debug("Retrieving result message after bulk upload")
+
+        snackbar_message = self.page.locator(
+            "simple-snack-bar .mat-mdc-snack-bar-label"
+        )
+
+        snackbar_message.wait_for(state="visible")
+
+        result_message = snackbar_message.text_content().strip()
+
+        logger.info(
+            "Bulk upload result message retrieved: %s",
+            result_message,
+        )
+
+        return result_message
+
+    def is_uploaded_dispatch_device_list_displayed(self):
+        logger.debug("Checking if uploaded dispatched device list is displayed")
+
+        table = self.page.locator("h6:has-text('Uploaded Dispatch Device List')")
+
+        table.wait_for(state="visible", timeout=30000)
+
+        is_visible = table.is_visible()
+
+        logger.info(
+            "Uploaded Dispatch Device List component visibility: %s",
+            is_visible,
+        )
+
+        return is_visible
+
+    def is_invalid_dispatch_device_list_displayed(self):
+        logger.debug("Checking if invalid dispatched device list is displayed")
+
+        table = self.page.locator("h6:has-text('Invalid Dispatch Device List')")
+
+        table.wait_for(state="visible", timeout=30000)
+
+        is_visible = table.is_visible()
+
+        logger.info(
+            "Invalid Dispatch Device List component visibility: %s",
+            is_visible,
+        )
+
+        return is_visible
+
+    def get_uploaded_dispatch_device_list_headers(self):
+        logger.debug("Retrieving headers from Uploaded Dispatch Device List table")
+
+        headers_locator = self.page.locator(
+            "div.component-container:has(h6.component-title:text-is('Uploaded Dispatch Device List')) "
+            "table thead th"
+        )
+
+        headers_locator.first.wait_for(state="visible")
+
+        headers = [header.strip() for header in headers_locator.all_inner_texts()]
+
+        logger.info(
+            "Uploaded Dispatch Device List table headers retrieved: %s",
+            headers,
+        )
+
+        return headers
+
+    def get_invalid_dispatch_device_list_headers(self):
+        logger.debug("Retrieving headers from Invalid Dispatch Device List table")
+
+        headers_locator = self.page.locator(
+            "div.component-container:has(h6.component-title:text-is('Invalid Dispatch Device List')) "
+            "table thead th"
+        )
+
+        headers_locator.first.wait_for(state="visible")
+
+        headers = [header.strip() for header in headers_locator.all_inner_texts()]
+
+        logger.info(
+            "Invalid Dispatch Device List table headers retrieved: %s",
+            headers,
+        )
+
+        return headers
+
+    def is_uploaded_dispatch_device_list_no_data(self):
+        logger.debug(
+            "Checking if No Data Found image is displayed in Uploaded Dispatch Device List table"
+        )
+
+        no_data_image = self.page.locator(
+            "div.component-container:has(h6.component-title:text-is('Uploaded Dispatch Device List')) "
+            "img[alt='No Data Found']"
+        )
+
+        is_visible = no_data_image.count() > 0
+
+        logger.info(
+            "No Data Found image visibility in Uploaded Dispatch Device List table: %s",
+            is_visible,
+        )
+
+        return is_visible
+
+    def is_invalid_dispatch_device_list_no_data(self):
+        logger.debug(
+            "Checking if No Data Found image is displayed in Invalid Dispatch Device List table"
+        )
+
+        no_data_image = self.page.locator(
+            "div.component-container:has(h6.component-title:text-is('Invalid Dispatch Device List')) "
+            "img[alt='No Data Found']"
+        )
+
+        is_visible = no_data_image.count() > 0
+
+        logger.info(
+            "No Data Found image visibility in Invalid Dispatch Device List table: %s",
+            is_visible,
+        )
+
+        return is_visible
+
+    def get_invalid_dispatch_device_list_rows(self):
+        logger.debug("Retrieving rows from Invalid Dispatch Device List table")
+
+        rows_locator = self.page.locator(
+            "div.component-container:has(h6.component-title:text-is('Invalid Dispatch Device List')) "
+            "table tbody tr"
+        )
+
+        rows_locator.first.wait_for(state="visible")
+
+        rows = [row.strip() for row in rows_locator.all_inner_texts()]
+
+        logger.info(
+            "Invalid Dispatch Device List table rows retrieved: %s",
+            rows,
+        )
+
+        return rows
+
+    def get_uploaded_dispatch_device_list_rows(self):
+        logger.debug("Retrieving rows from Uploaded Dispatch Device List table")
+
+        rows_locator = self.page.locator(
+            "div.component-container:has(h6.component-title:text-is('Uploaded Dispatch Device List')) "
+            "table tbody tr"
+        )
+
+        rows_locator.first.wait_for(state="visible")
+
+        rows = [row.strip() for row in rows_locator.all_inner_texts()]
+
+        logger.info(
+            "Uploaded Dispatch Device List table rows retrieved: %s",
+            rows,
+        )
+
+        return rows
+
+    def is_export_button_enabled_in_uploaded_list(self):
+        logger.debug(
+            "Checking Export button enabled state in Uploaded Dispatch Device List section"
+        )
+
+        export_button = self.page.locator(
+            "div.component-container:has(h6.component-title:text-is('Uploaded Dispatch Device List')) "
+            "button:has-text('Export')"
+        )
+
+        export_button.first.wait_for(state="visible")
+
+        is_enabled = export_button.is_enabled()
+
+        logger.info(
+            "Export button enabled state in Uploaded Dispatch Device List section: %s",
+            is_enabled,
+        )
+
+        return is_enabled
+
+    def is_export_button_enabled_in_invalid_list(self):
+        logger.debug(
+            "Checking Export button enabled state in Invalid Dispatch Device List section"
+        )
+
+        export_button = self.page.locator(
+            "div.component-container:has(h6.component-title:text-is('Invalid Dispatch Device List')) "
+            "button:has-text('Export')"
+        )
+
+        export_button.first.wait_for(state="visible")
+
+        is_enabled = export_button.is_enabled()
+
+        logger.info(
+            "Export button enabled state in Invalid Dispatch Device List section: %s",
+            is_enabled,
+        )
+
+        return is_enabled

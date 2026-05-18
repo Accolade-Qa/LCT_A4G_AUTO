@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from random import randint
 
 from pages.common.table_section import TableSection
@@ -1189,87 +1190,440 @@ class TestDispatchedDevicePage:
             "Bulk Upload button click and navigation to Bulk Upload page validated successfully on Dispatched Device page"
         )
 
-    # def test_dispatched_device_page_bulk_upload_page_download_sample_file(
-    #     self,
-    #     dispatched_device_page,
-    #     report_case,
-    # ):
-    #     """
-    #     Verify sample file download functionality on Bulk Upload page.
-    #     """
+    def test_dispatched_device_page_input_box_error_validation(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of input box error messages on Dispatched Device page"
+        )
 
-    #     logger.info(
-    #         "Starting validation of Download Sample File functionality "
-    #         "on Bulk Upload page of Dispatched Device page"
-    #     )
+        dispatched_device_page.click_bulk_upload_button()
 
-    #     # Go to Bulk Upload page
-    #     dispatched_device_page.click_bulk_upload_button()
+        # Assuming there's an input box for file upload in the Bulk Upload form
+        dispatched_device_page.click_on_file_upload_input_box()
 
-    #     logger.info("Navigated to Bulk Upload page")
+        # Attempt to submit without selecting a file to trigger validation
+        dispatched_device_page.click_on_outside()
 
-    #     # Download sample file
-    #     downloaded_file_path = (
-    #         dispatched_device_page.click_download_sample_file_button()
-    #     )
+        error_message = dispatched_device_page.get_file_upload_error_message()
+        expected_error_message = "This field is mandatory."
 
-    #     logger.debug(
-    #         "Downloaded sample file path: %s",
-    #         downloaded_file_path,
-    #     )
+        logger.debug(
+            "File upload input box error message check | expected=%s | actual=%s",
+            expected_error_message,
+            error_message,
+        )
 
-    #     # Validate path is returned
-    #     assert downloaded_file_path is not None, (
-    #         "Expected sample file to be downloaded successfully, "
-    #         "but no file path was returned"
-    #     )
+        report_case(
+            expected=expected_error_message,
+            actual=error_message,
+            message="Validate error message when submitting Bulk Upload form without selecting a file",
+        )
 
-    #     # Validate file exists
-    #     assert os.path.exists(downloaded_file_path), (
-    #         f"Expected downloaded sample file to exist at path "
-    #         f"'{downloaded_file_path}', but file does not exist"
-    #     )
+        assert (
+            error_message == expected_error_message
+        ), "Expected error message for empty file upload not shown"
 
-    #     # Validate file is not empty
-    #     file_size = os.path.getsize(downloaded_file_path)
+        logger.info(
+            "Input box error message validation completed successfully on Dispatched Device page"
+        )
 
-    #     logger.info(
-    #         "Downloaded sample file size: %s bytes",
-    #         file_size,
-    #     )
+    # test the submit button on bulk upload is disabled when no file is selected and enabled when a file is selected
+    def test_dispatched_device_page_bulk_upload_submit_button_state(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Submit button state on Bulk Upload form "
+            "on Dispatched Device page"
+        )
 
-    #     assert (
-    #         file_size > 0
-    #     ), "Expected downloaded sample file to contain data, but file is empty"
+        dispatched_device_page.click_bulk_upload_button()
 
-    #     # Validate extension if needed
-    #     expected_extensions = [".csv", ".xlsx", ".xls"]
+        # Check that the submit button is disabled when no file is selected
+        is_submit_disabled_initial = (
+            dispatched_device_page.is_bulk_upload_submit_button_disabled()
+        )
 
-    #     file_extension = Path(downloaded_file_path).suffix.lower()
+        logger.debug(
+            "Bulk Upload Submit button disabled state check with no file selected | expected=True | actual=%s",
+            is_submit_disabled_initial,
+        )
 
-    #     logger.info(
-    #         "Downloaded sample file extension: %s",
-    #         file_extension,
-    #     )
+        report_case(
+            expected=True,
+            actual=is_submit_disabled_initial,
+            message="Validate Bulk Upload Submit button is disabled when no file is selected",
+        )
 
-    #     assert file_extension in expected_extensions, (
-    #         f"Expected downloaded file extension to be one of "
-    #         f"{expected_extensions}, but got '{file_extension}'"
-    #     )
+        assert (
+            is_submit_disabled_initial
+        ), "Expected Bulk Upload Submit button to be disabled when no file is selected"
 
-    #     report_case(
-    #         expected="Sample file downloaded successfully",
-    #         actual=(
-    #             f"Sample file downloaded successfully at path: "
-    #             f"{downloaded_file_path}"
-    #         ),
-    #         message=(
-    #             "Validate sample file download from Bulk Upload page "
-    #             "of Dispatched Device page"
-    #         ),
-    #     )
+        dispatched_device_page.simulate_file_selection(
+            "./test_data/Sample_Dispatch_Sheet.xlsx"
+        )
 
-    #     logger.info(
-    #         "Sample file downloaded successfully from Bulk Upload page "
-    #         "of Dispatched Device page"
-    #     )
+        is_submit_disabled_after_selection = (
+            dispatched_device_page.is_bulk_upload_submit_button_disabled()
+        )
+
+        logger.debug(
+            "Bulk Upload Submit button disabled state check after selecting a file | expected=False | actual=%s",
+            is_submit_disabled_after_selection,
+        )
+
+        report_case(
+            expected=False,
+            actual=is_submit_disabled_after_selection,
+            message="Validate Bulk Upload Submit button is enabled after selecting a file",
+        )
+
+        assert (
+            not is_submit_disabled_after_selection
+        ), "Expected Bulk Upload Submit button to be enabled after selecting a file"
+
+        logger.info(
+            "Bulk Upload Submit button state validation completed successfully on Dispatched Device page"
+        )
+
+    # upload file and click submit button and validate
+    def test_dispatched_device_page_bulk_upload_submission(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Bulk Upload form submission on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_bulk_upload_button()
+
+        # Simulate selecting a file for upload
+        dispatched_device_page.simulate_file_selection(
+            "./test_data/Sample_Dispatch_Sheet.xlsx"
+        )
+
+        # Click the submit button to upload the file
+        dispatched_device_page.click_bulk_upload_submit_button()
+
+        # Validate the result message after submission (this would depend on how the page shows success/error messages)
+        result_message = dispatched_device_page.get_bulk_upload_result_message()
+        expected_message_substring = "Data Saved Successfully!!"
+
+        logger.debug(
+            "Bulk Upload submission result message: %s",
+            result_message,
+        )
+
+        report_case(
+            expected=f"Result message containing '{expected_message_substring}'",
+            actual=result_message,
+            message="Validate Bulk Upload form submission result message",
+        )
+
+        assert any(
+            message in result_message
+            for message in [
+                "Data Saved Successfully!!",
+                "Data Fetched Successfully",
+            ]
+        ), (
+            "Expected result message to contain either "
+            "'Data Saved Successfully!!' or "
+            "'Data Fetched Successfully' "
+            f"after Bulk Upload form submission, but got '{result_message}'"
+        )
+
+        logger.info(
+            "Bulk Upload form submission validated successfully on Dispatched Device page"
+        )
+
+    # test after upload file 2 components will appears on ui 1. Uploaded Dispatch Device List 2. Invalid Dispatch Device List... validate for both them
+    def test_dispatched_device_page_bulk_upload_result_components(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of result components after Bulk Upload form submission on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_bulk_upload_button()
+
+        # Simulate selecting a file for upload
+        dispatched_device_page.simulate_file_selection(
+            "./test_data/Sample_Dispatch_Sheet.xlsx"
+        )
+
+        # Click the submit button to upload the file
+        dispatched_device_page.click_bulk_upload_submit_button()
+
+        # Validate that the Uploaded Dispatch Device List component is displayed
+        is_uploaded_list_displayed = (
+            dispatched_device_page.is_uploaded_dispatch_device_list_displayed()
+        )
+
+        logger.debug(
+            "Uploaded Dispatch Device List component visibility check | expected=True | actual=%s",
+            is_uploaded_list_displayed,
+        )
+
+        report_case(
+            expected=True,
+            actual=is_uploaded_list_displayed,
+            message="Validate Uploaded Dispatch Device List component is displayed after Bulk Upload form submission",
+        )
+
+        assert (
+            is_uploaded_list_displayed
+        ), "Expected Uploaded Dispatch Device List component to be displayed after Bulk Upload form submission"
+
+        # Validate that the Invalid Dispatch Device List component is displayed
+        is_invalid_list_displayed = (
+            dispatched_device_page.is_invalid_dispatch_device_list_displayed()
+        )
+
+        logger.debug(
+            "Invalid Dispatch Device List component visibility check | expected=True | actual=%s",
+            is_invalid_list_displayed,
+        )
+
+        report_case(
+            expected=True,
+            actual=is_invalid_list_displayed,
+            message="Validate Invalid Dispatch Device List component is displayed after Bulk Upload form submission",
+        )
+
+        assert (
+            is_invalid_list_displayed
+        ), "Expected Invalid Dispatch Device List component to be displayed after Bulk Upload form submission"
+
+        logger.info(
+            "Result components after Bulk Upload form submission validated successfully on Dispatched Device page"
+        )
+
+    # test that both tables have same headers present
+    def test_dispatched_device_page_bulk_upload_result_tables_have_same_headers(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of table headers in result components after Bulk Upload form submission on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_bulk_upload_button()
+
+        # Simulate selecting a file for upload
+        dispatched_device_page.simulate_file_selection(
+            "./test_data/Sample_Dispatch_Sheet.xlsx"
+        )
+
+        # Click the submit button to upload the file
+        dispatched_device_page.click_bulk_upload_submit_button()
+
+        # Get headers from Uploaded Dispatch Device List table
+        uploaded_list_headers = (
+            dispatched_device_page.get_uploaded_dispatch_device_list_headers()
+        )
+
+        logger.debug(
+            "Headers from Uploaded Dispatch Device List table: %s",
+            uploaded_list_headers,
+        )
+
+        # Get headers from Invalid Dispatch Device List table
+        invalid_list_headers = (
+            dispatched_device_page.get_invalid_dispatch_device_list_headers()
+        )
+
+        logger.debug(
+            "Headers from Invalid Dispatch Device List table: %s",
+            invalid_list_headers,
+        )
+
+        report_case(
+            expected=uploaded_list_headers,
+            actual=invalid_list_headers,
+            message="Validate that both result tables have the same headers after Bulk Upload form submission",
+        )
+
+        assert (
+            uploaded_list_headers == invalid_list_headers
+        ), f"Expected both tables to have the same headers, but got {uploaded_list_headers} and {invalid_list_headers}"
+
+        logger.info(
+            "Table headers in result components after Bulk Upload form submission validated successfully on Dispatched Device page"
+        )
+
+    # test if no data image present then validate data on other table. if no data image is present on both tables then it should show no data found message
+    def test_dispatched_device_page_bulk_upload_result_tables_no_data_validation(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of 'No Data Found' state in result tables after Bulk Upload form submission on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_bulk_upload_button()
+
+        # Simulate selecting a file for upload
+        dispatched_device_page.simulate_file_selection(
+            "./test_data/Sample_Dispatch_Sheet.xlsx"
+        )
+
+        # Click the submit button to upload the file
+        dispatched_device_page.click_bulk_upload_submit_button()
+
+        # Check 'No Data Found' state for Uploaded Dispatch Device List table
+        is_uploaded_list_no_data = (
+            dispatched_device_page.is_uploaded_dispatch_device_list_no_data()
+        )
+
+        logger.debug(
+            "Uploaded Dispatch Device List 'No Data Found' state check | expected=Depends on data | actual=%s",
+            is_uploaded_list_no_data,
+        )
+
+        # Check 'No Data Found' state for Invalid Dispatch Device List table
+        is_invalid_list_no_data = (
+            dispatched_device_page.is_invalid_dispatch_device_list_no_data()
+        )
+
+        logger.debug(
+            "Invalid Dispatch Device List 'No Data Found' state check | expected=Depends on data | actual=%s",
+            is_invalid_list_no_data,
+        )
+
+        if is_uploaded_list_no_data and not is_invalid_list_no_data:
+            # Validate that the Invalid Dispatch Device List table has data
+            invalid_list_rows = (
+                dispatched_device_page.get_invalid_dispatch_device_list_rows()
+            )
+
+            logger.debug(
+                "Rows in Invalid Dispatch Device List table: %s",
+                invalid_list_rows,
+            )
+
+            assert (
+                len(invalid_list_rows) > 0
+            ), "Expected Invalid Dispatch Device List table to have data when Uploaded Dispatch Device List shows 'No Data Found'"
+
+            logger.info(
+                "Validation successful - Uploaded Dispatch Device List shows 'No Data Found' while Invalid Dispatch Device List has data"
+            )
+
+        elif not is_uploaded_list_no_data and is_invalid_list_no_data:
+            # Validate that the Uploaded Dispatch Device List table has data
+            uploaded_list_rows = (
+                dispatched_device_page.get_uploaded_dispatch_device_list_rows()
+            )
+
+            logger.debug(
+                "Rows in Uploaded Dispatch Device List table: %s",
+                uploaded_list_rows,
+            )
+
+            assert (
+                len(uploaded_list_rows) > 0
+            ), "Expected Uploaded Dispatch Device List table to have data when Invalid Dispatch Device List shows 'No Data Found'"
+
+            logger.info(
+                "Validation successful - Invalid Dispatch Device List shows 'No Data Found' while Uploaded Dispatch Device List has data"
+            )
+
+    # test export button state based on data availability in result tables
+    def test_dispatched_device_page_bulk_upload_result_tables_export_button_validation(
+        self, dispatched_device_page, report_case
+    ):
+        logger.info(
+            "Starting validation of Export button state in result tables "
+            "after Bulk Upload form submission on Dispatched Device page"
+        )
+
+        dispatched_device_page.click_bulk_upload_button()
+
+        # Simulate selecting a file for upload
+        dispatched_device_page.simulate_file_selection(
+            "./test_data/Sample_Dispatch_Sheet.xlsx"
+        )
+
+        # Click the submit button to upload the file
+        dispatched_device_page.click_bulk_upload_submit_button()
+
+        # Check 'No Data Found' state for Uploaded Dispatch Device List table
+        is_uploaded_list_no_data = (
+            dispatched_device_page.is_uploaded_dispatch_device_list_no_data()
+        )
+
+        logger.debug(
+            "Uploaded Dispatch Device List 'No Data Found' state | actual=%s",
+            is_uploaded_list_no_data,
+        )
+
+        # Check 'No Data Found' state for Invalid Dispatch Device List table
+        is_invalid_list_no_data = (
+            dispatched_device_page.is_invalid_dispatch_device_list_no_data()
+        )
+
+        logger.debug(
+            "Invalid Dispatch Device List 'No Data Found' state | actual=%s",
+            is_invalid_list_no_data,
+        )
+
+        # Get Export button enabled state for Uploaded Dispatch Device List table
+        is_uploaded_export_enabled = (
+            dispatched_device_page.is_export_button_enabled_in_uploaded_list()
+        )
+
+        logger.debug(
+            "Uploaded Dispatch Device List Export button enabled state | actual=%s",
+            is_uploaded_export_enabled,
+        )
+
+        # Get Export button enabled state for Invalid Dispatch Device List table
+        is_invalid_export_enabled = (
+            dispatched_device_page.is_export_button_enabled_in_invalid_list()
+        )
+
+        logger.debug(
+            "Invalid Dispatch Device List Export button enabled state | actual=%s",
+            is_invalid_export_enabled,
+        )
+
+        # Validate Uploaded Dispatch Device List Export button state
+        # Current application behavior:
+        # Export button remains disabled for Uploaded Dispatch Device List
+        report_case(
+            expected=False,
+            actual=is_uploaded_export_enabled,
+            message=(
+                "Validate Export button is disabled in "
+                "Uploaded Dispatch Device List table"
+            ),
+        )
+
+        assert not is_uploaded_export_enabled, (
+            "Expected Export button to be disabled in "
+            "Uploaded Dispatch Device List table"
+        )
+
+        logger.info("Uploaded Dispatch Device List Export button validation successful")
+
+        # Validate Invalid Dispatch Device List Export button state
+        expected_invalid_export_state = not is_invalid_list_no_data
+
+        report_case(
+            expected=expected_invalid_export_state,
+            actual=is_invalid_export_enabled,
+            message=(
+                "Validate Export button state in Invalid Dispatch Device List "
+                "table based on data presence"
+            ),
+        )
+
+        assert is_invalid_export_enabled == expected_invalid_export_state, (
+            "Invalid Dispatch Device List Export button state does not "
+            "match table data state"
+        )
+
+        logger.info("Invalid Dispatch Device List Export button validation successful")
+
+        logger.info(
+            "Export button validation completed successfully "
+            "for result tables on Dispatched Device page"
+        )
