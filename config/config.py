@@ -27,7 +27,7 @@ DEVICE_DETAILS_URL = os.getenv(
 )
 
 PRODUCTION_PAGE_URL = os.getenv(
-    "PRODUCTION_PAGE_URL", "http://lct-a4g-qa.accoladeelectronics.com/production-devices"
+    "PRODUCTION_PAGE_URL", "http://lct-a4g-qa.accoladeelectronics.com/production-device-page"
 )
 
 CREATE_PRODUCTION_URL = os.getenv(
