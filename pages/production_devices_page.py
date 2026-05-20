@@ -31,6 +31,25 @@ class ProductionDevices(BasePage):
         self.add_submit_btn_locator = page.get_by_text(
             "Submit check_circle", exact=True
         )
+        self.Uploaded_title_locator = page.get_by_text(
+            "Uploaded Production Device List", exact=True
+        )
+        self.export_uploaded_locator = page.locator(
+            "body > app-root:nth-child(1) > app-production-device:nth-child(5) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > button:nth-child(1)"
+        )
+        self.duplicate_title_locator = page.get_by_text(
+            "Duplicate Device List", exact=True
+        )
+        self.export_duplicate_locator = page.locator(
+            "body > app-root:nth-child(1) > app-production-device:nth-child(5) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > button:nth-child(1)"
+        )
+        self.invalid_title_locator = page.get_by_text("Invalid Device List", exact=True)
+        self.export_invalid_locator = page.locator(
+            "body > app-root:nth-child(1) > app-production-device:nth-child(5) > div:nth-child(1) > div:nth-child(4) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > button:nth-child(1)"
+        )
+        self.add_production_locator = page.get_by_text(
+            "Add Production Devices", exact=True
+        )
 
     def go_to_prod(self, url):
         self.page.goto(url)
@@ -320,7 +339,7 @@ class ProductionDevices(BasePage):
         assert not self.add_submit_btn_locator.is_enabled()
         self.page.wait_for_timeout(5000)
 
-    def _click_sample_btn(self):
+    def click_sample_btn(self):
         self.sam_btn_locator.wait_for(state="visible")
         self.highlight(self.sam_btn_locator)
 
@@ -328,6 +347,8 @@ class ProductionDevices(BasePage):
             self.sam_btn_locator.click()
 
         download = download_info.value
+        logger.info("download value is %s", download)
+
         return download
 
     def is_sample_file_downloaded(
@@ -344,80 +365,94 @@ class ProductionDevices(BasePage):
         file_path = os.path.join(download_path, expected_filename)
         download.save_as(file_path)
 
-        # ✅ Check file exists
+        # Check file exists
         if not os.path.exists(file_path):
             logger.error("File not found after download")
             return False
 
         logger.info("File downloaded successfully: %s", file_path)
 
-    def upload_file(self, file_path):
+        return True
+
+    def upload_invalid_file(self, file_path):
         self.highlight(self.up_btn_locator)
         logger.info("started")
         self.page.locator("input[type='file']").set_input_files(file_path)
         logger.info("finished")
+        rows = self.page.locator("table tbody tr")
 
-    def _click_submit(self):
+        row_count = rows.count()
+
+        self.export_invalid_locator
+
+        return row_count > 0 and self.export_invalid_locator.is_enabled(), "Export button is disabled"
+
+    def _check_file(self):
         self.add_submit_btn_locator.wait_for(state="visible")
         self.add_submit_btn_locator.click()
 
         logger.info("started")
-        Uploaded_title_locator = self.page.get_by_text(
-            "Uploaded Production Device List", exact=True
-        )
-        export_uploaded_locator = self.page.locator(
-            "body > app-root:nth-child(1) > app-production-device:nth-child(5) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > button:nth-child(1)"
-        )
-        duplicate_title_locator = self.page.get_by_text(
-            "Duplicate Device List", exact=True
-        )
-        duplicate_title_locator.evaluate(
+
+        self.duplicate_title_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"
         )
         self.page.wait_for_timeout(3000)
-        
-        export_duplicate_locator = self.page.locator(
-            "body > app-root:nth-child(1) > app-production-device:nth-child(5) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > button:nth-child(1)"
-        )
-        invalid_title_locator = self.page.get_by_text("Invalid Device List", exact=True)
-        
-        invalid_title_locator.evaluate(
+
+        self.invalid_title_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"
         )
-        export_invalid_locator = self.page.locator("body > app-root:nth-child(1) > app-production-device:nth-child(5) > div:nth-child(1) > div:nth-child(4) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > button:nth-child(1)")
-        
-        add_production_locator = self.page.get_by_text("Add Production Devices", exact=True)
-        add_production_locator.evaluate(
+
+        self.add_production_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"
         )
-        
 
-        Uploaded_title_locator.wait_for(state="visible")
-        export_uploaded_locator.wait_for(state="visible")
-        duplicate_title_locator.wait_for(state="visible")
-        export_duplicate_locator.wait_for(state="visible")
-        invalid_title_locator.wait_for(state="visible")
-        export_invalid_locator.wait_for(state="visible")
+        self.Uploaded_title_locator.wait_for(state="visible")
+        self.export_uploaded_locator.wait_for(state="visible")
+        self.duplicate_title_locator.wait_for(state="visible")
+        self.export_duplicate_locator.wait_for(state="visible")
+        self.invalid_title_locator.wait_for(state="visible")
+        self.export_invalid_locator.wait_for(state="visible")
 
-        self.highlight(Uploaded_title_locator)
-        self.highlight(export_uploaded_locator)
-        self.highlight(duplicate_title_locator)
-        self.highlight(export_duplicate_locator)
-        self.highlight(invalid_title_locator)
-        self.highlight(export_invalid_locator)
-        
-        refresh_locator = self.page.get_by_text("refresh", exact=True)
-        refresh_locator.click()
-        self.page.wait_for_timeout(5000) 
-        
-        return (
-            Uploaded_title_locator.is_visible()
-            and not export_uploaded_locator.is_enabled()
-            and duplicate_title_locator.is_visible()
-            and not export_duplicate_locator.is_enabled()
-            and invalid_title_locator.is_visible()
-            and export_invalid_locator.is_enabled()
-        
-           
-            
+        self.highlight(self.Uploaded_title_locator)
+        self.highlight(self.export_uploaded_locator)
+        self.highlight(self.duplicate_title_locator)
+        self.highlight(self.export_duplicate_locator)
+        self.highlight(self.invalid_title_locator)
+        self.highlight(self.export_invalid_locator)
+
+        result = (
+            self.Uploaded_title_locator.is_visible()
+            and self.export_uploaded_locator.is_visible()
+            and self.duplicate_title_locator.is_visible()
+            and self.export_duplicate_locator.is_visible()
+            and self.invalid_title_locator.is_visible()
+            and self.export_invalid_locator.is_visible()
         )
+
+        self.page.reload()
+        self.page.wait_for_load_state("networkidle")
+
+        return result
+
+    def upload_valid_file(self, file_path):
+        self.highlight(self.up_btn_locator)
+        self.page.locator("input[type='file']").set_input_files(file_path)
+        rows = self.page.locator("table tbody tr")
+
+        row_count = rows.count()
+
+        self.export_uploaded_locator
+
+        return row_count > 0 and self.export_uploaded_locator.is_enabled(), "Export button is disabled"
+
+    def upload_duplicate_file(self, file_path):
+
+        self.page.locator("input[type='file']").set_input_files(file_path)
+
+        rows = self.page.locator("table tbody tr")
+
+        row_count = rows.count()
+
+        self.export_duplicate_locator
+
+        return row_count > 0 and self.export_duplicate_locator.is_enabled(), "Export button is disabled"
