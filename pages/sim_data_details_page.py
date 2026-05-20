@@ -232,21 +232,21 @@ class SimDataDetailsPage:
         file_path = os.path.join(download_path, expected_filename)
         download.save_as(file_path)
 
-        # ✅ Check file exists
+        # Check file exists
         if not os.path.exists(file_path):
             logger.error("File not found after download")
             return False
 
         logger.info("File downloaded successfully: %s", file_path)
 
-        # ✅ Validate file content (header check)
+        # Validate file content (header check)
         try:
             df = pd.read_excel(file_path, nrows=1)
             headers = df.columns.tolist()
             logger.info("Extracted headers from Excel: %s", headers)
 
             if not headers or not any(
-                "ICC" in str(header).upper() for header in headers
+                "ICCID" in str(header).upper() for header in headers
             ):
                 logger.error("Header validation failed; expected ICCID column")
                 return False
@@ -282,8 +282,12 @@ class SimDataDetailsPage:
         logger.debug("Extracting error rows from API response")
         error_list = api_data.get("errors", [])
 
-        logger.info("Validating UI tables against API data (valid: %s items, duplicates: %s items, errors: %s items)", 
-                    len(valid_list), len(duplicate_list), len(error_list))
+        logger.info(
+            "Validating UI tables against API data (valid: %s items, duplicates: %s items, errors: %s items)",
+            len(valid_list),
+            len(duplicate_list),
+            len(error_list),
+        )
 
         logger.debug("Validating valid table section")
         self.valid_table_section.validate_table_data(valid_list)
