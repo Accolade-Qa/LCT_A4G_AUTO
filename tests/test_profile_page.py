@@ -1,6 +1,8 @@
 from utils.logger import get_logger
 import pytest
 from pages.api.api_client import APIClient
+from pages.api.login_api import LoginAPI
+from pages.api.user_api import UserAPI
 
 logger = get_logger(__name__)
 
@@ -27,7 +29,7 @@ class TestProfilePage:
         elif report.skipped:
             logger.warning("Profile page test skipped: %s", test_name)
 
-    def test_login_data(self, profile_page):
+    def test_profile_page_login_data_for_validation(self, profile_page):
         """Test fetching login data using API client."""
         logger.info("Testing login data retrieval from ProfilePage")
         try:
@@ -94,4 +96,311 @@ class TestProfilePage:
             raise
         except Exception as e:
             logger.error("Unexpected error during login data test: %s", str(e))
+            raise
+
+    def test_profile_page_validate_page_title(self, profile_page):
+        """Test validating the profile page title."""
+        logger.info("Testing profile page title validation")
+        try:
+            title = profile_page.get_page_title()
+            assert (
+                title == "User Profile"
+            ), f"Expected page title to be 'User Profile' but got '{title}'"
+            logger.info("Profile page title validation test passed")
+        except AssertionError as e:
+            logger.error("Assertion error during profile page title test: %s", str(e))
+            raise
+        except Exception as e:
+            logger.error("Unexpected error during profile page title test: %s", str(e))
+            raise
+
+    def test_profile_page_validate_component_title(self, profile_page):
+        """Test validating the profile page component title."""
+        logger.info("Testing profile page component title validation")
+        try:
+            component_title = profile_page.get_component_title()
+            assert (
+                component_title == "User Details"
+            ), f"Expected component title to be 'User Details' but got '{component_title}'"
+            logger.info("Profile page component title validation test passed")
+        except AssertionError as e:
+            logger.error(
+                "Assertion error during profile page component title test: %s", str(e)
+            )
+            raise
+        except Exception as e:
+            logger.error(
+                "Unexpected error during profile page component title test: %s", str(e)
+            )
+            raise
+
+    def test_profile_page_validate_admin_and_role_input_fields_not_editable(
+        self, profile_page
+    ):
+        """
+        Test validating that input fields on the profile page
+        are not editable.
+        """
+
+        logger.info("Testing profile page input fields non-editable validation")
+
+        try:
+            input_fields = profile_page.get_input_fields()
+
+            for field_name, field in input_fields.items():
+
+                readonly = field.get_attribute("ng-reflect-readonly")
+
+                if field_name in ["admin", "user_role"]:
+
+                    assert readonly is not None, (
+                        f"Expected input field '{field_name}' "
+                        f"to be readonly but it is editable"
+                    )
+
+                    logger.info(
+                        "Validated '%s' field is readonly",
+                        field_name,
+                    )
+
+                else:
+                    assert readonly is None, (
+                        f"Expected input field '{field_name}' "
+                        f"to be editable but it is readonly"
+                    )
+
+                    logger.info(
+                        "Validated '%s' field is editable",
+                        field_name,
+                    )
+
+            logger.info("Profile page input fields non-editable validation test passed")
+
+        except AssertionError as e:
+            logger.error(
+                "Assertion error during profile page input fields test: %s",
+                str(e),
+            )
+            raise
+
+        except Exception as e:
+            logger.error(
+                "Unexpected error during profile page input fields test: %s",
+                str(e),
+            )
+            raise
+
+    def test_profile_page_validate_input_fields_values_with_actual_data(
+        self, profile_page
+    ):
+        """
+        Test validating that input fields on the profile page
+        have correct values matching the actual data from API.
+        """
+
+        user_api = UserAPI()
+
+        logger.info("Testing profile page input fields values validation")
+
+        try:
+            # Fetch user data from API
+            user_data = user_api.get_user_data_by_id(profile_page.page)
+            logger.debug("Fetched user data from API: %s", user_data)
+
+            # Get input fields from profile page
+            input_fields = profile_page.get_input_fields()
+
+            # Validate each input field value against API data
+            assert input_fields["admin"].input_value() == user_data.get(
+                "adminName"
+            ), f"Expected admin name to be '{user_data.get('adminName')}' but got '{input_fields['admin'].input_value()}'"
+
+            assert input_fields["name"].input_value() == user_data.get(
+                "firstName"
+            ), f"Expected first name to be '{user_data.get('firstName')}' but got '{input_fields['name'].input_value()}'"
+
+            assert input_fields["surname"].input_value() == user_data.get(
+                "lastName"
+            ), f"Expected last name to be '{user_data.get('lastName')}' but got '{input_fields['surname'].input_value()}'"
+
+            assert input_fields["email"].input_value() == user_data.get(
+                "userEmail"
+            ), f"Expected email to be '{user_data.get('userEmail')}' but got '{input_fields['email'].input_value()}'"
+
+            assert int(input_fields["mobile"].input_value().strip()) == user_data.get(
+                "mobileNumber"
+            ), f"Expected mobile number to be '{user_data.get('mobileNumber')}' but got '{input_fields['mobile'].input_value()}'"
+
+            assert input_fields["country"].input_value() == user_data.get(
+                "country"
+            ), f"Expected country to be '{user_data.get('country')}' but got '{input_fields['country'].input_value()}'"
+
+            assert input_fields["state"].input_value() == user_data.get(
+                "state"
+            ), f"Expected state to be '{user_data.get('state')}' but got '{input_fields['state'].input_value()}'"
+
+            assert input_fields["user_role"].input_value() == user_data.get(
+                "roleName"
+            ), f"Expected user role to be '{user_data.get('roleName')}' but got '{input_fields['user_role'].input_value()}'"
+
+            assert input_fields[
+                "image"
+            ].is_visible(), "Expected profile image to be visible"
+            assert input_fields["image"].get_attribute("src") == user_data.get(
+                "image"
+            ), f"Expected profile image src to be '{user_data.get('image')}' but got '{input_fields['image'].get_attribute('src')}'"
+
+            logger.info("Profile page input fields values validation test passed")
+
+        except AssertionError as e:
+            logger.error(
+                "Assertion error during profile page input fields values test: %s",
+                str(e),
+            )
+            raise
+        except Exception as e:
+            logger.error(
+                "Unexpected error during profile page input fields values test: %s",
+                str(e),
+            )
+            raise
+
+    def test_profile_page_validate_buttons_are_visibled_and_enabled(self, profile_page):
+        """
+        Test validating that buttons on the profile page are visible and enabled.
+        """
+
+        logger.info("Testing profile page buttons visibility and enabled state")
+
+        try:
+            # Get buttons from profile page
+            update_button = profile_page.page.locator("button:has-text('Update')")
+
+            # Validate Save button is visible and enabled
+            assert update_button.is_visible(), "Expected 'Save' button to be visible"
+            assert update_button.is_enabled(), "Expected 'Save' button to be enabled"
+
+            # Validate Upload Profile Icon button is visible and enabled
+            upload_profile_icon_button = profile_page.page.locator(
+                "button:has-text('Upload Profile Icon')"
+            )
+            assert (
+                upload_profile_icon_button.is_visible()
+            ), "Expected 'Upload Profile Icon' button to be visible"
+            assert (
+                upload_profile_icon_button.is_enabled()
+            ), "Expected 'Upload Profile Icon' button to be enabled"
+
+            # Validate Change Password button is visible and enabled
+            change_password_button = (
+                profile_page.page.locator("div.image-section").locator("button").nth(1)
+            )
+            assert (
+                change_password_button.is_visible()
+            ), "Expected 'Change Password' button to be visible"
+            assert (
+                change_password_button.is_enabled()
+            ), "Expected 'Change Password' button to be enabled"
+
+            logger.info("Profile page buttons visibility and enabled state test passed")
+
+        except AssertionError as e:
+            logger.error("Assertion error during profile page buttons test: %s", str(e))
+            raise
+        except Exception as e:
+            logger.error(
+                "Unexpected error during profile page buttons test: %s", str(e)
+            )
+            raise
+
+    def test_profile_page_click_update_button_without_changes(self, profile_page):
+        """
+        Test clicking the Update button on the profile page without making any changes.
+        """
+
+        logger.info("Testing clicking Update button without changes on profile page")
+
+        try:
+            # Get Update button from profile page
+            update_button = profile_page.page.locator("button:has-text('Update')")
+
+            # Click the Update button
+            update_button.click()
+
+            # Validate that a success message is displayed
+            success_message = profile_page.page.locator(
+                "simple-snack-bar:has-text('User Details Updated Successfully!!')"
+            )
+            message_text = success_message.text_content().strip()
+
+            assert "User Details Updated Successfully!!" in message_text, (
+                f"Expected success message to contain "
+                f"'User Details Updated Successfully!!' "
+                f"but got '{message_text}'"
+            )
+            assert (
+                success_message.is_visible()
+            ), "Expected success message to be visible after clicking Update button"
+
+            logger.info("Profile page Update button click without changes test passed")
+
+        except AssertionError as e:
+            logger.error(
+                "Assertion error during profile page Update button test: %s", str(e)
+            )
+            raise
+        except Exception as e:
+            logger.error(
+                "Unexpected error during profile page Update button test: %s", str(e)
+            )
+            raise
+
+    def test_profile_page_update_state_and_validate_update_message(self, profile_page):
+        """
+        Test updating the state field on the profile page and validating the update message.
+        """
+
+        logger.info(
+            "Testing updating state field and validating update message on profile page"
+        )
+
+        try:
+            # Get state input field from profile page
+            state_input = profile_page.page.locator("input[formcontrolname='state']")
+
+            # Update the state field value
+            state_input.clear()
+            new_state = "Maharashtra"
+            state_input.fill(new_state)
+
+            # Click the Update button
+            update_button = profile_page.page.locator("button:has-text('Update')")
+            update_button.click()
+
+            # Validate that a success message is displayed
+            success_message = profile_page.page.locator(
+                "simple-snack-bar:has-text('User Details Updated Successfully!!')"
+            )
+            message_text = success_message.text_content().strip()
+
+            assert "User Details Updated Successfully!!" in message_text, (
+                f"Expected success message to contain "
+                f"'User Details Updated Successfully!!' "
+                f"but got '{message_text}'"
+            )
+            assert (
+                success_message.is_visible()
+            ), "Expected success message to be visible after updating state field"
+
+            logger.info("Profile page state field update and validation test passed")
+
+        except AssertionError as e:
+            logger.error(
+                "Assertion error during profile page state update test: %s", str(e)
+            )
+            raise
+        except Exception as e:
+            logger.error(
+                "Unexpected error during profile page state update test: %s", str(e)
+            )
             raise
