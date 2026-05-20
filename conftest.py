@@ -8,6 +8,7 @@ from config.config import (
     IMEI,
     BROWSER,
     DASHBOARD_URL,
+    PROFILE_URL,
     ROLE_GROUP_URL,
     ROLE_MANAGEMENT_URL,
     SIM_DATA_DETAILS_URL,
@@ -269,3 +270,17 @@ def govt_server_page(page):
     logger.info("Government Server page ready via UI navigation")
 
     return govtserver
+
+
+@pytest.fixture
+def profile_page(page):
+    from pages.profile_page import ProfilePage
+    from pages.base_page import BasePage
+
+    profile = ProfilePage(page)
+    base = BasePage(page)
+
+    base.navigate_to(PROFILE_URL)
+
+    logger.info("Profile page fixture ready")
+    return profile

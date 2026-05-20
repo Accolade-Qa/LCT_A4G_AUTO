@@ -3,6 +3,7 @@ import re
 
 import pytest
 
+from pages.api.api_client import APIClient
 from utils.helpers import Helpers
 from pages.common import TableSection, PaginationHelper, SearchHelper
 from utils.logger import get_logger
@@ -34,6 +35,50 @@ class TestRoleGroupPage:
             )
         elif report.skipped:
             logger.warning("Role Group test skipped: %s", test_name)
+
+    """" Test for deleting roles from the role management page. """
+    # def test_delete_role_permission(self, role_group_page):
+    #     """Test deleting a role permission."""
+
+    #     logger.info("Testing delete role permission functionality")
+
+    #     for i in range(1, 201):
+
+    #         try:
+    #             response = APIClient.send_request(
+    #                 role_group_page.page,
+    #                 "DELETE",
+    #                 f"/roles/deleteRole?roleId={i}",
+    #             )
+
+    #             assert (
+    #                 response.get("message") == "Success"
+    #             ), f"Failed to delete permission for role group {i}"
+
+    #             logger.info("Deleted role group %s successfully", i)
+
+    #         except Exception as e:
+
+    #             error_message = str(e)
+
+    #             if (
+    #                 "Cannot delete role: Role is assigned to one or more users."
+    #                 in error_message
+    #             ):
+    #                 logger.warning(
+    #                     "Cannot delete role group %s: Role is assigned to users",
+    #                     i,
+    #                 )
+    #                 continue
+
+    #             logger.error(
+    #                 "Unexpected error while deleting role group %s: %s",
+    #                 i,
+    #                 error_message,
+    #             )
+    #             raise
+
+    #     logger.info("Delete role permission test completed")
 
     def test_role_group_page_title_is_correct(self, role_group_page, report_case):
         logger.info("Testing Role Group page title")

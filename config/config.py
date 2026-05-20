@@ -56,6 +56,11 @@ DISPATCHED_DEVICE_URL = os.getenv(
     "DISPATCHED_DEVICE_URL",
     "http://lct-a4g-qa.accoladeelectronics.com/dispatch-device-page",
 )
+
+PROFILE_URL = os.getenv(
+    "PROFILE_URL", "http://lct-a4g-qa.accoladeelectronics.com/profile"
+)
+
 # PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")
 
 # PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G Diagnostic Cloud")
