@@ -29,11 +29,16 @@ class TestProfilePage:
         elif report.skipped:
             logger.warning("Profile page test skipped: %s", test_name)
 
-    def test_profile_page_login_data_for_validation(self, profile_page):
+    def test_profile_page_login_data_for_validation(self, profile_page, report_case):
         """Test fetching login data using API client."""
         logger.info("Testing login data retrieval from ProfilePage")
         try:
             login_data = profile_page.get_login_data()
+            logger.debug("Login data fetched from profile page: %s", login_data)
+            report_case(
+                expected="Login data with all required fields and 16 permissions",
+                actual=str(login_data),
+            )
 
             # login data should not be none
             assert login_data is not None, "Login data should not be None"
@@ -98,11 +103,15 @@ class TestProfilePage:
             logger.error("Unexpected error during login data test: %s", str(e))
             raise
 
-    def test_profile_page_validate_page_title(self, profile_page):
+    def test_profile_page_validate_page_title(self, profile_page, report_case):
         """Test validating the profile page title."""
         logger.info("Testing profile page title validation")
         try:
             title = profile_page.get_page_title()
+            logger.debug(
+                "Page title check | expected=%s | actual=%s", "User Profile", title
+            )
+            report_case(expected="User Profile", actual=title)
             assert (
                 title == "User Profile"
             ), f"Expected page title to be 'User Profile' but got '{title}'"
@@ -114,11 +123,17 @@ class TestProfilePage:
             logger.error("Unexpected error during profile page title test: %s", str(e))
             raise
 
-    def test_profile_page_validate_component_title(self, profile_page):
+    def test_profile_page_validate_component_title(self, profile_page, report_case):
         """Test validating the profile page component title."""
         logger.info("Testing profile page component title validation")
         try:
             component_title = profile_page.get_component_title()
+            logger.debug(
+                "Component title check | expected=%s | actual=%s",
+                "User Details",
+                component_title,
+            )
+            report_case(expected="User Details", actual=component_title)
             assert (
                 component_title == "User Details"
             ), f"Expected component title to be 'User Details' but got '{component_title}'"
@@ -135,7 +150,7 @@ class TestProfilePage:
             raise
 
     def test_profile_page_validate_admin_and_role_input_fields_not_editable(
-        self, profile_page
+        self, profile_page, report_case
     ):
         """
         Test validating that input fields on the profile page
@@ -146,13 +161,15 @@ class TestProfilePage:
 
         try:
             input_fields = profile_page.get_input_fields()
+            readonly_fields_status = {}
+            editable_fields_status = {}
 
             for field_name, field in input_fields.items():
 
                 readonly = field.get_attribute("ng-reflect-readonly")
 
                 if field_name in ["admin", "user_role"]:
-
+                    readonly_fields_status[field_name] = readonly is not None
                     assert readonly is not None, (
                         f"Expected input field '{field_name}' "
                         f"to be readonly but it is editable"
@@ -164,6 +181,7 @@ class TestProfilePage:
                     )
 
                 else:
+                    editable_fields_status[field_name] = readonly is None
                     assert readonly is None, (
                         f"Expected input field '{field_name}' "
                         f"to be editable but it is readonly"
@@ -174,6 +192,15 @@ class TestProfilePage:
                         field_name,
                     )
 
+            logger.debug(
+                "Input fields status | readonly_fields=%s | editable_fields=%s",
+                readonly_fields_status,
+                editable_fields_status,
+            )
+            report_case(
+                expected="admin and user_role readonly; others editable",
+                actual=f"readonly_fields={readonly_fields_status}, editable_fields={editable_fields_status}",
+            )
             logger.info("Profile page input fields non-editable validation test passed")
 
         except AssertionError as e:
@@ -191,7 +218,7 @@ class TestProfilePage:
             raise
 
     def test_profile_page_validate_input_fields_values_with_actual_data(
-        self, profile_page
+        self, profile_page, report_case
     ):
         """
         Test validating that input fields on the profile page
@@ -209,6 +236,28 @@ class TestProfilePage:
 
             # Get input fields from profile page
             input_fields = profile_page.get_input_fields()
+
+            # Log field values before assertions
+            field_values_comparison = {
+                "admin": {
+                    "expected": user_data.get("adminName"),
+                    "actual": input_fields["admin"].input_value(),
+                },
+                "name": {
+                    "expected": user_data.get("firstName"),
+                    "actual": input_fields["name"].input_value(),
+                },
+                "surname": {
+                    "expected": user_data.get("lastName"),
+                    "actual": input_fields["surname"].input_value(),
+                },
+                "email": {
+                    "expected": user_data.get("userEmail"),
+                    "actual": input_fields["email"].input_value(),
+                },
+            }
+            logger.debug("Field values comparison: %s", field_values_comparison)
+            report_case(expected=str(user_data), actual=str(field_values_comparison))
 
             # Validate each input field value against API data
             assert input_fields["admin"].input_value() == user_data.get(
@@ -265,7 +314,9 @@ class TestProfilePage:
             )
             raise
 
-    def test_profile_page_validate_buttons_are_visibled_and_enabled(self, profile_page):
+    def test_profile_page_validate_buttons_are_visible_and_enabled(
+        self, profile_page, report_case
+    ):
         """
         Test validating that buttons on the profile page are visible and enabled.
         """
@@ -275,32 +326,41 @@ class TestProfilePage:
         try:
             # Get buttons from profile page
             update_button = profile_page.page.locator("button:has-text('Update')")
-
-            # Validate Save button is visible and enabled
-            assert update_button.is_visible(), "Expected 'Save' button to be visible"
-            assert update_button.is_enabled(), "Expected 'Save' button to be enabled"
-
-            # Validate Upload Profile Icon button is visible and enabled
             upload_profile_icon_button = profile_page.page.locator(
                 "button:has-text('Upload Profile Icon')"
             )
-            assert (
-                upload_profile_icon_button.is_visible()
-            ), "Expected 'Upload Profile Icon' button to be visible"
-            assert (
-                upload_profile_icon_button.is_enabled()
-            ), "Expected 'Upload Profile Icon' button to be enabled"
-
-            # Validate Change Password button is visible and enabled
             change_password_button = (
                 profile_page.page.locator("div.image-section").locator("button").nth(1)
             )
-            assert (
-                change_password_button.is_visible()
-            ), "Expected 'Change Password' button to be visible"
-            assert (
-                change_password_button.is_enabled()
-            ), "Expected 'Change Password' button to be enabled"
+
+            # Check button states
+            update_visible = update_button.is_visible()
+            update_enabled = update_button.is_enabled()
+            upload_visible = upload_profile_icon_button.is_visible()
+            upload_enabled = upload_profile_icon_button.is_enabled()
+            change_pwd_visible = change_password_button.is_visible()
+            change_pwd_enabled = change_password_button.is_enabled()
+
+            expected_status = "Update(visible,enabled), Upload Profile Icon(visible,enabled), Change Password(visible,enabled)"
+            actual_status = f"Update({update_visible},{update_enabled}), Upload Profile Icon({upload_visible},{upload_enabled}), Change Password({change_pwd_visible},{change_pwd_enabled})"
+            logger.debug(
+                "Buttons status | expected=%s | actual=%s",
+                expected_status,
+                actual_status,
+            )
+            report_case(expected=expected_status, actual=actual_status)
+
+            # Validate Save button is visible and enabled
+            assert update_visible, "Expected 'Save' button to be visible"
+            assert update_enabled, "Expected 'Save' button to be enabled"
+
+            # Validate Upload Profile Icon button is visible and enabled
+            assert upload_visible, "Expected 'Upload Profile Icon' button to be visible"
+            assert upload_enabled, "Expected 'Upload Profile Icon' button to be enabled"
+
+            # Validate Change Password button is visible and enabled
+            assert change_pwd_visible, "Expected 'Change Password' button to be visible"
+            assert change_pwd_enabled, "Expected 'Change Password' button to be enabled"
 
             logger.info("Profile page buttons visibility and enabled state test passed")
 
@@ -313,7 +373,9 @@ class TestProfilePage:
             )
             raise
 
-    def test_profile_page_click_update_button_without_changes(self, profile_page):
+    def test_profile_page_click_update_button_without_changes(
+        self, profile_page, report_case
+    ):
         """
         Test clicking the Update button on the profile page without making any changes.
         """
@@ -332,6 +394,17 @@ class TestProfilePage:
                 "simple-snack-bar:has-text('User Details Updated Successfully!!')"
             )
             message_text = success_message.text_content().strip()
+            message_visible = success_message.is_visible()
+
+            logger.debug(
+                "Update message check | expected=%s | actual=%s | visible=%s",
+                "User Details Updated Successfully!!",
+                message_text,
+                message_visible,
+            )
+            report_case(
+                expected="User Details Updated Successfully!!", actual=message_text
+            )
 
             assert "User Details Updated Successfully!!" in message_text, (
                 f"Expected success message to contain "
@@ -355,7 +428,9 @@ class TestProfilePage:
             )
             raise
 
-    def test_profile_page_update_state_and_validate_update_message(self, profile_page):
+    def test_profile_page_update_state_and_validate_update_message(
+        self, profile_page, report_case
+    ):
         """
         Test updating the state field on the profile page and validating the update message.
         """
@@ -382,6 +457,19 @@ class TestProfilePage:
                 "simple-snack-bar:has-text('User Details Updated Successfully!!')"
             )
             message_text = success_message.text_content().strip()
+            message_visible = success_message.is_visible()
+
+            logger.debug(
+                "State update message check | expected=%s | actual=%s | new_state=%s | visible=%s",
+                "User Details Updated Successfully!!",
+                message_text,
+                new_state,
+                message_visible,
+            )
+            report_case(
+                expected=f"State updated to {new_state}; User Details Updated Successfully!!",
+                actual=message_text,
+            )
 
             assert "User Details Updated Successfully!!" in message_text, (
                 f"Expected success message to contain "
