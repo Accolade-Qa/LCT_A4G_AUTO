@@ -1,95 +1,144 @@
-# import logging
-# from pages.login_page import LoginPage
-# from config.config import USERNAME, PASSWORD, DASHBOARD_URL, BASE_URL
-# from playwright.sync_api import expect
-# from utils.excel_report import write_result
-# from pages.govt_server_page import GovtServerPage
+import pytest
+from utils.logger import get_logger
+from pages.common.table_section import TableSection
 
-# logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-# # def test_login_govt_server(page, request):
-# #     login_page = LoginPage(page)
-# #     test_name = request.node.name
-# #     logger.info(f"Starting test: {test_name}")
-# #     try:
-# #         login_page.load(BASE_URL)
-# #         logger.info(f"Base URL opened: {BASE_URL}")
-# #         login_page.login(USERNAME, PASSWORD)
-# #         page.wait_for_load_state("networkidle")
-# #         expect(page).to_have_url(DASHBOARD_URL)
-# #         logger.info("Login test PASSED")
-# #         write_result(
-# #             test_name,
-# #             expected=DASHBOARD_URL,
-# #             actual=page.url,
-# #             status="PASS"
-# #         )
+class TestGovtServerPage:
+    @pytest.fixture(autouse=True)
+    def log_test_case(self, request):
+        """Automatically log test lifecycle events"""
+        test_name = request.node.name
+        logger.info("Starting Government Server test: %s", test_name)
+        logger.debug("Executing test node: %s", request.node.nodeid)
+        yield
+        report = getattr(request.node, "rep_call", None)
+        if report is None:
+            logger.debug(
+                "Government Server test finished without call report: %s", test_name
+            )
+        elif report.passed:
+            logger.info("Government Server test passed: %s", test_name)
+        elif report.failed:
+            logger.error("Government Server test failed: %s", test_name)
+            logger.debug(
+                "Government Server failure details for %s: %s",
+                test_name,
+                report.longrepr,
+            )
+        elif report.skipped:
+            logger.warning("Government Server test skipped: %s", test_name)
 
-# #     except Exception as e:
-# #         logger.error(f"Login test FAILED: {str(e)}")
-# #         write_result(
-# #             test_name,
-# #             expected=DASHBOARD_URL,
-# #             actual=page.url,
-# #             status="FAIL",
-# #             error=str(e)
-# #         )
-# #         raise
+    def test_govt_server_page_title_is_correct(self, govt_server_page, report_case):
+        """Verify the title of the Government Server page"""
+        logger.info("Verifying Government Server page title")
 
+        expected_title = "Government Server"
+        logger.debug("Expected page title: %s", expected_title)
 
-# def test_govt_server_page(page, request):
-#     login_page = LoginPage(page)
-#     govt_server_page = GovtServerPage(page)
+        actual_title = govt_server_page.get_page_title()
+        logger.debug(
+            "Government Server page title check | expected=%s | actual=%s",
+            expected_title,
+            actual_title,
+        )
 
-#     test_name = request.node.name
-#     login_page.logger.info(f"Starting test: {test_name}")
+        report_case(
+            expected=expected_title,
+            actual=actual_title,
+            message="Validate Government Server page title",
+        )
 
-#     # ❌ REMOVE THIS
-#     # login_page.login(USERNAME, PASSWORD)
+        assert (
+            expected_title in actual_title
+        ), f"Expected title '{expected_title}' to be in '{actual_title}'"
+        logger.info("Government Server page title verified successfully")
 
-#     expected = "DEVICE UTILITY dropdown should be visible"
+    def test_govt_server_page_table_headers(self, govt_server_page, report_case):
+        """Verify the table headers on the Government Server page"""
+        logger.info("Verifying Government Server table headers")
 
-#     try:
-#         govt_server_page.click_device_utility_tab()
+        expected_headers = [
+            "STATE NAME",
+            "STATE CODE",
+            "STATE ENABLE OTA COMMAND",
+            "STATE PRIMARY IP:PORT",
+            "STATE SECONDARY IP:PORT",
+            "ACTION",
+        ]
+        logger.debug("Expected table headers: %s", expected_headers)
 
-#         dropdown = page.locator("ul.dropdown-menu.show")
-#         dropdown.wait_for(state="visible", timeout=10000)
+        actual_headers = govt_server_page.get_table_headers()
+        logger.debug(
+            "Government Server table headers check | expected=%s | actual=%s",
+            expected_headers,
+            actual_headers,
+        )
 
-#         assert dropdown.is_visible()
+        report_case(
+            expected=str(expected_headers),
+            actual=str(actual_headers),
+            message="Validate Government Server table headers",
+        )
 
-#         actual = "DEVICE UTILITY dropdown is visible"
-#         status = "PASS"
+        assert (
+            actual_headers == expected_headers
+        ), f"Expected headers {expected_headers}, but got {actual_headers}"
 
-#         login_page.logger.info(actual)
+        logger.info("Government Server table headers verified successfully")
 
-#     except Exception as e:
-#         actual = "DEVICE UTILITY dropdown is not visible"
-#         status = "FAIL"
+    def test_govt_server_page_table_no_data(self, govt_server_page, report_case):
+        """Verify the 'No Data Found' state of the table on the Government Server page"""
+        logger.info("Verifying 'No Data Found' state of Government Server table")
 
-#         login_page.logger.error(f"{actual} | Error: {str(e)}")
-#         raise
+        expected_no_data = False
+        logger.debug("Expected: Table should have no data")
 
-#     print(f"{test_name} | Expected: {expected} | Actual: {actual} | Status: {status}")
+        actual_has_no_data = govt_server_page.get_table_headers() == []
+        logger.debug(
+            "Government Server table no data check | expected=%s | actual=%s",
+            expected_no_data,
+            actual_has_no_data,
+        )
 
-# def test_govt_server_page(govt_server_page, request):
-#     test_name = request.node.name
+        report_case(
+            expected=expected_no_data,
+            actual=actual_has_no_data,
+            message="Validate 'No Data Found' state for Government Server table",
+        )
 
-#     expected = "DEVICE UTILITY dropdown should be visible"
+        assert (
+            actual_has_no_data == expected_no_data
+        ), "Expected 'No Data Found' state, but data was present"
+        logger.info(
+            "'No Data Found' state verified successfully for Government Server table"
+        )
 
-#     try:
-#         # Validation (dropdown should already be open or page loaded)
-#         dropdown = govt_server_page.page.locator("ul.dropdown-menu.show")
-#         dropdown.wait_for(state="visible", timeout=10000)
+    def test_govt_server_page_table_row_count(self, govt_server_page, report_case):
+        """Verify Government Server table has rows"""
 
-#         assert dropdown.is_visible()
+        logger.info("Verifying row count of Government Server table")
 
-#         actual = "DEVICE UTILITY dropdown is visible"
-#         status = "PASS"
+        table = TableSection(govt_server_page.page)
+        actual_row_count = table.get_row_count()
 
-#     except Exception as e:
-#         actual = "DEVICE UTILITY dropdown is not visible"
-#         status = "FAIL"
-#         raise
+        logger.debug(
+            "Government Server table row count: %s",
+            actual_row_count,
+        )
 
-#     print(f"{test_name} | Expected: {expected} | Actual: {actual} | Status: {status}")
+        report_case(
+            expected="Row count > 0",
+            actual=actual_row_count,
+            message="Validate Government Server table contains rows",
+        )
+
+        assert (
+            actual_row_count > 0
+        ), f"Expected row count greater than 0, but got {actual_row_count}"
+
+        logger.info(
+            "Government Server table contains %s rows",
+            actual_row_count,
+        )

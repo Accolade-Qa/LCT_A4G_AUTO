@@ -1,5 +1,3 @@
-import os
-from pathlib import Path
 from random import randint
 
 from pages.common.table_section import TableSection
@@ -9,7 +7,6 @@ from test_data.device_data import DeviceData
 from utils.logger import get_logger
 from config.config import DISPATCHED_DEVICE_URL, IMEI
 import pytest
-from utils.helpers import Helpers
 from pages.base_page import BasePage
 from pages.api.customer_api import CustomerAPI
 

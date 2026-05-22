@@ -1,4 +1,5 @@
 import re
+import pytest
 from pages.login_page import LoginPage
 from config.config import (
     PAGE_TITLE,
@@ -9,243 +10,530 @@ from config.config import (
     INVALID_PASSWORD,
     INVALID_USERNAME,
 )
-from playwright.sync_api import expect
-from utils.excel_report import write_result
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
-def test_login(page, request):
-    login_page = LoginPage(page)
-    test_name = request.node.name
-    logger.info(f"Starting test: {test_name}")
-    try:
+class TestLoginPage:
+    @pytest.fixture(autouse=True)
+    def log_test_case(self, request):
+        """Automatically log test lifecycle events"""
+        test_name = request.node.name
+        logger.info("Starting Login Page test: %s", test_name)
+        logger.debug("Executing test node: %s", request.node.nodeid)
+        yield
+        report = getattr(request.node, "rep_call", None)
+        if report is None:
+            logger.debug("Login Page test finished without call report: %s", test_name)
+        elif report.passed:
+            logger.info("Login Page test passed: %s", test_name)
+        elif report.failed:
+            logger.error("Login Page test failed: %s", test_name)
+            logger.debug(
+                "Login Page failure details for %s: %s",
+                test_name,
+                report.longrepr,
+            )
+        elif report.skipped:
+            logger.warning("Login Page test skipped: %s", test_name)
+
+    def test_login_with_valid_credentials(self, page, report_case):
+        """Validate successful login with valid username and password"""
+        logger.info("Starting validation of login with valid credentials")
+
+        login_page = LoginPage(page)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
         login_page.load(BASE_URL)
-        logger.info(f"Base URL opened: {BASE_URL}")
+
+        expected_url = DASHBOARD_URL
+        logger.debug("Expected dashboard URL: %s", expected_url)
+
+        logger.debug("Submitting login credentials for user: %s", USERNAME)
         login_page.login(USERNAME, PASSWORD)
+
+        logger.debug("Waiting for URL to change to dashboard")
         page.wait_for_url("**/device-dashboard-page", timeout=20000)
-        # page.wait_for_load_state("networkidle")
-        expect(page).to_have_url(DASHBOARD_URL)
-        logger.info("Login test PASSED")
-        write_result(test_name, expected=DASHBOARD_URL, actual=page.url, status="PASS")
-    except Exception as e:
-        logger.error(f"Login test FAILED: {str(e)}")
 
-        write_result(
-            test_name,
-            expected=DASHBOARD_URL,
-            actual=page.url,
-            status="FAIL",
-            error=str(e),
+        actual_url = page.url
+
+        logger.debug(
+            "Login URL check | expected=%s | actual=%s",
+            expected_url,
+            actual_url,
         )
-        raise
 
-
-def test_invalid_login(page):
-    login_page = LoginPage(page)
-    login_page.load(BASE_URL)
-    actual_msg = (
-        login_page.login_with_invalid_credentials(INVALID_USERNAME, INVALID_PASSWORD)
-        .strip()
-        .lower()
-        .rstrip(".")
-    )
-    expected_msg = "Minimum 6 characters required".strip().lower().rstrip(".")
-    print("Expected Error Message:", expected_msg)
-    print("Actual Error Message:", actual_msg)
-    status = "PASS" if actual_msg == expected_msg else "FAIL"
-    write_result("test_invalid_login", expected_msg, actual_msg, status)
-    assert actual_msg == expected_msg
-
-
-def test_username(page):
-    login_page = LoginPage(page)
-    login_page.load(BASE_URL)
-    error_msg = login_page.login_with_usernameonly(USERNAME)
-    assert error_msg != "", "Error message is empty ❌"
-    expected_msg = "minimum 6 characters required"
-    actual = error_msg.strip().lower().rstrip(".")
-    expected = expected_msg.strip().lower().rstrip(".")
-    print("Expected Error Message:", expected)
-    print("Actual Error Message:", actual)
-    status = "PASS" if actual == expected else "FAIL"
-    write_result("test_username", expected, actual, status)
-    assert actual == expected, f"Expected: {expected}, Got: {actual}"
-
-
-def test_password(page):
-    login_page = LoginPage(page)
-    login_page.load(BASE_URL)
-    try:
-        error_msg = login_page.login_with_passwordonly(" ", PASSWORD)
-        print("Error Message:", error_msg)
-        assert error_msg != "", "Error message is empty ❌"
-        expected_msg = "This field is required and can't be only spaces."  # 🔥 update as per your UI
-        actual = error_msg.strip().lower().rstrip(".")
-        expected = expected_msg.strip().lower().rstrip(".")
-        print("Expected:", expected)
-        print("Actual:", actual)
-        status = "PASS" if actual == expected else "FAIL"
-        # ✅ ONLY ONE ENTRY WILL BE WRITTEN
-        write_result("test_password", expected, actual, status)
-        assert actual == expected, f"Expected: {expected}, Got: {actual}"
-    except Exception as e:
-        write_result(
-            "test_password", "Username error expected", "Failed", "FAIL", str(e)
+        report_case(
+            expected=expected_url,
+            actual=actual_url,
+            message="Validate successful navigation to dashboard after login",
         )
-        raise
 
+        logger.info("Comparing expected and actual URLs after login")
 
-def test_page_title(page, request):
-    login_page = LoginPage(page)
-    login_page.load(BASE_URL)
-    test_name = request.node.name
-    try:
-        expected = PAGE_TITLE
-        actual = login_page.verify_page_title(expected)
-        # Normalize
-        actual_norm = actual.strip().lower()
-        expected_norm = expected.strip().lower()
-        status = "PASS" if actual_norm == expected_norm else "FAIL"
-        print("Expected:", expected_norm)
-        print("Actual:", actual_norm)
-        write_result(test_name, expected, actual, status)
-        assert actual_norm == expected_norm, f"Expected: {expected}, Got: {actual}"
-    except Exception as e:
-        write_result(test_name, expected, "ERROR", "FAIL", str(e))
-        raise
-
-
-def test_longusername_password(page, request):
-    login_page = LoginPage(page)
-    test_name = request.node.name
-    expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
-    login_page.logger.info(f"Starting test: {test_name}")
-    login_page.load(BASE_URL)
-    # ❗ Invalid input
-    login_page.login("shitalaccolade", "ABCD")
-    # ✅ NO blur, NO click — directly fetch
-    errors = login_page.get_error_message()
-    print("Errors:", errors)
-    actual = ", ".join(errors) if errors else "No error message"
-    expected = ", ".join(expected_list)
-    try:
-        assert sorted(errors) == sorted(expected_list)
-        status = "PASS"
-        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
-    except AssertionError:
-        status = "FAIL"
-        login_page.logger.error(
-            f"Test Failed | Expected: {expected} | Actual: {actual}"
+        assert actual_url == expected_url, (
+            f"Expected to navigate to '{expected_url}' after login, "
+            f"but got '{actual_url}'"
         )
-    write_result(test_name, expected, actual, status)
 
+        logger.info("Login validation with valid credentials completed successfully")
 
-def test_shortusername_password(page, request):
-    login_page = LoginPage(page)
-    test_name = request.node.name
-    expected_list = ["Please enter a valid Email ID.", "Minimum 6 characters required."]
-    login_page.logger.info(f"Starting test: {test_name}")
-    login_page.load(BASE_URL)
-    # ❗ Invalid input
-    login_page.login("shital", "ABCD")
-    # ✅ NO blur, NO click — directly fetch
-    errors = login_page.get_error_message()
-    print("Errors:", errors)
-    actual = ", ".join(errors) if errors else "No error message"
-    expected = ", ".join(expected_list)
-    try:
-        assert sorted(errors) == sorted(expected_list)
-        status = "PASS"
-        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
-    except AssertionError:
-        status = "FAIL"
-        login_page.logger.error(
-            f"Test Failed | Expected: {expected} | Actual: {actual}"
+    def test_login_with_invalid_credentials(self, page, report_case):
+        """Validate error message when logging in with invalid credentials"""
+        logger.info("Starting validation of login with invalid credentials")
+
+        login_page = LoginPage(page)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        expected_error_message = "Minimum 6 characters required"
+
+        logger.debug(
+            "Submitting invalid credentials | username=%s | password=%s",
+            INVALID_USERNAME,
+            INVALID_PASSWORD,
         )
-    write_result(test_name, expected, actual, status)
-
-
-#     # 🔹 Footer Tests
-#     # 🔹 Test: Footer links present
-def test_footer_links(page, request):
-    login_page = LoginPage(page)
-    test_name = request.node.name
-    login_page.logger.info(f"Starting test: {test_name}")
-    login_page.load(BASE_URL)
-    # ✅ Define expected links (update as per your UI)
-    expected_links = ["Accolade Electronics Pvt. Ltd."]
-    # ✅ Get actual links
-    links = login_page.verify_footer_links_present()
-    actual = ", ".join(links) if links else "No links found"
-    expected = ", ".join(expected_links)
-    try:
-        # ✅ Validate all expected links are present
-        assert all(
-            any(exp.lower() in link.lower() for link in links) for exp in expected_links
+        actual_error_message = (
+            login_page.login_with_invalid_credentials(
+                INVALID_USERNAME, INVALID_PASSWORD
+            )
+            .strip()
+            .lower()
+            .rstrip(".")
         )
-        status = "PASS"
-        login_page.logger.info(f"Test Passed | Expected: {expected} | Actual: {actual}")
-    except AssertionError:
-        status = "FAIL"
-        login_page.logger.error(
-            f"Test Failed | Expected: {expected} | Actual: {actual}"
+
+        expected_error_normalized = expected_error_message.strip().lower().rstrip(".")
+
+        logger.debug(
+            "Invalid login error message check | expected=%s | actual=%s",
+            expected_error_normalized,
+            actual_error_message,
         )
-    # ✅ Write to Excel
-    write_result(test_name, expected, actual, status)
 
+        report_case(
+            expected=expected_error_normalized,
+            actual=actual_error_message,
+            message="Validate error message for invalid credentials",
+        )
 
-def test_footer_links_clickable(page, request):
-    login_page = LoginPage(page)
-    login_page.load(BASE_URL)
-    test_name = request.node.name
-    try:
+        logger.info("Comparing expected and actual error messages")
+
+        assert actual_error_message == expected_error_normalized, (
+            f"Expected error message '{expected_error_normalized}', "
+            f"but got '{actual_error_message}'"
+        )
+
+        logger.info("Invalid credentials validation completed successfully")
+
+    def test_login_with_username_only(self, page, report_case):
+        """Validate error message when logging in with username only"""
+        logger.info("Starting validation of login with username only")
+
+        login_page = LoginPage(page)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        expected_error_message = "minimum 6 characters required"
+
+        logger.debug("Submitting username only: %s", USERNAME)
+        error_message = login_page.login_with_usernameonly(USERNAME)
+
+        logger.debug("Received error message: %s", error_message)
+        assert error_message != "", "Error message should not be empty"
+
+        actual_error_normalized = error_message.strip().lower().rstrip(".")
+
+        logger.debug(
+            "Username only error message check | expected=%s | actual=%s",
+            expected_error_message,
+            actual_error_normalized,
+        )
+
+        report_case(
+            expected=expected_error_message,
+            actual=actual_error_normalized,
+            message="Validate error message for username only",
+        )
+
+        logger.info("Comparing expected and actual error messages")
+
+        assert actual_error_normalized == expected_error_message, (
+            f"Expected error message '{expected_error_message}', "
+            f"but got '{actual_error_normalized}'"
+        )
+
+        logger.info("Username only validation completed successfully")
+
+    def test_login_with_password_only(self, page, report_case):
+        """Validate error message when logging in with password only"""
+        logger.info("Starting validation of login with password only")
+
+        login_page = LoginPage(page)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        expected_error_message = "This field is required and can't be only spaces."
+
+        logger.debug("Submitting password only with username field as spaces")
+        error_message = login_page.login_with_passwordonly(" ", PASSWORD)
+
+        logger.debug("Received error message: %s", error_message)
+        assert error_message != "", "Error message should not be empty"
+
+        actual_error = error_message.strip().lower().rstrip(".")
+        expected_error = expected_error_message.strip().lower().rstrip(".")
+
+        logger.debug(
+            "Password only error message check | expected=%s | actual=%s",
+            expected_error,
+            actual_error,
+        )
+
+        report_case(
+            expected=expected_error,
+            actual=actual_error,
+            message="Validate error message for password only",
+        )
+
+        logger.info("Comparing expected and actual error messages")
+
+        assert actual_error == expected_error, (
+            f"Expected error message '{expected_error}', " f"but got '{actual_error}'"
+        )
+
+        logger.info("Password only validation completed successfully")
+
+    def test_page_title_is_correct(self, page, report_case):
+        """Validate that the login page title is correct"""
+        logger.info("Starting validation of login page title")
+
+        login_page = LoginPage(page)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        expected_title = PAGE_TITLE
+        logger.debug("Expected page title: %s", expected_title)
+
+        logger.debug("Verifying page title")
+        actual_title = login_page.verify_page_title(expected_title)
+
+        actual_title_normalized = actual_title.strip().lower()
+        expected_title_normalized = expected_title.strip().lower()
+
+        logger.debug(
+            "Page title check | expected=%s | actual=%s",
+            expected_title_normalized,
+            actual_title_normalized,
+        )
+
+        report_case(
+            expected=expected_title_normalized,
+            actual=actual_title_normalized,
+            message="Validate login page title",
+        )
+
+        logger.info("Comparing expected and actual page titles")
+
+        assert actual_title_normalized == expected_title_normalized, (
+            f"Expected page title '{expected_title}', " f"but got '{actual_title}'"
+        )
+
+        logger.info("Page title validation completed successfully")
+
+    def test_login_with_long_username_and_short_password(self, page, report_case):
+        """Validate error messages when logging in with long username and short password"""
+        logger.info(
+            "Starting validation of login with long username and short password"
+        )
+
+        login_page = LoginPage(page)
+
+        expected_errors = [
+            "Please enter a valid Email ID.",
+            "Minimum 6 characters required.",
+        ]
+        logger.debug("Expected error messages: %s", expected_errors)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        logger.debug(
+            "Submitting invalid credentials | username=shitalaccolade | password=ABCD"
+        )
+        login_page.login("shitalaccolade", "ABCD")
+
+        logger.debug("Retrieving error messages from page")
+        actual_errors = login_page.get_error_message()
+
+        logger.debug(
+            "Error messages retrieved | count=%s | errors=%s",
+            len(actual_errors),
+            actual_errors,
+        )
+
+        expected_errors_str = ", ".join(expected_errors)
+        actual_errors_str = (
+            ", ".join(actual_errors) if actual_errors else "No error message"
+        )
+
+        logger.debug(
+            "Long username/short password error check | expected=%s | actual=%s",
+            expected_errors_str,
+            actual_errors_str,
+        )
+
+        report_case(
+            expected=expected_errors_str,
+            actual=actual_errors_str,
+            message="Validate error messages for long username and short password",
+        )
+
+        logger.info("Comparing expected and actual error messages")
+
+        assert sorted(actual_errors) == sorted(expected_errors), (
+            f"Expected error messages {expected_errors}, " f"but got {actual_errors}"
+        )
+
+        logger.info(
+            "Long username and short password validation completed successfully"
+        )
+
+    def test_login_with_short_username_and_short_password(self, page, report_case):
+        """Validate error messages when logging in with short username and short password"""
+        logger.info(
+            "Starting validation of login with short username and short password"
+        )
+
+        login_page = LoginPage(page)
+
+        expected_errors = [
+            "Please enter a valid Email ID.",
+            "Minimum 6 characters required.",
+        ]
+        logger.debug("Expected error messages: %s", expected_errors)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        logger.debug("Submitting invalid credentials | username=shital | password=ABCD")
+        login_page.login("shital", "ABCD")
+
+        logger.debug("Retrieving error messages from page")
+        actual_errors = login_page.get_error_message()
+
+        logger.debug(
+            "Error messages retrieved | count=%s | errors=%s",
+            len(actual_errors),
+            actual_errors,
+        )
+
+        expected_errors_str = ", ".join(expected_errors)
+        actual_errors_str = (
+            ", ".join(actual_errors) if actual_errors else "No error message"
+        )
+
+        logger.debug(
+            "Short username/short password error check | expected=%s | actual=%s",
+            expected_errors_str,
+            actual_errors_str,
+        )
+
+        report_case(
+            expected=expected_errors_str,
+            actual=actual_errors_str,
+            message="Validate error messages for short username and short password",
+        )
+
+        logger.info("Comparing expected and actual error messages")
+
+        assert sorted(actual_errors) == sorted(expected_errors), (
+            f"Expected error messages {expected_errors}, " f"but got {actual_errors}"
+        )
+
+        logger.info(
+            "Short username and short password validation completed successfully"
+        )
+
+    def test_footer_links_are_present(self, page, report_case):
+        """Validate that footer links are present on the login page"""
+        logger.info("Starting validation of footer links presence")
+
+        login_page = LoginPage(page)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        expected_links = ["Accolade Electronics Pvt. Ltd."]
+        logger.debug("Expected footer links: %s", expected_links)
+
+        logger.debug("Verifying footer links")
+        actual_links = login_page.verify_footer_links_present()
+
+        logger.debug(
+            "Footer links retrieved | count=%s | links=%s",
+            len(actual_links),
+            actual_links,
+        )
+
+        expected_links_str = ", ".join(expected_links)
+        actual_links_str = ", ".join(actual_links) if actual_links else "No links found"
+
+        logger.debug(
+            "Footer links check | expected=%s | actual=%s",
+            expected_links_str,
+            actual_links_str,
+        )
+
+        report_case(
+            expected=expected_links_str,
+            actual=actual_links_str,
+            message="Validate footer links presence",
+        )
+
+        logger.info("Comparing expected and actual footer links")
+
+        # Validate all expected links are present
+        links_found = all(
+            any(exp.lower() in link.lower() for link in actual_links)
+            for exp in expected_links
+        )
+
+        assert (
+            links_found
+        ), f"Expected footer links {expected_links} not found in {actual_links}"
+
+        logger.info("Footer links presence validation completed successfully")
+
+    def test_footer_links_are_clickable(self, page, report_case):
+        """Validate that footer links are clickable on the login page"""
+        logger.info("Starting validation of footer links clickability")
+
+        login_page = LoginPage(page)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        logger.debug("Verifying footer links clickability")
         results = login_page.verify_footer_links_clickable()
-        # Check if all clickable
+
+        logger.debug(
+            "Footer links clickability check | total=%s | results=%s",
+            len(results),
+            results,
+        )
+
         all_clickable = all(link["clickable"] for link in results)
-        actual = ", ".join([f'{link["text"]}: {link["clickable"]}' for link in results])
-        expected = "All footer links should be clickable"
-        status = "PASS" if all_clickable else "FAIL"
-        write_result(test_name, expected, actual, status)
-        assert all_clickable, "Some footer links are not clickable"
-    except Exception as e:
-        write_result(test_name, "All footer links clickable", "ERROR", "FAIL", str(e))
-        raise
+        expected_result = "All footer links should be clickable"
+        actual_result = ", ".join(
+            [f"{link['text']}: {link['clickable']}" for link in results]
+        )
 
+        logger.debug(
+            "Footer links clickability check | expected=%s | actual=%s",
+            expected_result,
+            actual_result,
+        )
 
-def test_footer_year(page, request):
-    login_page = LoginPage(page)
-    login_page.load(BASE_URL)
-    test_name = request.node.name
-    try:
+        report_case(
+            expected=expected_result,
+            actual=actual_result,
+            message="Validate footer links are clickable",
+        )
+
+        logger.info("Validating all footer links are clickable")
+
+        assert all_clickable, (
+            f"Expected all footer links to be clickable, " f"but got: {actual_result}"
+        )
+
+        logger.info("Footer links clickability validation completed successfully")
+
+    def test_footer_contains_current_year(self, page, report_case):
+        """Validate that footer contains the current year"""
+        logger.info("Starting validation of footer year")
+
+        login_page = LoginPage(page)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        logger.debug("Verifying footer year")
         footer_text, current_year = login_page.verify_footer_year()
-        actual = footer_text
-        expected = f"Footer should contain year {current_year}"
-        status = "PASS" if current_year in footer_text else "FAIL"
-        write_result(test_name, expected, actual, status)
-        assert current_year in footer_text, f"Year {current_year} not found in footer"
-    except Exception as e:
-        write_result(test_name, "Footer year validation", "ERROR", "FAIL", str(e))
-        raise
 
+        logger.debug(
+            "Footer year check | footer_text=%s | current_year=%s",
+            footer_text,
+            current_year,
+        )
 
-def test_get_build_version(page):
-    login_page = LoginPage(page)
-    login_page.load(BASE_URL)
-    test_name = "test_get_build_version"
-    try:
+        expected_year_presence = f"Footer should contain year {current_year}"
+        actual_footer_text = footer_text
+
+        year_found = current_year in footer_text
+
+        logger.debug(
+            "Footer year check | expected=%s | actual=%s",
+            expected_year_presence,
+            actual_footer_text,
+        )
+
+        report_case(
+            expected=expected_year_presence,
+            actual=actual_footer_text,
+            message="Validate footer contains current year",
+        )
+
+        logger.info("Comparing footer text with expected year")
+
+        assert year_found, (
+            f"Expected year {current_year} to be found in footer text, "
+            f"but got: {footer_text}"
+        )
+
+        logger.info("Footer year validation completed successfully")
+
+    def test_build_version_format_is_valid(self, page, report_case):
+        """Validate that build version is in valid format (X.Y.Z)"""
+        logger.info("Starting validation of build version format")
+
+        login_page = LoginPage(page)
+
+        logger.debug("Loading base URL: %s", BASE_URL)
+        login_page.load(BASE_URL)
+
+        logger.debug("Retrieving build version from page")
         version = login_page.get_build_version()
-        expected = "Build version should be in format X.Y.Z"
-        # ✅ Validations
+
+        logger.debug("Retrieved build version: %s", version)
+
+        expected_format = "Build version should be in format X.Y.Z"
+
         not_empty = version is not None and version != ""
         valid_format = bool(re.search(r"\d+\.\d+\.\d+", version))
-        status = "PASS" if (not_empty and valid_format) else "FAIL"
-        actual = version
-        print("Build Version:", version)
-        write_result(test_name, expected, actual, status)
-        assert not_empty, "Build version is empty ❌"
-        assert valid_format, f"Invalid version format: {version}"
-    except Exception as e:
-        write_result(test_name, expected, "ERROR", "FAIL", str(e))
-        raise
+
+        logger.debug(
+            "Build version validation | not_empty=%s | valid_format=%s",
+            not_empty,
+            valid_format,
+        )
+
+        report_case(
+            expected=expected_format,
+            actual=version,
+            message="Validate build version format",
+        )
+
+        logger.info("Comparing build version format with expected pattern")
+
+        assert not_empty, "Build version should not be empty"
+
+        assert valid_format, (
+            f"Expected build version in format X.Y.Z, " f"but got: {version}"
+        )
+
+        logger.info("Build version format validation completed successfully")

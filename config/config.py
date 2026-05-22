@@ -32,15 +32,18 @@ OTA_URL = os.getenv(
 )
 
 PRODUCTION_PAGE_URL = os.getenv(
-    "PRODUCTION_PAGE_URL", "http://lct-a4g-qa.accoladeelectronics.com/production-device-page"
+    "PRODUCTION_PAGE_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/production-device-page",
 )
 
 CREATE_PRODUCTION_URL = os.getenv(
-    "CREATE_PRODUCTION_URL", "http://lct-a4g-qa.accoladeelectronics.com/create-production-device"
+    "CREATE_PRODUCTION_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/create-production-device",
 )
 
 ADD_PRODUCTION_URL = os.getenv(
-    "ADD_PRODUCTION_URL", "http://lct-a4g-qa.accoladeelectronics.com/add-production-device"
+    "ADD_PRODUCTION_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/add-production-device",
 )
 
 USERNAME = os.getenv("APP_USERNAME")
@@ -60,8 +63,8 @@ API_USERNAME = os.getenv("API_USERNAME", USERNAME)
 API_PASSWORD = os.getenv("API_PASSWORD", PASSWORD)
 PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
 
-GOVT_SERVER_URL = os.getenv(
-    "GOVT_SERVER_URL", "http://lct-a4g-qa.accoladeelectronics.com/govt-servers"
+GOVERNMENT_SERVERS_URL = os.getenv(
+    "GOVERNMENT_SERVERS_URL", "http://lct-a4g-qa.accoladeelectronics.com/govt-servers"
 )
 
 DISPATCHED_DEVICE_URL = os.getenv(

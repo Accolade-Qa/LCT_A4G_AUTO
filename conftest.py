@@ -11,6 +11,7 @@ from config.config import (
     PROFILE_URL,
     ROLE_GROUP_URL,
     ROLE_MANAGEMENT_URL,
+    GOVERNMENT_SERVERS_URL,
     SIM_DATA_DETAILS_URL,
     OTA_URL,
     HEADLESS,
@@ -25,7 +26,6 @@ from pages.login_page import LoginPage
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# ✅ Ensure folders exist
 os.makedirs("reports", exist_ok=True)
 os.makedirs(SCREENSHOT_PATH, exist_ok=True)
 
@@ -33,7 +33,6 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# ✅ Single source of truth for page zoom (75% = 0.75)
 ZOOM_SCRIPT = """
 () => {
     const applyZoom = () => {
@@ -58,7 +57,7 @@ ZOOM_SCRIPT = """
 """
 
 
-# 🔹 Playwright instance
+# Playwright instance
 @pytest.fixture(scope="session")
 def playwright_instance():
     logger.info("Starting Playwright session")
@@ -67,7 +66,7 @@ def playwright_instance():
     logger.info("Playwright session ended")
 
 
-# 🔹 Browser
+# Browser
 @pytest.fixture(scope="session")
 def browser(playwright_instance):
     browser_type = getattr(playwright_instance, BROWSER)
@@ -86,7 +85,7 @@ def browser(playwright_instance):
     logger.info("Browser instance closed")
 
 
-# 🔹 Context with zoom applied
+# Context with zoom applied
 def _new_context_with_zoom(browser, **kwargs):
     context = browser.new_context(viewport=None)
     context.add_init_script(ZOOM_SCRIPT)
@@ -94,7 +93,7 @@ def _new_context_with_zoom(browser, **kwargs):
     return context
 
 
-# 🔥 Authenticated Page Fixture
+# Authenticated Page Fixture
 @pytest.fixture(scope="function")
 def page(browser):
     context = _new_context_with_zoom(
@@ -132,7 +131,7 @@ def report_case(record_property):
     return _report_case
 
 
-# 🔹 Screenshot on failure
+# Screenshot on failure
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
@@ -171,7 +170,7 @@ def pytest_runtest_makereport(item, call):
             page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png", full_page=True)
 
 
-# 🔹 Page Fixtures
+# Page Fixtures
 @pytest.fixture
 def dashboard_page(page):
     from pages.dashboard_page import DashboardPage
@@ -261,11 +260,11 @@ def dispatched_device_page(page):
 @pytest.fixture
 def govt_server_page(page):
     from pages.govt_server_page import GovtServerPage
+    from pages.base_page import BasePage
 
     govtserver = GovtServerPage(page)
-    # Navigate via menu instead of direct URL
-    govtserver.click_device_utility_tab()
-    govtserver.click_government_servers()
+    base = BasePage(page)
+    base.navigate_to(GOVERNMENT_SERVERS_URL)
 
     logger.info("Government Server page ready via UI navigation")
 
