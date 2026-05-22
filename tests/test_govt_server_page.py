@@ -1,4 +1,6 @@
 import pytest
+from pages.common.pagination import PaginationHelper
+from pages.common.search import SearchHelper
 from utils.logger import get_logger
 from pages.common.table_section import TableSection
 
@@ -141,4 +143,134 @@ class TestGovtServerPage:
         logger.info(
             "Government Server table contains %s rows",
             actual_row_count,
+        )
+
+    def test_govt_server_page_table_data_validation(
+        self, govt_server_page, report_case
+    ):
+        """Verify the data in the Government Server table matches expected values"""
+        logger.info("Validating data in Government Server table")
+
+        expected_data = [
+            {
+                "STATE NAME": "Auto FOTA",
+                "STATE CODE": "AF",
+                "STATE ENABLE OTA COMMAND": "--",
+                "STATE PRIMARY IP:PORT": "--:--",
+                "STATE SECONDARY IP:PORT": "--:--",
+                "ACTION": "visibility\ndelete",
+            }
+        ]
+
+        table = TableSection(govt_server_page.page)
+        actual_row_data = table.get_row_data(0)
+        logger.debug(
+            "Government Server table row data validation | expected=%s | actual=%s",
+            expected_data[0],
+            actual_row_data,
+        )
+        report_case(
+            expected=str(expected_data[0]),
+            actual=str(actual_row_data),
+            message="Validate data of first row in Government Server table",
+        )
+        assert (
+            actual_row_data == expected_data[0]
+        ), f"Expected row data {expected_data[0]}, but got {actual_row_data}"
+        logger.info(
+            "Data in Government Server table validated successfully for first row"
+        )
+
+    def test_govt_server_page_search_functionality(self, govt_server_page, report_case):
+        """Verify the search functionality of the Government Server table"""
+        logger.info("Verifying search functionality of Government Server table")
+
+        search_query = "Auto FOTA"
+
+        search_helper = SearchHelper(govt_server_page.page)
+        search_result = search_helper.run_search(search_query)
+        logger.debug(
+            "Government Server table search result for query '%s': %s",
+            search_query,
+            search_result,
+        )
+        report_case(
+            expected=f"At least 1 result containing '{search_query}'",
+            actual=f"{search_result['results_found']} results found",
+            message="Validate search functionality of Government Server table",
+        )
+        assert search_result[
+            "success"
+        ], f"Search failed with error: {search_result['error']}"
+        assert (
+            search_result["results_found"] > 0
+        ), f"Expected at least 1 search result for query '{search_query}', but found none"
+        assert any(
+            search_query in result for result in search_result["results"]
+        ), f"Expected search results to contain '{search_query}', but got {search_result['results']}"
+        logger.info(
+            "Search functionality of Government Server table verified successfully for query '%s'",
+            search_query,
+        )
+
+    def test_govt_server_page_table_action_buttons(self, govt_server_page, report_case):
+        """Verify the presence of action buttons in the Government Server table"""
+        logger.info("Verifying action buttons in Government Server table")
+
+        table = TableSection(govt_server_page.page)
+        action_buttons = table.get_action_buttons(
+            1
+        )  # this should be 1 cause 0 th row is headers row
+        expected_buttons = ["visibility", "delete"]
+
+        logger.debug(
+            "Government Server table action buttons check | expected=%s | actual=%s",
+            expected_buttons,
+            action_buttons,
+        )
+
+        report_case(
+            expected=str(expected_buttons),
+            actual=str(action_buttons),
+            message="Validate presence of action buttons in Government Server table",
+        )
+
+        assert set(action_buttons) == set(
+            expected_buttons
+        ), f"Expected action buttons {expected_buttons}, but got {action_buttons}"
+        logger.info(
+            "Action buttons in Government Server table verified successfully for first row"
+        )
+
+    def test_govt_server_page_pagination_validations(
+        self, govt_server_page, report_case
+    ):
+        """Verify pagination controls of the Government Server table"""
+        logger.info("Verifying pagination controls of Government Server table")
+        pagination = PaginationHelper(govt_server_page.page)
+        pagination_result = pagination.verify(include_backward=True)
+        logger.debug(
+            "Government Server table pagination verification result: %s",
+            pagination_result,
+        )
+        report_case(
+            expected="Pagination should work correctly in both directions",
+            actual=str(pagination_result),
+            message="Validate pagination controls of Government Server table",
+        )
+        assert pagination_result[
+            "success"
+        ], f"Pagination verification failed: {pagination_result['error']}"
+        if pagination_result["total_pages"] > 1:
+            assert len(pagination_result["pages_visited"]) > 1, (
+                "Expected to visit multiple pages during pagination verification, "
+                "but only one page was visited"
+            )
+        else:
+            logger.info(
+                "Only one page available in pagination. Navigation validation skipped."
+            )
+        logger.info(
+            "Pagination controls of Government Server table verified successfully, pages visited: %s",
+            pagination_result["pages_visited"],
         )

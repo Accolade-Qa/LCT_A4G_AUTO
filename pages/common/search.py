@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from playwright.sync_api import Locator, Page
+from playwright.sync_api import Locator, Page, expect
 
 from utils.logger import get_logger
 
@@ -34,13 +34,17 @@ class SearchHelper:
         for search_input in self._search_input_candidates():
             try:
                 candidate = search_input.first
-                candidate.wait_for(state="visible", timeout=5000)
+
+                # Assertion: Search input should be visible
+                expect(candidate).to_be_visible(timeout=5000)
+
                 return candidate
+
             except Exception as exc:
                 errors.append(str(exc))
 
         logger.debug("Search input locator attempts failed: %s", errors)
-        raise TimeoutError("No visible search input found on the current page")
+        raise AssertionError("No visible search input found on the current page")
 
     def run_search(self, query: str) -> dict[str, Sequence[str] | int | bool | None]:
         result = {
@@ -52,23 +56,55 @@ class SearchHelper:
 
         try:
             search_input = self._visible_search_input()
+
             logger.info("Executing search for query '%s'", query)
+
             search_input.scroll_into_view_if_needed()
+
+            # Assertion: Input should be enabled before interaction
+            expect(search_input).to_be_enabled()
+
             search_input.fill(query)
+
+            # Assertion: Verify entered value
+            expect(search_input).to_have_value(query)
+
             search_input.press("Enter")
+
             self.page.wait_for_timeout(1000)
 
             rows = self.page.locator(self.row_selector)
+
+            # Assertion: Rows locator should exist
+            assert rows.count() >= 0, "Unable to fetch table rows"
+
             result["results_found"] = rows.count()
 
             for i in range(result["results_found"]):
                 row_text = rows.nth(i).inner_text()
+
+                # Assertion: Row text should not be empty
+                assert row_text.strip(), f"Row {i + 1} text is empty"
+
                 result["results"].append(row_text)
 
-            logger.info("%s rows found for query '%s'", result["results_found"], query)
+            logger.info(
+                "%s rows found for query '%s'",
+                result["results_found"],
+                query,
+            )
+
         except Exception as exc:
-            logger.exception("Search helper failed for query '%s': %s", query, exc)
+            logger.exception(
+                "Search helper failed for query '%s': %s",
+                query,
+                exc,
+            )
+
             result["success"] = False
             result["error"] = str(exc)
+
+            # Assertion: Fail test immediately if search helper fails
+            assert False, f"Search operation failed: {exc}"
 
         return result

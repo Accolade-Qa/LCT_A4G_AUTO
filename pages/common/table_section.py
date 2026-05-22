@@ -17,6 +17,7 @@ class TableSection:
         self.page = page
         self.table_selector = table_selector
         self.header_selector = header_selector or f"{table_selector} thead th"
+        self.button_selector = f"{table_selector} tbody tr td button"
 
     def wait_for_table(self) -> Locator:
         table_locator = self.page.locator(self.table_selector)
@@ -156,3 +157,60 @@ class TableSection:
         logger.info("Extracted row data at index %s: %s", row_index, row_data)
 
         return row_data
+
+    def get_action_buttons(self, row_index: int) -> list[str]:
+        """
+        Returns a list of action button names for a specific row index
+        """
+
+        table = self.wait_for_table()
+        rows = table.locator("tbody tr")
+
+        total_rows = rows.count()
+
+        assert total_rows > 0, "No rows found in table"
+
+        if row_index >= total_rows:
+            raise IndexError(
+                f"Row index {row_index} out of range. Total rows: {total_rows}"
+            )
+
+        buttons = rows.nth(row_index).locator("td button")
+
+        button_count = buttons.count()
+
+        assert button_count > 0, f"No action buttons found for row index {row_index}"
+
+        buttons_text = []
+
+        for i in range(button_count):
+            button = buttons.nth(i)
+
+            # Try aria-label
+            text = button.get_attribute("aria-label")
+
+            # Try title attribute
+            if not text:
+                text = button.get_attribute("title")
+
+            # Try mat-icon text
+            if not text:
+                try:
+                    text = button.locator("mat-icon").inner_text().strip()
+                except Exception:
+                    pass
+
+            # Fallback to inner text
+            if not text:
+                text = button.inner_text().strip()
+
+            if text:
+                buttons_text.append(text)
+
+        logger.info(
+            "Found action buttons at row index %s: %s",
+            row_index,
+            buttons_text,
+        )
+
+        return buttons_text
