@@ -3,6 +3,8 @@ import random
 import string
 import time
 from datetime import datetime
+import random
+from faker import Faker
 
 from utils.logger import get_logger
 
@@ -74,3 +76,34 @@ class Helpers:
             raise ValueError("page cannot be None")
         logger.debug("Maximizing browser viewport")
         page.set_viewport_size({"width": None, "height": None})
+
+    @staticmethod
+    def generate_random_state_name():
+        """Generate a random state name using Faker."""
+        fake = Faker()
+        state_name = fake.state()
+        logger.debug("Generated random state name: %s", state_name)
+        return state_name
+
+    @staticmethod
+    def generate_random_state_abbreviation():
+        """Generate a random state abbreviation using Faker."""
+        fake = Faker()
+        state_abbr = fake.state_abbr()
+        logger.debug("Generated random state abbreviation: %s", state_abbr)
+        return state_abbr
+
+    @staticmethod
+    def generate_random_ip():
+        """Generate a random IPv4 address using Faker."""
+        fake = Faker()
+        ip_address = fake.ipv4()
+        logger.debug("Generated random IP address: %s", ip_address)
+        return ip_address
+
+    @staticmethod
+    def generate_random_port():
+        """Generate a random port number between 1024 and 65535."""
+        port = random.randint(1024, 65535)
+        logger.debug("Generated random port number: %s", port)
+        return str(port)

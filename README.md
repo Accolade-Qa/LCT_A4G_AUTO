@@ -30,6 +30,8 @@ cd LCT_A4G_AUTO
 2. **Create a virtual environment**
    ```bash
 python -m venv .venv
+
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& d:\AEPL_AUTOMATION\LCT_A4G_AUTO\.venv\Scripts\Activate.ps1)
 ```
 3. **Activate the virtual environment**
    ```bash

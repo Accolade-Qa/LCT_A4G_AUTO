@@ -8,11 +8,15 @@ from config.config import (
 )
 from playwright.sync_api import expect
 
+import pytest
+
 # from pages.api import model_api
 from pages.model_page import DeviceModel
 from pages.login_page import LoginPage
 
 
+@pytest.mark.device
+@pytest.mark.regression
 class TestModel:
 
     def _login_and_dashboard(self, page):
@@ -22,6 +26,7 @@ class TestModel:
 
         return DeviceModel(page)
 
+    @pytest.mark.smoke
     def test_go_to_model(self, page):
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)

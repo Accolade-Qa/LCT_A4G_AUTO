@@ -519,9 +519,6 @@ class OtaPage(BasePage):
         search_button.wait_for(state="visible")
         search_button.click()
 
-        # Wait for search results to load (this can be improved with a more specific wait condition)
-        self.page.wait_for_timeout(2000)
-
     def get_size_of_checkbox_list(self) -> int:
         logger.debug("Getting size of checkbox list on Manual OTA page")
         checkboxes = self.page.locator("input[type='checkbox']")
@@ -545,6 +542,10 @@ class OtaPage(BasePage):
     def select_checkbox_for_command(self) -> None:
         logger.debug("Selecting checkbox for command")
         checkbox = self.page.locator("input[type='checkbox']")
+
+        if checkbox.size() >= 1:
+            checkbox = self.page.locator("input[type='checkbox']").first()
+
         checkbox.wait_for(state="visible")
         checkbox.check()
 
@@ -630,6 +631,25 @@ class OtaPage(BasePage):
                     "Step 6: Checkbox already selected for command: %s",
                     command_to_search,
                 )
+
+        if self.get_size_of_checkbox_list() > 1:
+            final_searched_command = self.page.locator(
+                f"//div[contains(@class,'mdc-form-field')]//label[normalize-space()='{command_to_search}']"
+            )
+
+            final_searched_command.wait_for(state="visible", timeout=5000)
+
+            actual_text = final_searched_command.inner_text().strip()
+
+            if actual_text == command_to_search:
+
+                final_searched_command.click()
+
+                logger.info(
+                    "Step 6: selected searched command data for command : %s",
+                    command_to_search,
+                )
+
         else:
             raise AssertionError(
                 f"Expected 1 checkbox after searching for '{command_to_search}', found {self.get_size_of_checkbox_list()}"

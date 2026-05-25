@@ -12,6 +12,8 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+@pytest.mark.device
+@pytest.mark.regression
 class TestOtaPage:
     """Test suite for OTA Batch and OTA Master pages."""
 
@@ -39,6 +41,7 @@ class TestOtaPage:
 
     """ OTA Batch Page Tests """
 
+    @pytest.mark.smoke
     def test_ota_page_navigates_correctly(self, ota_page):
         """Verify OTA page is loaded with correct URL."""
         logger.info("Validating OTA page load state")
@@ -47,6 +50,7 @@ class TestOtaPage:
             ota_page.is_page_loaded()
         ), f"OTA page did not load at {ota_page.page.url}"
 
+    @pytest.mark.smoke
     def test_ota_page_title_is_correct(self, ota_page):
         """Verify OTA Batch page title is correct."""
         expected_title = "OTA Batch"

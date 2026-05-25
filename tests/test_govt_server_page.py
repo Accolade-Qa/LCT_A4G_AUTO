@@ -1,4 +1,5 @@
 import pytest
+from config.config import GOVERNMENT_SERVERS_URL
 from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
 from utils.logger import get_logger
@@ -7,6 +8,8 @@ from pages.common.table_section import TableSection
 logger = get_logger(__name__)
 
 
+@pytest.mark.device
+@pytest.mark.regression
 class TestGovtServerPage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
@@ -32,6 +35,7 @@ class TestGovtServerPage:
         elif report.skipped:
             logger.warning("Government Server test skipped: %s", test_name)
 
+    @pytest.mark.smoke
     def test_govt_server_page_title_is_correct(self, govt_server_page, report_case):
         """Verify the title of the Government Server page"""
         logger.info("Verifying Government Server page title")
@@ -273,4 +277,451 @@ class TestGovtServerPage:
         logger.info(
             "Pagination controls of Government Server table verified successfully, pages visited: %s",
             pagination_result["pages_visited"],
+        )
+
+    """ test add goverment server page test """
+
+    @pytest.mark.smoke
+    def test_govt_server_page_add_government_button_is_visible_and_enable(
+        self, govt_server_page, report_case
+    ):
+        """Verify the presence of Add Government Server button in Government Server page"""
+        logger.info(
+            "Verifying presence of Add Government Server button in Government Server page"
+        )
+        is_visible, is_enabled = (
+            govt_server_page.is_add_govt_server_button_visible_and_enabled()
+        )
+
+        logger.debug(
+            "Add Government Server button visibility: %s, enabled state: %s",
+            is_visible,
+            is_enabled,
+        )
+
+        report_case(
+            expected="Add Government Server button should be visible and enabled",
+            actual=f"Visible: {is_visible}, Enabled: {is_enabled}",
+            message="Validate presence and state of Add Government Server button",
+        )
+
+        assert is_visible, "Expected 'Add Government Server' button to be visible"
+        assert is_enabled, "Expected 'Add Government Server' button to be enabled"
+
+        logger.info(
+            "Presence and state of Add Government Server button verified successfully"
+        )
+
+    def test_govt_server_page_click_add_gov_server_btn_and_validate_title(
+        self, govt_server_page, report_case
+    ):
+        """Verify clicking Add Government Server button navigates to correct page"""
+        logger.info(
+            "Verifying navigation after clicking 'Add Government Server' button"
+        )
+        govt_server_page.click_add_govt_server_button()
+        expected_title = "Add Government Servers"
+        actual_title = govt_server_page.get_page_title()
+
+        logger.debug(
+            "Add Government Server page title check | expected=%s | actual=%s",
+            expected_title,
+            actual_title,
+        )
+
+        report_case(
+            expected=expected_title,
+            actual=actual_title,
+            message="Validate navigation to Add Government Server page and its title",
+        )
+
+        assert (
+            expected_title in actual_title
+        ), f"Expected title '{expected_title}' to be in '{actual_title}' after clicking 'Add Government Server' button"
+
+        logger.info(
+            "Navigation to Add Government Server page and its title verified successfully"
+        )
+
+    def test_govt_server_page_validate_component_title(
+        self, govt_server_page, report_case
+    ):
+        """Verify the component title on the Government Server page"""
+        logger.info("Verifying component title on Government Server page")
+
+        govt_server_page.click_add_govt_server_button()
+        expected_component_title = "Government Servers Details"
+        actual_component_title = govt_server_page.get_component_title()
+
+        logger.debug(
+            "Government Server component title check | expected=%s | actual=%s",
+            expected_component_title,
+            actual_component_title,
+        )
+
+        report_case(
+            expected=expected_component_title,
+            actual=actual_component_title,
+            message="Validate component title on Government Server page",
+        )
+
+        assert (
+            expected_component_title in actual_component_title
+        ), f"Expected component title '{expected_component_title}' to be in '{actual_component_title}'"
+        logger.info("Component title on Government Server page verified successfully")
+
+    def test_govt_server_page_validate_all_input_enabled_and_editable(
+        self, govt_server_page, report_case
+    ):
+        """Verify all input fields on Add Government Server page are enabled and editable"""
+        logger.info(
+            "Verifying all input fields on Add Government Server page are enabled and editable"
+        )
+        govt_server_page.click_add_govt_server_button()
+
+        govt_input_fields = govt_server_page.get_input_fields_locators().items()
+
+        for field, locator in govt_input_fields:
+            is_visible = locator.is_visible()
+            is_enabled = locator.is_enabled()
+
+            logger.debug(
+                "Input field '%s' visibility: %s, enabled state: %s",
+                field,
+                is_visible,
+                is_enabled,
+            )
+
+            report_case(
+                expected=f"Input field '{field}' should be visible and enabled",
+                actual=f"Visible: {is_visible}, Enabled: {is_enabled}",
+                message=f"Validate presence and state of input field '{field}' on Add Government Server page",
+            )
+
+            assert is_visible, f"Expected input field '{field}' to be visible"
+            assert is_enabled, f"Expected input field '{field}' to be enabled"
+
+    def test_govt_server_page_validate_input_fields_accept_text_except_port_and_ip(
+        self, govt_server_page, report_case
+    ):
+        """Verify all input fields accept entered text values"""
+
+        logger.info(
+            "Verifying all input fields on Add Government Server page accept entered values"
+        )
+
+        govt_server_page.click_add_govt_server_button()
+
+        govt_input_fields = govt_server_page.get_input_fields_locators().items()
+
+        for field, locator in govt_input_fields:
+
+            if "ip" in field.lower() or "port" in field.lower():
+                test_input = "InvalidInput"
+            else:
+                test_input = "TestInput"
+
+            locator.fill(test_input)
+
+            actual_value = locator.input_value()
+
+            logger.debug(
+                "Input field '%s' acceptance check | test input: '%s' | actual value: '%s'",
+                field,
+                test_input,
+                actual_value,
+            )
+
+            report_case(
+                expected=f"Input field '{field}' should accept entered input",
+                actual=f"Actual value after input: '{actual_value}'",
+                message=f"Validate input acceptance for field '{field}'",
+            )
+
+            assert (
+                actual_value == test_input
+            ), f"Expected input field '{field}' to accept entered input"
+
+    def test_govt_server_page_validate_input_fields_accept_valid_ip_and_port(
+        self, govt_server_page, report_case
+    ):
+        """Verify IP and port input fields on Add Government Server page accept valid input"""
+        logger.info(
+            "Verifying IP and port input fields on Add Government Server page accept valid input"
+        )
+        govt_server_page.click_add_govt_server_button()
+
+        govt_input_fields = govt_server_page.get_input_fields_locators().items()
+
+        for field, locator in govt_input_fields:
+            if "gov_ip1" in field or "gov_ip2" in field:
+                test_input = "192.168.1.1"
+            elif "port1" in field or "port2" in field:
+                test_input = "8080"
+            else:
+                continue
+
+            locator.fill(test_input)
+            actual_value = locator.input_value()
+
+            logger.debug(
+                "Input field '%s' validation check | test input: '%s' | actual value: '%s'",
+                field,
+                test_input,
+                actual_value,
+            )
+
+            report_case(
+                expected=f"Input field '{field}' should accept valid input",
+                actual=f"Actual value after input: '{actual_value}'",
+                message=f"Validate valid input acceptance for field '{field}' on Add Government Server page",
+            )
+
+            assert (
+                actual_value == test_input
+            ), f"Expected input field '{field}' to accept valid input, but it did not"
+
+    def test_govt_server_page_validate_error_messages_on_invalid_inputs(
+        self, govt_server_page, report_case
+    ):
+        """Verify validation error messages for invalid inputs on Add Government Server page"""
+
+        logger.info(
+            "Verifying validation error messages for invalid inputs on Add Government Server page"
+        )
+
+        invalid_test_data = govt_server_page.get_valid_invalid_inputs_for_field()
+
+        for field_name, field_test_data in invalid_test_data.items():
+
+            for invalid_input, expected_error_message in field_test_data:
+
+                logger.info(
+                    "Validating field '%s' with invalid input '%s'",
+                    field_name,
+                    invalid_input,
+                )
+
+                # Navigate fresh every iteration
+                govt_server_page.page.goto(GOVERNMENT_SERVERS_URL)
+
+                govt_server_page.page.wait_for_load_state("networkidle")
+
+                govt_server_page.click_add_govt_server_button()
+
+                input_fields = govt_server_page.get_input_fields_locators()
+
+                locator = input_fields[field_name]
+
+                # Fill invalid input
+                locator.fill(str(invalid_input))
+
+                # Trigger validation
+                govt_server_page.click_submit_button()
+
+                govt_server_page.page.wait_for_timeout(1000)
+
+                actual_error_message = govt_server_page.get_error_message_from_field(
+                    field_name
+                )
+
+                logger.debug(
+                    "Field: %s | Invalid Input: '%s' | Expected Error: '%s' | Actual Error: '%s'",
+                    field_name,
+                    invalid_input,
+                    expected_error_message,
+                    actual_error_message,
+                )
+
+                report_case(
+                    expected=f"Error message should be '{expected_error_message}'",
+                    actual=f"Actual error message: '{actual_error_message}'",
+                    message=(
+                        f"Validate error message for invalid input "
+                        f"'{invalid_input}' in field '{field_name}'"
+                    ),
+                )
+
+                assert (
+                    actual_error_message is not None
+                ), f"No error message displayed for field '{field_name}'"
+
+                assert actual_error_message == expected_error_message, (
+                    f"Expected error message '{expected_error_message}' "
+                    f"but got '{actual_error_message}' "
+                    f"for field '{field_name}'"
+                )
+
+    def test_govt_server_page_validate_submit_button_disabled_on_blank_form(
+        self, govt_server_page, report_case
+    ):
+        """Verify Submit button is disabled when form is blank"""
+
+        logger.info(
+            "Verifying Submit button is disabled when Add Government Server form is blank"
+        )
+
+        govt_server_page.click_add_govt_server_button()
+
+        submit_button_enabled = govt_server_page.is_submit_button_enabled()
+
+        logger.debug(
+            "Submit button enabled state on blank form: %s",
+            submit_button_enabled,
+        )
+
+        report_case(
+            expected="Submit button should be disabled on blank form",
+            actual=f"Submit button enabled state: {submit_button_enabled}",
+            message="Validate Submit button disabled state on blank form",
+        )
+
+        assert submit_button_enabled is False, "Submit button is enabled on blank form"
+
+    def test_govt_server_page_validate_submit_button_disabled_on_invalid_inputs(
+        self, govt_server_page, report_case
+    ):
+        """Verify Submit button is disabled on invalid inputs"""
+
+        logger.info("Verifying Submit button is disabled on invalid inputs")
+
+        govt_server_page.click_add_govt_server_button()
+
+        input_fields = govt_server_page.get_input_fields_locators()
+
+        invalid_test_data = govt_server_page.get_valid_invalid_inputs_for_field()
+
+        for field_name, field_test_data in invalid_test_data.items():
+
+            locator = input_fields[field_name]
+
+            invalid_input, _ = field_test_data[0]
+
+            locator.fill(str(invalid_input))
+
+            locator.blur()
+
+        submit_button_enabled = govt_server_page.is_submit_button_enabled()
+
+        logger.debug(
+            "Submit button enabled state on invalid inputs: %s",
+            submit_button_enabled,
+        )
+
+        report_case(
+            expected="Submit button should be disabled on invalid inputs",
+            actual=f"Submit button enabled state: {submit_button_enabled}",
+            message="Validate Submit button disabled state on invalid inputs",
+        )
+
+        assert (
+            submit_button_enabled is False
+        ), "Submit button is enabled on invalid inputs"
+
+    def test_govt_server_page_validate_submit_button_enabled_on_valid_inputs(
+        self, govt_server_page, report_case
+    ):
+        """Verify Submit button is enabled on valid inputs"""
+
+        logger.info("Verifying Submit button is enabled on valid inputs")
+
+        govt_server_page.click_add_govt_server_button()
+
+        input_fields = govt_server_page.get_input_fields_locators()
+
+        valid_test_data = govt_server_page.enter_valid_input_for_field()
+
+        for field_name, valid_input in valid_test_data.items():
+
+            locator = input_fields[field_name]
+
+            locator.fill(str(valid_input))
+
+            actual_value = locator.input_value()
+
+            logger.debug(
+                "Field '%s' | Valid Input: '%s' | Actual Value: '%s'",
+                field_name,
+                valid_input,
+                actual_value,
+            )
+
+            report_case(
+                expected=f"Field '{field_name}' should accept valid input",
+                actual=f"Actual value after input: '{actual_value}'",
+                message=f"Validate valid input acceptance for field '{field_name}'",
+            )
+
+            assert actual_value == str(
+                valid_input
+            ), f"Field '{field_name}' did not accept valid input"
+
+        submit_button_enabled = govt_server_page.is_submit_button_enabled()
+
+        logger.debug(
+            "Submit button enabled state on valid inputs: %s",
+            submit_button_enabled,
+        )
+
+        report_case(
+            expected="Submit button should be enabled on valid inputs",
+            actual=f"Submit button enabled state: {submit_button_enabled}",
+            message="Validate Submit button enabled state on valid inputs",
+        )
+
+        assert (
+            submit_button_enabled is True
+        ), "Submit button is not enabled on valid inputs"
+
+    def test_govt_server_page_validate_success_message_on_valid_form_submission(
+        self, govt_server_page, report_case
+    ):
+        """Verify success message is displayed after successful form submission"""
+
+        logger.info("Verifying success message after successful form submission")
+
+        govt_server_page.click_add_govt_server_button()
+
+        input_fields = govt_server_page.get_input_fields_locators()
+
+        valid_test_data = govt_server_page.enter_valid_input_for_field()
+
+        for field_name, valid_input in valid_test_data.items():
+
+            locator = input_fields[field_name]
+
+            locator.fill(str(valid_input))
+
+        submit_button_enabled = govt_server_page.is_submit_button_enabled()
+
+        logger.debug(
+            "Submit button enabled state before submission: %s",
+            submit_button_enabled,
+        )
+
+        assert (
+            submit_button_enabled is True
+        ), "Submit button is not enabled before submission"
+
+        govt_server_page.click_submit_button()
+
+        actual_success_message = govt_server_page.get_success_message()
+
+        expected_success_message = "Data Fetched Successfully"
+
+        logger.debug(
+            "Expected Success Message: '%s' | Actual Success Message: '%s'",
+            expected_success_message,
+            actual_success_message,
+        )
+
+        report_case(
+            expected=f"Success message should be '{expected_success_message}'",
+            actual=f"Actual success message: '{actual_success_message}'",
+            message="Validate success message after successful form submission",
+        )
+
+        assert expected_success_message in actual_success_message, (
+            f"Expected success message '{expected_success_message}' "
+            f"but got '{actual_success_message}'"
         )

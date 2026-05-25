@@ -9,6 +9,8 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+@pytest.mark.dashboard
+@pytest.mark.regression
 class TestDashboardPage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
@@ -29,6 +31,8 @@ class TestDashboardPage:
         elif report.skipped:
             logger.warning("Dashboard test skipped: %s", test_name)
 
+    @pytest.mark.smoke
+    @pytest.mark.critical
     def test_dashboard_page_navigates_to_correct_url(self, dashboard_page, report_case):
         logger.info("Validating dashboard landing URL")
 
@@ -45,6 +49,7 @@ class TestDashboardPage:
             actual_url == DASHBOARD_URL
         ), f"Expected {DASHBOARD_URL}, got {actual_url}"
 
+    @pytest.mark.smoke
     def test_dashboard_page_title_is_correct(self, dashboard_page, report_case):
         base_page = BasePage(dashboard_page.page)
         logger.info("Validating dashboard page title")
@@ -58,6 +63,7 @@ class TestDashboardPage:
 
         assert actual_title == "Device Dashboard", "Dashboard title is incorrect"
 
+    @pytest.mark.smoke
     def test_dashboard_page_all_elements_are_visible(self, dashboard_page, report_case):
         logger.info("Checking all dashboard elements (cards/graph/table)")
         cards_visible = dashboard_page._is_cards_visible()
@@ -77,12 +83,14 @@ class TestDashboardPage:
         assert table_visible, "Dashboard table is not visible"
         # assert dashboard_page._is_buttons_visible(), "Dashboard buttons are not visible"
 
+    @pytest.mark.smoke
     def test_dashboard_page_cards_are_visible(self, dashboard_page, report_case):
         logger.info("Confirming dashboard cards are visible")
         cards_visible = dashboard_page._is_cards_visible()
         report_case(expected=True, actual=cards_visible)
         assert cards_visible, "Dashboard cards are not visible"
 
+    @pytest.mark.smoke
     def test_dashboard_page_displays_four_cards(self, dashboard_page, report_case):
         expected_cards_count = 4
         actual_cards_count = dashboard_page.get_cards_count()
@@ -102,6 +110,7 @@ class TestDashboardPage:
             card = dashboard_page.get_card_element(index)
             assert card.is_visible(), f"Card {index} is missing or not visible"
 
+    @pytest.mark.regression
     def test_dashboard_page_card_titles_are_correct(self, dashboard_page, report_case):
         expected_title = [
             "TOTAL PRODUCTION DEVICES",
@@ -124,6 +133,7 @@ class TestDashboardPage:
             assert actual_title == title, f"Expected '{title}', got '{actual_title}'"
         report_case(expected=expected_title, actual=actual_titles)
 
+    @pytest.mark.regression
     def test_dashboard_page_card_counts_match_api_data(
         self, page, dashboard_page, report_case
     ):
@@ -146,7 +156,6 @@ class TestDashboardPage:
             ), f"For '{title}', expected count '{expected_count}', got '{actual_count}'"
         report_case(expected=api_results, actual=actual_results)
 
-    def test_dashboard_page_graph_is_visible(self, dashboard_page, report_case):
         logger.info("Checking graph visibility on dashboard")
         graph_visible = dashboard_page._is_graph_visible()
         report_case(expected=True, actual=graph_visible)

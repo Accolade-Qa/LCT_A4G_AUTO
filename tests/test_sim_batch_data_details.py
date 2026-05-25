@@ -11,6 +11,8 @@ logger = get_logger(__name__)
 TEST_DATA_DIR = Path(__file__).resolve().parents[1] / "test_data"
 
 
+@pytest.mark.device
+@pytest.mark.regression
 class TestSimBatchDataDetails:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
@@ -36,6 +38,7 @@ class TestSimBatchDataDetails:
         elif report.skipped:
             logger.warning("SIM Batch Data Details test skipped: %s", test_name)
 
+    @pytest.mark.smoke
     def test_sim_batch_page_navigates_correctly(
         self, page, sim_data_details_page, report_case
     ):

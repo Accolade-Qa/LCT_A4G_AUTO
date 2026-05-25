@@ -7,6 +7,9 @@ from pages.api.user_api import UserAPI
 logger = get_logger(__name__)
 
 
+@pytest.mark.ui
+@pytest.mark.regression
+@pytest.mark.critical
 class TestProfilePage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
@@ -103,6 +106,7 @@ class TestProfilePage:
             logger.error("Unexpected error during login data test: %s", str(e))
             raise
 
+    @pytest.mark.smoke
     def test_profile_page_validate_page_title(self, profile_page, report_case):
         """Test validating the profile page title."""
         logger.info("Testing profile page title validation")

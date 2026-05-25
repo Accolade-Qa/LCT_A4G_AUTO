@@ -11,6 +11,8 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+@pytest.mark.critical
+@pytest.mark.regression
 class TestRoleGroupPage:
     group = None
 
@@ -80,6 +82,7 @@ class TestRoleGroupPage:
 
     #     logger.info("Delete role permission test completed")
 
+    @pytest.mark.smoke
     def test_role_group_page_title_is_correct(self, role_group_page, report_case):
         logger.info("Testing Role Group page title")
         title = role_group_page.get_title()
@@ -93,6 +96,7 @@ class TestRoleGroupPage:
             title == "Group Management"
         ), f"Expected page title 'Group Management', but got '{title}'"
 
+    @pytest.mark.smoke
     def test_role_group_page_all_elements_are_visible(
         self, role_group_page, report_case
     ):

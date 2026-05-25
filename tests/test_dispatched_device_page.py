@@ -1,18 +1,20 @@
 from random import randint
 
+import pytest
 from pages.common.table_section import TableSection
 from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
 from test_data.device_data import DeviceData
 from utils.logger import get_logger
 from config.config import DISPATCHED_DEVICE_URL, IMEI
-import pytest
 from pages.base_page import BasePage
 from pages.api.customer_api import CustomerAPI
 
 logger = get_logger(__name__)
 
 
+@pytest.mark.device
+@pytest.mark.regression
 class TestDispatchedDevicePage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
@@ -37,6 +39,7 @@ class TestDispatchedDevicePage:
         elif report.skipped:
             logger.warning("Dispatched Device test skipped: %s", test_name)
 
+    @pytest.mark.smoke
     def test_dispatched_device_page_url_is_correct(
         self, dispatched_device_page, report_case
     ):
@@ -65,6 +68,7 @@ class TestDispatchedDevicePage:
 
     """ Dispatched Device Page Test Cases """
 
+    @pytest.mark.smoke
     def test_dispatched_device_page_title_is_correct(
         self, dispatched_device_page, report_case
     ):

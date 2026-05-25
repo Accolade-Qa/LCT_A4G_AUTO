@@ -10,6 +10,8 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+@pytest.mark.critical
+@pytest.mark.regression
 class TestRoleManagementPage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
@@ -32,6 +34,7 @@ class TestRoleManagementPage:
         elif report.skipped:
             logger.warning("Role Management test skipped: %s", test_name)
 
+    @pytest.mark.smoke
     def test_role_management_page_navigates_correctly(
         self, page, role_management_page, report_case
     ):
@@ -48,6 +51,7 @@ class TestRoleManagementPage:
             page.url == ROLE_MANAGEMENT_URL
         ), f"Expected URL to be '{ROLE_MANAGEMENT_URL}', got {page.url}"
 
+    @pytest.mark.smoke
     def test_role_management_page_all_elements_are_visible(
         self, role_management_page, report_case
     ):

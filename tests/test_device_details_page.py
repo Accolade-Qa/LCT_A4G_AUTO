@@ -16,6 +16,8 @@ device_info = {
 }
 
 
+@pytest.mark.device
+@pytest.mark.regression
 class TestDeviceDetailsPage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
@@ -40,6 +42,7 @@ class TestDeviceDetailsPage:
 
     # ------------------ PAGE VALIDATIONS ------------------
 
+    @pytest.mark.smoke
     def test_device_details_page_title_is_correct(
         self, device_details_page, report_case
     ):
@@ -53,6 +56,7 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: device_details_page_title")
 
+    @pytest.mark.smoke
     def test_device_details_page_all_elements_are_visible(
         self, device_details_page, report_case
     ):

@@ -15,6 +15,9 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+@pytest.mark.auth
+@pytest.mark.critical
+@pytest.mark.regression
 class TestLoginPage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
@@ -38,6 +41,7 @@ class TestLoginPage:
         elif report.skipped:
             logger.warning("Login Page test skipped: %s", test_name)
 
+    @pytest.mark.smoke
     def test_login_with_valid_credentials(self, page, report_case):
         """Validate successful login with valid username and password"""
         logger.info("Starting validation of login with valid credentials")
@@ -79,6 +83,7 @@ class TestLoginPage:
 
         logger.info("Login validation with valid credentials completed successfully")
 
+    @pytest.mark.regression
     def test_login_with_invalid_credentials(self, page, report_case):
         """Validate error message when logging in with invalid credentials"""
         logger.info("Starting validation of login with invalid credentials")
@@ -127,6 +132,7 @@ class TestLoginPage:
 
         logger.info("Invalid credentials validation completed successfully")
 
+    @pytest.mark.regression
     def test_login_with_username_only(self, page, report_case):
         """Validate error message when logging in with username only"""
         logger.info("Starting validation of login with username only")
@@ -167,6 +173,7 @@ class TestLoginPage:
 
         logger.info("Username only validation completed successfully")
 
+    @pytest.mark.regression
     def test_login_with_password_only(self, page, report_case):
         """Validate error message when logging in with password only"""
         logger.info("Starting validation of login with password only")
@@ -207,6 +214,7 @@ class TestLoginPage:
 
         logger.info("Password only validation completed successfully")
 
+    @pytest.mark.smoke
     def test_page_title_is_correct(self, page, report_case):
         """Validate that the login page title is correct"""
         logger.info("Starting validation of login page title")
@@ -245,6 +253,7 @@ class TestLoginPage:
 
         logger.info("Page title validation completed successfully")
 
+    @pytest.mark.regression
     def test_login_with_long_username_and_short_password(self, page, report_case):
         """Validate error messages when logging in with long username and short password"""
         logger.info(
@@ -303,6 +312,7 @@ class TestLoginPage:
             "Long username and short password validation completed successfully"
         )
 
+    @pytest.mark.regression
     def test_login_with_short_username_and_short_password(self, page, report_case):
         """Validate error messages when logging in with short username and short password"""
         logger.info(
@@ -359,6 +369,7 @@ class TestLoginPage:
             "Short username and short password validation completed successfully"
         )
 
+    @pytest.mark.regression
     def test_footer_links_are_present(self, page, report_case):
         """Validate that footer links are present on the login page"""
         logger.info("Starting validation of footer links presence")
@@ -409,6 +420,7 @@ class TestLoginPage:
 
         logger.info("Footer links presence validation completed successfully")
 
+    @pytest.mark.regression
     def test_footer_links_are_clickable(self, page, report_case):
         """Validate that footer links are clickable on the login page"""
         logger.info("Starting validation of footer links clickability")
@@ -453,6 +465,7 @@ class TestLoginPage:
 
         logger.info("Footer links clickability validation completed successfully")
 
+    @pytest.mark.regression
     def test_footer_contains_current_year(self, page, report_case):
         """Validate that footer contains the current year"""
         logger.info("Starting validation of footer year")
@@ -497,6 +510,7 @@ class TestLoginPage:
 
         logger.info("Footer year validation completed successfully")
 
+    @pytest.mark.regression
     def test_build_version_format_is_valid(self, page, report_case):
         """Validate that build version is in valid format (X.Y.Z)"""
         logger.info("Starting validation of build version format")

@@ -7,6 +7,7 @@ from config.config import (
     ADD_PRODUCTION_URL,
 )
 
+import pytest
 from playwright.sync_api import expect
 from pages.production_devices_page import ProductionDevices
 
@@ -16,6 +17,8 @@ from pages.login_page import LoginPage
 TEST_DATA_DIR_PROD = Path(__file__).resolve().parents[1] / "test_data"
 
 
+@pytest.mark.device
+@pytest.mark.regression
 class TestProductionDevices:
 
     def _login_and_dashboard(self, page):
@@ -25,6 +28,7 @@ class TestProductionDevices:
 
         return ProductionDevices(page)
 
+    @pytest.mark.smoke
     def test_go_to_prod(self, page):
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(PRODUCTION_PAGE_URL)
@@ -163,43 +167,43 @@ class TestProductionDevices:
         download = production_page.click_sample_btn()
 
         assert production_page.is_sample_file_downloaded(
-            download=download,
-            expected_filename="Sample_Production_Sheet.xlsx"
+            download=download, expected_filename="Sample_Production_Sheet.xlsx"
         ), "Sample file validation failed"
-        
-    def test_upload_invalid_file(self, page): 
+
+    def test_upload_invalid_file(self, page):
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(ADD_PRODUCTION_URL)
         upload_result = production_page.upload_invalid_file(
             str(TEST_DATA_DIR_PROD / "Invalid.xlsx")
         )
-         
-        assert production_page._check_file() and upload_result, "Add production page title is not visible"
-        
-        
-    def test_upload_valid_file(self, page): 
+
+        assert (
+            production_page._check_file() and upload_result
+        ), "Add production page title is not visible"
+
+    def test_upload_valid_file(self, page):
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(ADD_PRODUCTION_URL)
         upload_result = production_page.upload_valid_file(
             str(TEST_DATA_DIR_PROD / "Uploaded.xlsx")
         )
-        
+
         assert (
-            production_page._check_file() and upload_result # true false str ???
-        ), "Add production page title is not visible" 
-        
-    def test_upload_duplicate_file(self, page): 
+            production_page._check_file() and upload_result  # true false str ???
+        ), "Add production page title is not visible"
+
+    def test_upload_duplicate_file(self, page):
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(ADD_PRODUCTION_URL)
         upload_result = production_page.upload_duplicate_file(
             str(TEST_DATA_DIR_PROD / "Duplicate.xlsx")
         )
-        
+
         assert (
-            production_page._check_file() and upload_result # true false str ???
-        ), "Add production page title is not visible"    
-        
+            production_page._check_file() and upload_result  # true false str ???
+        ), "Add production page title is not visible"
+
     def test_search_device_3(self, page):
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(PRODUCTION_PAGE_URL)
-        production_page._search_device_2()     
+        production_page._search_device_2()
