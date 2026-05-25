@@ -10,4 +10,6 @@ __all__ = [
     "DeviceDashboardAPI",
     "SIMBatchAPI",
     "CustomerAPI",
+    "LoginAPI",
+    "UserAPI",
 ]
