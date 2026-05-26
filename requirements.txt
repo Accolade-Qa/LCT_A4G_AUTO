@@ -3,6 +3,7 @@ playwright
 pytest-playwright
 python-dotenv
 pytest-xdist
+pytest-timeout
 allure-pytest
 pandas
 pytest-html
