@@ -1,6 +1,7 @@
 from faker.generator import random
 
 from pages.common.table_section import TableSection
+from pages.common.search import SearchHelper
 from utils.logger import get_logger
 from pages.base_page import BasePage
 from utils.helpers import Helpers
@@ -327,3 +328,57 @@ class GovtServerPage(BasePage):
         )
 
         return success_message
+
+    def get_page_title_on_view_page(self):
+
+        search_helper = SearchHelper(self.page)
+
+        response = search_helper.run_search("Shital")
+
+        logger.info(
+            "Result of searched row is -> %s",
+            response["results"],
+        )
+
+        view_button = self.page.get_by_text("visibility").first
+        view_button.click()
+
+        page_title = self.page.locator("span.page-title")
+        return page_title.inner_text()
+
+    def search_server(self, server_name):
+        """Search for a specific server"""
+
+        search_helper = SearchHelper(self.page)
+
+        response = search_helper.run_search(server_name)
+
+        logger.info(
+            "Result of searched row is -> %s",
+            response["results"],
+        )
+
+        return response
+
+    def get_view_button(self):
+        """Get view button locator"""
+
+        return self.page.get_by_text("visibility").first
+
+    def click_view_button(self):
+        """Click on view button"""
+
+        logger.info("Clicking on view button")
+
+        view_button = self.get_view_button()
+
+        view_button.click()
+
+        self.page.wait_for_load_state("networkidle")
+
+    def get_page_title_on_view_page(self):
+        """Get page title on view page"""
+
+        page_title = self.page.locator("span.page-title")
+
+        return page_title.inner_text()

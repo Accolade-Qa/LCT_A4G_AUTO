@@ -4,6 +4,7 @@ from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
 from utils.logger import get_logger
 from pages.common.table_section import TableSection
+from pages.api.government_server_api import GovtServerAPI
 
 logger = get_logger(__name__)
 
@@ -725,3 +726,257 @@ class TestGovtServerPage:
             f"Expected success message '{expected_success_message}' "
             f"but got '{actual_success_message}'"
         )
+
+    ##### API Validation of firmware master with oc and d firmware types.  #####
+    @pytest.mark.api
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_govt_server_page_validating_all_api_of_firmwares(self, govt_server_page):
+        all_firmwares = GovtServerAPI.getAllFirmware(govt_server_page.page)
+        # logger.info(f"all firmwares -> ", all_firmwares)
+        total_firmware_count = len(all_firmwares)
+
+        oc_firmwares = GovtServerAPI.get_oc_firmwares(govt_server_page.page)
+        # logger.info(f"oc firmwares -> ", oc_firmwares)
+        oc_firmware_count = len(oc_firmwares)
+
+        d_firmwares = GovtServerAPI.get_d_firmwares(govt_server_page.page)
+        # logger.info(f"d firmwares -> ", d_firmwares)
+        d_firmware_count = len(d_firmwares)
+
+        assert (
+            total_firmware_count == oc_firmware_count + d_firmware_count
+        ), "Total count is mismatched"
+
+        # ---------------- OC Firmware Validation ---------------- #
+
+        all_oc_firmware_data = [
+            {"id": firmware["id"], "fileName": firmware["fileName"]}
+            for firmware in all_firmwares
+            if firmware.get("firmwareType") == "OC"
+        ]
+
+        oc_firmware_data = [
+            {"id": firmware["id"], "fileName": firmware["fileName"]}
+            for firmware in oc_firmwares
+        ]
+
+        logger.info(f"OC firmware data from all firmware API -> {all_oc_firmware_data}")
+        logger.info(f"OC firmware data from OC firmware API -> {oc_firmware_data}")
+
+        assert sorted(all_oc_firmware_data, key=lambda x: x["id"]) == sorted(
+            oc_firmware_data, key=lambda x: x["id"]
+        ), (
+            f"Mismatch found in OC firmware data.\n"
+            f"From all firmware API: {all_oc_firmware_data}\n"
+            f"From OC firmware API: {oc_firmware_data}"
+        )
+
+        # ---------------- D Firmware Validation ---------------- #
+
+        all_d_firmware_data = [
+            {"id": firmware["id"], "fileName": firmware["fileName"]}
+            for firmware in all_firmwares
+            if firmware.get("firmwareType") == "D"
+        ]
+
+        d_firmware_data = [
+            {"id": firmware["id"], "fileName": firmware["fileName"]}
+            for firmware in d_firmwares
+        ]
+
+        logger.info(f"D firmware data from all firmware API -> {all_d_firmware_data}")
+        logger.info(f"D firmware data from D firmware API -> {d_firmware_data}")
+
+        assert sorted(all_d_firmware_data, key=lambda x: x["id"]) == sorted(
+            d_firmware_data, key=lambda x: x["id"]
+        ), (
+            f"Mismatch found in D firmware data.\n"
+            f"From all firmware API: {all_d_firmware_data}\n"
+            f"From D firmware API: {d_firmware_data}"
+        )
+
+    @pytest.mark.smoke
+    def test_govt_server_page_view_button_is_enabled_for_searched_server(
+        self, govt_server_page, report_case
+    ):
+        """Verify view button is enabled and clickable for searched server"""
+
+        logger.info("Verifying view button is enabled for searched server")
+
+        response = govt_server_page.search_server("Shital")
+
+        logger.debug("Search response: %s", response)
+
+        assert response["success"] is True, "Search operation was not successful"
+
+        assert (
+            response["results_found"] == 1
+        ), f"Expected 1 result but found {response['results_found']}"
+
+        view_button = govt_server_page.get_view_button()
+
+        logger.debug("Checking visibility of view button")
+
+        assert view_button.is_visible(), "View button is not visible"
+
+        logger.debug("Checking enabled state of view button")
+
+        assert view_button.is_enabled(), "View button is not enabled"
+
+        report_case(
+            expected="View button should be visible and enabled",
+            actual=(
+                f"View button visible: {view_button.is_visible()}, "
+                f"enabled: {view_button.is_enabled()}"
+            ),
+            message="Validate view button state for searched server",
+        )
+
+        govt_server_page.click_view_button()
+
+        current_url = govt_server_page.page.url
+
+        logger.debug(
+            "Current URL after clicking view button: %s",
+            current_url,
+        )
+
+        assert (
+            current_url is not None and current_url != ""
+        ), "Navigation did not happen after clicking view button"
+
+    @pytest.mark.smoke
+    def test_govt_server_page_validate_page_title_after_view_button_clicked(
+        self, govt_server_page, report_case
+    ):
+        """Verify page title after clicking view button"""
+
+        logger.info("Verifying page title after clicking view button")
+
+        response = govt_server_page.search_server("Shital")
+
+        logger.debug("Search response: %s", response)
+
+        assert response["success"] is True, "Search operation was not successful"
+
+        assert (
+            response["results_found"] == 1
+        ), f"Expected 1 result but found {response['results_found']}"
+
+        view_button = govt_server_page.get_view_button()
+
+        logger.debug("Checking visibility of view button")
+
+        assert view_button.is_visible(), "View button is not visible"
+
+        logger.debug("Checking enabled state of view button")
+
+        assert view_button.is_enabled(), "View button is not enabled"
+
+        govt_server_page.click_view_button()
+
+        actual_page_title = govt_server_page.get_page_title_on_view_page()
+
+        expected_page_title = "View/Update Government Servers"
+
+        logger.debug(
+            "Expected page title: '%s' | Actual page title: '%s'",
+            expected_page_title,
+            actual_page_title,
+        )
+
+        report_case(
+            expected=(f"Page title should be " f"'{expected_page_title}'"),
+            actual=(f"Actual page title: " f"'{actual_page_title}'"),
+            message=("Validate page title after " "clicking view button"),
+        )
+
+        assert expected_page_title == actual_page_title, (
+            f"Expected page title "
+            f"'{expected_page_title}' "
+            f"but got '{actual_page_title}'"
+        )
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_govt_server_page_validate_input_fields_with_actual_api_data(
+        self, govt_server_page, report_case
+    ):
+        """Validate UI input field data with actual API response data"""
+
+        logger.info("Validating UI input field data with API response")
+
+        response, _, _ = GovtServerAPI.get_state_server_details_by_id(
+            govt_server_page.page
+        )
+
+        logger.info(
+            "Response after hitting the API: %s",
+            response,
+        )
+
+        assert response, "API response data is empty"
+
+        api_data = response
+
+        searched_response = govt_server_page.search_server("Shital")
+
+        logger.debug(
+            "Search response: %s",
+            searched_response,
+        )
+
+        assert (
+            searched_response["success"] is True
+        ), "Search operation was not successful"
+
+        assert searched_response["results_found"] == 1, (
+            f"Expected 1 search result but got " f"{searched_response['results_found']}"
+        )
+
+        govt_server_page.click_view_button()
+
+        govt_server_page.page.wait_for_load_state("networkidle")
+
+        input_fields = govt_server_page.get_input_fields_locators()
+
+        field_mapping = {
+            "state": "state",
+            "stateCode": "stateCode",
+            "govtIp1": "govtIp1",
+            "port1": "port1",
+            "govtIp2": "govtIp2",
+            "port2": "port2",
+            "stateEnable": "stateEnable",
+        }
+
+        for ui_field, api_key in field_mapping.items():
+
+            locator = input_fields[ui_field]
+
+            locator.wait_for(state="visible")
+
+            actual_ui_value = locator.input_value().strip()
+
+            expected_api_value = str(api_data.get(api_key, "")).strip()
+
+            logger.debug(
+                "Validating field '%s' | " "Expected: '%s' | Actual: '%s'",
+                ui_field,
+                expected_api_value,
+                actual_ui_value,
+            )
+
+            report_case(
+                expected=(f"{ui_field} value should be " f"'{expected_api_value}'"),
+                actual=(f"Actual {ui_field} value is " f"'{actual_ui_value}'"),
+                message=(f"Validate {ui_field} field value " f"with API response"),
+            )
+
+            assert expected_api_value == actual_ui_value, (
+                f"Mismatch found for field "
+                f"'{ui_field}'. "
+                f"Expected '{expected_api_value}' "
+                f"but got '{actual_ui_value}'"
+            )
