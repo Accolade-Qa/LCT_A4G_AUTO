@@ -38,7 +38,18 @@ class GovtServerAPI(APIClient):
             return response_data.get("data", [])
 
         except Exception as e:
-            logger.error("%s : %s", success_message, str(e))
+
+            error_message = str(e)
+
+            # Handle API returning 500 with "Data not found !!"
+            if "Data not found !!" in error_message:
+                logger.warning(
+                    "No data found for endpoint: %s",
+                    endpoint,
+                )
+                return []
+
+            logger.error("%s : %s", success_message, error_message)
             raise
 
     @staticmethod
@@ -75,7 +86,7 @@ class GovtServerAPI(APIClient):
 
         logger.debug("Servers: %s", servers)
 
-        return servers, server_id
+        return servers, server_id, user_id
 
     @staticmethod
     def get_all_firmware(page):
@@ -107,24 +118,28 @@ class GovtServerAPI(APIClient):
         return firmware_versions
 
     @staticmethod
-    def _get_firmwares_by_type(page, firmware_type):
+    def _get_firmwares_by_type(page, firmware_type, added_in_state=False):
         """
         Fetch firmware list by firmware type.
 
         Args:
             firmware_type: OC or D
+            added_in_state: True if fetching firmwares added in state, False otherwise
 
         Returns:
             list: Firmware list
         """
 
-        _, server_id = GovtServerAPI._get_all_servers_list(page)
+        _, server_id, user_id = GovtServerAPI._get_all_servers_list(page)
 
-        endpoint = (
-            "/firmwareMaster/getFirmwaresListNotAddedInState?"
-            f"page=0&size=1000&search=&firmwareType={firmware_type}"
-            f"&stateServerId={server_id}"
-        )
+        if added_in_state:
+            endpoint = f"/firmwareMaster/getStateFirmwares?page=0&size=1000&search=&firmwareType={firmware_type}&userId={user_id}&stateServerId={server_id}"
+        else:
+            endpoint = (
+                "/firmwareMaster/getFirmwaresListNotAddedInState?"
+                f"page=0&size=1000&search=&firmwareType={firmware_type}"
+                f"&stateServerId={server_id}"
+            )
 
         firmware_versions = GovtServerAPI._send_get_request(
             page,
@@ -141,20 +156,36 @@ class GovtServerAPI(APIClient):
         return firmware_versions
 
     @staticmethod
-    def get_oc_firmwares(page):
+    def get_oc_firmwares_not_added(page):
         """
         Fetch OC firmware list.
         """
 
-        return GovtServerAPI._get_firmwares_by_type(page, "OC")
+        return GovtServerAPI._get_firmwares_by_type(page, "OC", False)
 
     @staticmethod
-    def get_d_firmwares(page):
+    def get_oc_firmwares_added_in_state(page):
+        """
+        Fetch OC firmware list.
+        """
+
+        return GovtServerAPI._get_firmwares_by_type(page, "OC", True)
+
+    @staticmethod
+    def get_d_firmwares_not_added(page):
         """
         Fetch D firmware list.
         """
 
-        return GovtServerAPI._get_firmwares_by_type(page, "D")
+        return GovtServerAPI._get_firmwares_by_type(page, "D", False)
+
+    @staticmethod
+    def get_d_firmwares_added_in_state(page):
+        """
+        Fetch D firmware list.
+        """
+
+        return GovtServerAPI._get_firmwares_by_type(page, "D", True)
 
     @staticmethod
     def get_state_server_details_by_id(page):
@@ -162,7 +193,7 @@ class GovtServerAPI(APIClient):
         Fetch state server details by ID.
         """
 
-        _, server_id = GovtServerAPI._get_all_servers_list(page)
+        _, server_id, user_id = GovtServerAPI._get_all_servers_list(page)
 
         endpoint = f"/stateServers/getStateServerDetails?id={server_id}"
 
@@ -172,12 +203,49 @@ class GovtServerAPI(APIClient):
             "Successfully fetched state server details",
         )
 
-        oc_firmwares = GovtServerAPI.get_oc_firmwares(page)
+        oc_firmwares = GovtServerAPI.get_oc_firmwares_not_added(page)
 
-        d_firmwares = GovtServerAPI.get_d_firmwares(page)
+        d_firmwares = GovtServerAPI.get_d_firmwares_not_added(page)
 
         logger.debug(
             "State server response: %s",
+            response,
+        )
+
+        return response, oc_firmwares, d_firmwares
+
+    @staticmethod
+    def get_state_server_details_by_name(page, state_name):
+        """
+        Fetch state server details by state name.
+        """
+
+        servers, _ = GovtServerAPI._get_all_servers_list(page)
+
+        matched_server = next(
+            (server for server in servers if server.get("state") == state_name),
+            None,
+        )
+
+        assert matched_server, f"No server found with state name: {state_name}"
+
+        server_id = matched_server.get("id")
+
+        endpoint = f"/stateServers/getStateServerDetails?id={server_id}"
+
+        response = GovtServerAPI._send_get_request(
+            page,
+            endpoint,
+            f"Successfully fetched state server details for {state_name}",
+        )
+
+        oc_firmwares = GovtServerAPI.get_oc_firmwares_not_added(page)
+
+        d_firmwares = GovtServerAPI.get_d_firmwares_not_added(page)
+
+        logger.debug(
+            "State server response for %s: %s",
+            state_name,
             response,
         )
 

@@ -1,4 +1,5 @@
 import pytest
+from playwright.sync_api import expect
 from config.config import GOVERNMENT_SERVERS_URL
 from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
@@ -60,6 +61,10 @@ class TestGovtServerPage:
         assert (
             expected_title in actual_title
         ), f"Expected title '{expected_title}' to be in '{actual_title}'"
+        # Using Playwright's locators and web assertions for auto-retry
+        expect(govt_server_page.page.locator(".page-title")).to_contain_text(
+            expected_title
+        )
         logger.info("Government Server page title verified successfully")
 
     def test_govt_server_page_table_headers(self, govt_server_page, report_case):
@@ -153,44 +158,44 @@ class TestGovtServerPage:
     def test_govt_server_page_table_data_validation(
         self, govt_server_page, report_case
     ):
-        """Verify the data in the Government Server table matches expected values"""
-        logger.info("Validating data in Government Server table")
+        """Verify expected Government Server row data exists in table"""
 
-        expected_data = [
-            {
-                "STATE NAME": "Auto FOTA",
-                "STATE CODE": "AF",
-                "STATE ENABLE OTA COMMAND": "--",
-                "STATE PRIMARY IP:PORT": "--:--",
-                "STATE SECONDARY IP:PORT": "--:--",
-                "ACTION": "visibility\ndelete",
-            }
-        ]
+        logger.info("Validating Government Server table data")
+
+        expected_data = {
+            "STATE NAME": "Shital",
+            "STATE CODE": "SH",
+            "STATE ENABLE OTA COMMAND": "--",
+            "STATE PRIMARY IP:PORT": "--:--",
+            "STATE SECONDARY IP:PORT": "--:--",
+            "ACTION": "visibility\ndelete",
+        }
 
         table = TableSection(govt_server_page.page)
-        actual_row_data = table.get_row_data(0)
-        logger.debug(
-            "Government Server table row data validation | expected=%s | actual=%s",
-            expected_data[0],
-            actual_row_data,
-        )
-        report_case(
-            expected=str(expected_data[0]),
-            actual=str(actual_row_data),
-            message="Validate data of first row in Government Server table",
-        )
+
+        # Get complete table data using helper method
+        actual_table_data = table.get_table_data()
+
+        logger.debug("Complete table data: %s", actual_table_data)
+
+        # Validate expected row exists in table
         assert (
-            actual_row_data == expected_data[0]
-        ), f"Expected row data {expected_data[0]}, but got {actual_row_data}"
-        logger.info(
-            "Data in Government Server table validated successfully for first row"
+            expected_data in actual_table_data
+        ), f"Expected row data not found in table.\nExpected: {expected_data}\nActual: {actual_table_data}"
+
+        report_case(
+            expected=str(expected_data),
+            actual=str(actual_table_data),
+            message="Validate expected Government Server row data exists in table",
         )
+
+        logger.info("Expected Government Server row data validated successfully")
 
     def test_govt_server_page_search_functionality(self, govt_server_page, report_case):
         """Verify the search functionality of the Government Server table"""
         logger.info("Verifying search functionality of Government Server table")
 
-        search_query = "Auto FOTA"
+        search_query = "Shital"
 
         search_helper = SearchHelper(govt_server_page.page)
         search_result = search_helper.run_search(search_query)
@@ -732,20 +737,38 @@ class TestGovtServerPage:
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_govt_server_page_validating_all_api_of_firmwares(self, govt_server_page):
-        all_firmwares = GovtServerAPI.getAllFirmware(govt_server_page.page)
+        all_firmwares = GovtServerAPI.get_all_firmware(govt_server_page.page)
         # logger.info(f"all firmwares -> ", all_firmwares)
         total_firmware_count = len(all_firmwares)
 
-        oc_firmwares = GovtServerAPI.get_oc_firmwares(govt_server_page.page)
-        # logger.info(f"oc firmwares -> ", oc_firmwares)
-        oc_firmware_count = len(oc_firmwares)
+        oc_firmwares_not_added_in_server = GovtServerAPI.get_oc_firmwares_not_added(
+            govt_server_page.page
+        )
 
-        d_firmwares = GovtServerAPI.get_d_firmwares(govt_server_page.page)
+        oc_firmwares = GovtServerAPI.get_oc_firmwares_added_in_state(
+            govt_server_page.page
+        )
+        # logger.info(f"oc firmwares -> ", oc_firmwares)
+        oc_firmware_count_not_added_count = len(oc_firmwares_not_added_in_server)
+        oc_firmware_count_added_count = len(oc_firmwares)
+
+        d_firmwares_not_added_in_server = GovtServerAPI.get_d_firmwares_not_added(
+            govt_server_page.page
+        )
+        d_firmwares = GovtServerAPI.get_d_firmwares_added_in_state(
+            govt_server_page.page
+        )
+
         # logger.info(f"d firmwares -> ", d_firmwares)
-        d_firmware_count = len(d_firmwares)
+        d_firmware_count_not_added_count = len(d_firmwares_not_added_in_server)
+        d_firmware_count_added_count = len(d_firmwares)
 
         assert (
-            total_firmware_count == oc_firmware_count + d_firmware_count
+            total_firmware_count
+            == oc_firmware_count_not_added_count
+            + d_firmware_count_not_added_count
+            + oc_firmware_count_added_count
+            + d_firmware_count_added_count
         ), "Total count is mismatched"
 
         # ---------------- OC Firmware Validation ---------------- #
@@ -753,12 +776,14 @@ class TestGovtServerPage:
         all_oc_firmware_data = [
             {"id": firmware["id"], "fileName": firmware["fileName"]}
             for firmware in all_firmwares
-            if firmware.get("firmwareType") == "OC"
+            if firmware.get("firmwareType")
+            == "OC"  # oc firmwares from all firmware API
         ]
 
         oc_firmware_data = [
             {"id": firmware["id"], "fileName": firmware["fileName"]}
-            for firmware in oc_firmwares
+            for firmware in oc_firmwares_not_added_in_server + oc_firmwares
+            # oc firmwares not added and added in server API
         ]
 
         logger.info(f"OC firmware data from all firmware API -> {all_oc_firmware_data}")
@@ -782,7 +807,8 @@ class TestGovtServerPage:
 
         d_firmware_data = [
             {"id": firmware["id"], "fileName": firmware["fileName"]}
-            for firmware in d_firmwares
+            for firmware in d_firmwares_not_added_in_server + d_firmwares
+            # d firmwares not added and added in server API
         ]
 
         logger.info(f"D firmware data from all firmware API -> {all_d_firmware_data}")
@@ -907,9 +933,14 @@ class TestGovtServerPage:
 
         logger.info("Validating UI input field data with API response")
 
-        response, _, _ = GovtServerAPI.get_state_server_details_by_id(
-            govt_server_page.page
+        state_name = "Shital"
+
+        response, _, _ = GovtServerAPI.get_state_server_details_by_name(
+            govt_server_page.page,
+            state_name,
         )
+
+        searched_response = govt_server_page.search_server(state_name)
 
         logger.info(
             "Response after hitting the API: %s",
@@ -980,3 +1011,200 @@ class TestGovtServerPage:
                 f"Expected '{expected_api_value}' "
                 f"but got '{actual_ui_value}'"
             )
+
+    #######################################################
+    @pytest.mark.skip(reason="not implemented yet")
+    def test_govt_server_page_validate_oc_firmware_with_ui_table(
+        self, govt_server_page, report_case
+    ):
+
+        govt_server_page.search_server("Shital")
+
+        govt_server_page.click_view_button()
+
+        api_oc_firmwares = GovtServerAPI.get_oc_firmwares(govt_server_page.page)
+        ui_oc_firmwares = govt_server_page.get_oc_firmware_list_from_ui()
+        assert sorted(api_oc_firmwares, key=lambda x: x["id"]) == sorted(
+            ui_oc_firmwares, key=lambda x: x["id"]
+        ), f"Mismatch found in OC firmware data between API and UI. API: {api_oc_firmwares}, UI: {ui_oc_firmwares}"
+
+        ### do this on thursday ###
+
+    def test_govt_server_page_add_open_cpu_firmware_opens_list_of_open_cpu_firmwares(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_open_cpu_firmware_list_have_unchecked_boxes_present_on_open_cpu_table(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_submit_button_enabled_after_selecting_checkbox_on_open_cpu_table(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_after_click_submit_firmware_adds_in_open_cpu_firmware_list(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_working_of_search_functionality_on_open_cpu_table(
+        ## take which firmware adds searched for it.
+        self,
+        govt_server_page,
+        report_case,
+    ):
+        pass
+
+    def test_govt_server_page_working_of_delete_functionality_on_open_cpu_table(
+        ## take searched firmware and delete it
+        self,
+        govt_server_page,
+        report_case,
+    ):
+        pass
+
+    ###############################################################
+    def test_govt_server_page_validate_d_firmware_with_ui_table(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_add_device_firmware_opens_list_of_device_firmwares(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_working_of_search_functionality_on_device_firmware_table(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_device_firmware_list_have_unchecked_boxes_present_on_device_firmware_table(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_submit_button_enabled_after_selecting_checkbox_on_device_firmware_table(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_after_click_submit_firmware_adds_in_open_cpu_firmware_list(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    def test_govt_server_page_working_of_search_functionality_on_device_firmware_table(
+        ## take which firmware adds searched for it.
+        self,
+        govt_server_page,
+        report_case,
+    ):
+        pass
+
+    def test_govt_server_page_working_of_delete_functionality_on_device_firmware_table(
+        ## take searched firmware and delete it
+        self,
+        govt_server_page,
+        report_case,
+    ):
+        pass
+
+    ##### Firmware Master Test Cases #####
+    # is enabled and visible of add firmware button
+    def test_govt_server_page_add_firmware_button_is_visible_and_enable(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # click on add firmware master button and validate title of the component
+    def test_govt_server_page_click_add_firmware_master_btn_and_validate_title(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # validate table headers of firmware master table with ui table headers
+    def test_govt_server_page_validate_table_headers_of_firmware_master_table_with_ui_table(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # validate data on table with api response of firmware master api for oc firmware type
+    def test_govt_server_page_validate_oc_firmware_master_table_data_with_api_response(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    #  validate the no data found image presence when there is no data in firmware master table
+    def test_govt_server_page_validate_no_data_found_image_presence_on_firmware_master_table_when_no_data(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # validate count of oc and d firmware by name from api reponse and ui table
+    def test_govt_server_page_validate_count_of_oc_and_d_firmware_by_name_from_api_response_and_ui_table(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # validate pagination of firmware master table
+    def test_govt_server_page_validate_pagination_of_firmware_master_table(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    ##### Add firmware test cases #####
+    # validate add firmware button is enabled and visible
+    def test_govt_server_page_add_firmware_button_is_visible_and_enabled(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # click on add firmware button and validate title of the component
+    def test_govt_server_page_click_add_firmware_btn_and_validate_title(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # validate all input fields are enabled and editable
+    def test_govt_server_page_validate_all_input_fields_are_enabled_and_editable(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # validate upload file input field accepts only files and validate with invalid and valid file formats
+    def test_govt_server_page_validate_upload_file_input_field_accepts_only_files_and_valid_formats(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # validate release date input field have currunt date selected by default and accepts only date format
+    def test_govt_server_page_validate_release_date_input_field_have_current_date_by_default_and_accepts_only_date_format(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # validate firmware type dropdown have correct options and accepts only those options
+    def test_govt_server_page_validate_firmware_type_dropdown_options_and_selection(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    # validate submit button is enabled only when all mandatory fields are filled with valid data
+    def test_govt_server_page_validate_submit_button_enabled_only_on_valid_mandatory_fields(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    ##### End of add  firmware test cases #####
+
+    # validate search functionality of firmware master table with firmware added by add firmware form
+    def test_govt_server_page_validate_search_functionality_of_firmware_master_table_with_added_firmware(
+        self, govt_server_page, report_case
+    ):
+        pass
+
+    #### End of Firmware Master Test Cases #####

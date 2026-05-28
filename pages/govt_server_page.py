@@ -382,3 +382,47 @@ class GovtServerPage(BasePage):
         page_title = self.page.locator("span.page-title")
 
         return page_title.inner_text()
+
+    def is_firmware_master_button_visible_and_enabled(self):
+        """Check if the 'Firmware Master' button is visible and enabled"""
+        button_locator = self.page.get_by_text("Firmware Master open_in_new")
+        is_visible = button_locator.is_visible()
+        is_enabled = button_locator.is_enabled()
+        logger.debug(
+            "'Firmware Master' button visibility: %s, enabled state: %s",
+            is_visible,
+            is_enabled,
+        )
+        return is_visible, is_enabled
+
+    def click_firmware_master_button(self):
+        """Click the 'Firmware Master' button"""
+        button_locator = self.page.get_by_text("Firmware Master open_in_new")
+        if button_locator.is_visible() and button_locator.is_enabled():
+            button_locator.click()
+            self.page.wait_for_url("**/firmware-master")
+            self.page.wait_for_load_state("networkidle")
+            logger.info("Clicked 'Firmware Master' button")
+        else:
+            logger.error(
+                "'Firmware Master' button is not clickable. Visible: %s, Enabled: %s",
+                button_locator.is_visible(),
+                button_locator.is_enabled(),
+            )
+            raise Exception("'Firmware Master' button is not clickable")
+
+    def get_oc_firmware_list_from_ui(self):
+        """Get OC firmware list displayed in UI"""
+
+        oc_firmware_list_locator = self.page.locator("table tbody tr td:nth-child(3)")
+
+        oc_firmware_list = oc_firmware_list_locator.all_inner_texts()
+
+        oc_firmware_list = [firmware.strip() for firmware in oc_firmware_list]
+
+        logger.debug(
+            "Retrieved OC firmware list from UI: %s",
+            oc_firmware_list,
+        )
+
+        return oc_firmware_list
