@@ -220,7 +220,7 @@ class GovtServerAPI(APIClient):
         Fetch state server details by state name.
         """
 
-        servers, _ = GovtServerAPI._get_all_servers_list(page)
+        servers, _, _ = GovtServerAPI._get_all_servers_list(page)
 
         matched_server = next(
             (server for server in servers if server.get("state") == state_name),
