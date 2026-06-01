@@ -1,6 +1,7 @@
 import pytest
 from playwright.sync_api import expect
 from config.config import GOVERNMENT_SERVERS_URL
+from pages import govt_server_page
 from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
 from utils.logger import get_logger
@@ -1012,52 +1013,472 @@ class TestGovtServerPage:
                 f"but got '{actual_ui_value}'"
             )
 
-    #######################################################
-    @pytest.mark.skip(reason="not implemented yet")
+    ##############################################################################################################################
+    @pytest.mark.skip(
+        reason="Test case implementation pending"
+    )  ## come again to see this test case.
+    @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_validate_oc_firmware_with_ui_table(
-        self, govt_server_page, report_case
-    ):
-
-        govt_server_page.search_server("Shital")
-
-        govt_server_page.click_view_button()
-
-        api_oc_firmwares = GovtServerAPI.get_oc_firmwares(govt_server_page.page)
-        ui_oc_firmwares = govt_server_page.get_oc_firmware_list_from_ui()
-        assert sorted(api_oc_firmwares, key=lambda x: x["id"]) == sorted(
-            ui_oc_firmwares, key=lambda x: x["id"]
-        ), f"Mismatch found in OC firmware data between API and UI. API: {api_oc_firmwares}, UI: {ui_oc_firmwares}"
-
-        ### do this on thursday ###
-
-    def test_govt_server_page_add_open_cpu_firmware_opens_list_of_open_cpu_firmwares(
-        self, govt_server_page, report_case
-    ):
-        pass
-
-    def test_govt_server_page_open_cpu_firmware_list_have_unchecked_boxes_present_on_open_cpu_table(
-        self, govt_server_page, report_case
-    ):
-        pass
-
-    def test_govt_server_page_submit_button_enabled_after_selecting_checkbox_on_open_cpu_table(
-        self, govt_server_page, report_case
-    ):
-        pass
-
-    def test_govt_server_page_after_click_submit_firmware_adds_in_open_cpu_firmware_list(
-        self, govt_server_page, report_case
-    ):
-        pass
-
-    def test_govt_server_page_working_of_search_functionality_on_open_cpu_table(
-        ## take which firmware adds searched for it.
         self,
         govt_server_page,
         report_case,
     ):
-        pass
+        """
+        Validate OC firmware list displayed in UI
+        against actual API response
+        """
 
+        logger.info("Validating OC firmware table data with API response")
+
+        govt_server_page.search_server()
+
+        # Open View Page
+        govt_server_page.click_view_button()
+        govt_server_page.page.wait_for_load_state("networkidle")
+
+        # API Data
+        api_oc_firmwares = GovtServerAPI.get_oc_firmwares_not_added(
+            govt_server_page.page
+        )
+
+        logger.info(
+            "API Response: %s",
+            api_oc_firmwares,
+        )
+
+        expected_api_list = sorted(
+            [
+                firmware["firmwareName"].strip()
+                for firmware in api_oc_firmwares
+                if firmware.get("firmwareName")
+            ]
+        )
+
+        logger.info(
+            "Expected Firmware List From API: %s",
+            expected_api_list,
+        )
+
+        # UI Data
+        actual_ui_list = govt_server_page.get_oc_firmware_list_from_ui()
+
+        logger.info(
+            "Actual Firmware List From UI: %s",
+            actual_ui_list,
+        )
+
+        # Count validation
+        api_count = len(expected_api_list)
+        ui_count = len(actual_ui_list)
+
+        logger.info(
+            "API Count: %s | UI Count: %s",
+            api_count,
+            ui_count,
+        )
+
+        missing_in_ui = sorted(set(expected_api_list) - set(actual_ui_list))
+
+        extra_in_ui = sorted(set(actual_ui_list) - set(expected_api_list))
+
+        logger.info(
+            "Missing in UI: %s",
+            missing_in_ui,
+        )
+
+        logger.info(
+            "Extra in UI: %s",
+            extra_in_ui,
+        )
+
+        report_case(
+            expected=f"Firmware list should be {expected_api_list}",
+            actual=f"Actual firmware list is {actual_ui_list}",
+            message="Validate OC firmware list with API response",
+        )
+
+        assert api_count == ui_count, (
+            f"\nFirmware count mismatch."
+            f"\nAPI Count: {api_count}"
+            f"\nUI Count: {ui_count}"
+            f"\nMissing In UI: {missing_in_ui}"
+            f"\nExtra In UI: {extra_in_ui}"
+        )
+
+        assert expected_api_list == actual_ui_list, (
+            f"\nFirmware data mismatch."
+            f"\nExpected: {expected_api_list}"
+            f"\nActual: {actual_ui_list}"
+            f"\nMissing In UI: {missing_in_ui}"
+            f"\nExtra In UI: {extra_in_ui}"
+        )
+
+        logger.info("OC firmware validation completed successfully")
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_govt_server_page_add_open_cpu_firmware_opens_list_of_open_cpu_firmwares(
+        self, govt_server_page, report_case
+    ):
+        """Validate that Firmware Master List displays only Open CPU firmwares"""
+
+        logger.info(
+            "Validating Add Open CPU Firmware action displays only Open CPU firmwares"
+        )
+
+        govt_server_page.search_respective_server()
+
+        # Fetch firmware list from UI
+        actual_ui_list = govt_server_page.get_oc_firmware_master_list_from_ui()
+
+        logger.info(
+            "Total firmwares displayed in Firmware Master List: %s",
+            len(actual_ui_list),
+        )
+
+        logger.info(
+            "Firmware Master List data: %s",
+            actual_ui_list,
+        )
+
+        invalid_firmwares = []
+
+        for firmware in actual_ui_list:
+            logger.debug("Validating firmware type: %s", firmware)
+
+            if "open cpu" not in firmware.lower():
+                invalid_firmwares.append(firmware)
+
+        report_case(
+            expected="All listed firmwares should belong to Open CPU type",
+            actual=(
+                f"Total Firmwares: {len(actual_ui_list)}, "
+                f"Invalid Firmwares: {invalid_firmwares}"
+            ),
+            message="Validate Firmware Master List contains only Open CPU firmwares",
+        )
+
+        logger.info(
+            "Invalid firmware entries found: %s",
+            invalid_firmwares,
+        )
+
+        assert not invalid_firmwares, (
+            "Found non-Open CPU firmwares in Firmware Master List.\n"
+            f"Invalid Entries: {invalid_firmwares}"
+        )
+
+        logger.info(
+            "Successfully validated all firmware entries belong to Open CPU type"
+        )
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_govt_server_page_open_cpu_firmware_list_have_unchecked_boxes_present_on_open_cpu_table(
+        self,
+        govt_server_page,
+        report_case,
+    ):
+        """Validate all firmware checkboxes are present and unchecked by default"""
+
+        logger.info(
+            "Validating Open CPU firmware checkboxes are present and unchecked by default"
+        )
+
+        govt_server_page.search_respective_server()
+
+        validation_result = (
+            govt_server_page.validate_open_cpu_firmware_checkboxes_default_state()
+        )
+
+        logger.info(
+            "Checkbox validation result: %s",
+            validation_result,
+        )
+
+        report_case(
+            expected="All firmware checkboxes should be present and unchecked by default",
+            actual=(
+                f"Total Checkboxes: {validation_result['total_checkboxes']}, "
+                f"Checked Checkboxes: "
+                f"{validation_result['checked_checkbox_indexes']}"
+            ),
+            message="Validate Open CPU firmware checkbox default state",
+        )
+
+        assert (
+            validation_result["total_checkboxes"] > 0
+        ), "No firmware checkboxes found in Open CPU firmware table"
+
+        assert validation_result["all_unchecked"], (
+            "Some firmware checkboxes are checked by default. "
+            f"Checked checkbox indexes: "
+            f"{validation_result['checked_checkbox_indexes']}"
+        )
+
+        logger.info(
+            "Successfully validated all firmware checkboxes are unchecked by default"
+        )
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_govt_server_page_submit_button_enabled_after_selecting_checkbox_on_open_cpu_table(
+        self,
+        govt_server_page,
+        report_case,
+    ):
+        """
+        Validate that the Submit button becomes enabled
+        after selecting an Open CPU firmware checkbox.
+        """
+
+        logger.info(
+            "Starting validation for Submit button state after selecting Open CPU firmware"
+        )
+
+        # Step 1: Search and open respective server
+        logger.info("Searching and opening the respective Government Server")
+
+        govt_server_page.search_respective_server()
+
+        # Step 2: Validate default checkbox state
+        logger.info(
+            "Validating Open CPU firmware checkboxes are present and unchecked by default"
+        )
+
+        validation_result = (
+            govt_server_page.validate_open_cpu_firmware_checkboxes_default_state()
+        )
+
+        logger.info(
+            "Checkbox validation result: %s",
+            validation_result,
+        )
+
+        report_case(
+            expected="Firmware checkboxes should be present and unchecked by default",
+            actual=(
+                f"Total Checkboxes: {validation_result['total_checkboxes']}, "
+                f"Checked Checkboxes: {validation_result['checked_checkbox_indexes']}"
+            ),
+            message="Validate default state of Open CPU firmware checkboxes",
+        )
+
+        assert (
+            validation_result["total_checkboxes"] > 0
+        ), "No firmware checkboxes found in Open CPU firmware table"
+
+        assert validation_result["all_unchecked"], (
+            "Some firmware checkboxes are checked by default. "
+            f"Checked checkbox indexes: "
+            f"{validation_result['checked_checkbox_indexes']}"
+        )
+
+        # Step 3: Select first firmware checkbox
+        logger.info("Selecting first firmware checkbox from Open CPU firmware list")
+
+        govt_server_page.select_open_cpu_firmware_checkbox_by_index(1)
+
+        logger.info("Successfully selected first firmware checkbox")
+
+        # Step 4: Validate Submit button state
+        logger.info("Validating Submit button is enabled after firmware selection")
+
+        is_submit_enabled = govt_server_page.is_submit_button_enabled()
+
+        logger.info(
+            "Submit button enabled state after firmware selection: %s",
+            is_submit_enabled,
+        )
+
+        report_case(
+            expected="Submit button should be enabled after selecting a firmware checkbox",
+            actual=f"Submit button enabled state: {is_submit_enabled}",
+            message="Validate Submit button state after firmware selection",
+        )
+
+        assert (
+            is_submit_enabled
+        ), "Submit button is not enabled after selecting a firmware checkbox"
+
+        logger.info(
+            "Successfully validated Submit button is enabled after selecting firmware"
+        )
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_govt_server_page_after_click_submit_firmware_adds_in_open_cpu_firmware_list(
+        self,
+        govt_server_page,
+        report_case,
+    ):
+        """
+        Validate that selected firmware is successfully added
+        to Open CPU Firmware List after clicking Submit.
+        """
+
+        logger.info(
+            "Starting validation of firmware addition to Open CPU Firmware List"
+        )
+
+        # Step 1: Search and open respective server
+        logger.info("Searching and opening the respective Government Server")
+
+        govt_server_page.search_respective_server()
+
+        # Step 2: Select firmware checkbox
+        firmware_index = 1
+
+        logger.info(
+            "Selecting firmware checkbox at index: %s",
+            firmware_index,
+        )
+
+        govt_server_page.select_open_cpu_firmware_checkbox_by_index(firmware_index)
+
+        # Step 3: Capture selected firmware name
+        selected_firmware_name = govt_server_page.get_open_cpu_firmware_name_by_index(
+            firmware_index
+        )
+
+        logger.info(
+            "Selected firmware for addition: %s",
+            selected_firmware_name,
+        )
+
+        report_case(
+            expected="A firmware should be selected from Firmware Master List",
+            actual=f"Selected Firmware: {selected_firmware_name}",
+            message="Validate firmware selection before submission",
+        )
+
+        # Step 4: Click Submit button
+        logger.info("Clicking Submit button to add firmware to Open CPU Firmware List")
+
+        govt_server_page.click_submit_button()
+
+        logger.info("Submit button clicked successfully")
+
+        # Step 5: Validate firmware is added
+        logger.info(
+            "Verifying firmware '%s' is added to Open CPU Firmware List",
+            selected_firmware_name,
+        )
+
+        is_firmware_added = govt_server_page.is_firmware_present_in_open_cpu_list(
+            selected_firmware_name
+        )
+
+        logger.info(
+            "Firmware '%s' added to Open CPU Firmware List: %s",
+            selected_firmware_name,
+            is_firmware_added,
+        )
+
+        report_case(
+            expected=(
+                f"Firmware '{selected_firmware_name}' should be present "
+                f"in Open CPU Firmware List after submission"
+            ),
+            actual=(
+                f"Firmware '{selected_firmware_name}' presence in "
+                f"Open CPU Firmware List: {is_firmware_added}"
+            ),
+            message="Validate firmware addition after clicking Submit",
+        )
+
+        assert is_firmware_added, (
+            f"Firmware '{selected_firmware_name}' was not added "
+            f"to Open CPU Firmware List after submission"
+        )
+
+        logger.info(
+            "Successfully validated firmware '%s' was added to Open CPU Firmware List",
+            selected_firmware_name,
+        )
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_govt_server_page_working_of_search_functionality_on_open_cpu_table(
+        self,
+        govt_server_page,
+        report_case,
+    ):
+        """
+        Validate search functionality on Open CPU Firmware table.
+        """
+        govt_server_page.search_respective_server()
+
+        search_keyword = "A4TC_11.1.1_REL01F"
+
+        logger.info(
+            "Starting validation of search functionality on Open CPU Firmware table"
+        )
+
+        logger.info(
+            "Searching firmware using keyword: %s",
+            search_keyword,
+        )
+
+        search = SearchHelper(govt_server_page.page)
+
+        result = search.run_search(search_keyword)
+
+        logger.info(
+            "Search response received: %s",
+            result,
+        )
+
+        report_case(
+            expected=f"Search should return one or more results for '{search_keyword}'",
+            actual=f"Search response: {result}",
+            message="Validate search execution on Open CPU firmware table",
+        )
+
+        assert (
+            result["success"] is True
+        ), f"Search operation failed for keyword '{search_keyword}'"
+
+        logger.info(
+            "Search executed successfully. Total results found: %s",
+            result["results_found"],
+        )
+
+        assert (
+            result["results_found"] > 0
+        ), f"No results found for search keyword '{search_keyword}'"
+
+        matching_results = [
+            item for item in result["results"] if search_keyword.lower() in item.lower()
+        ]
+
+        logger.info(
+            "Matching search results for '%s': %s",
+            search_keyword,
+            matching_results,
+        )
+
+        report_case(
+            expected=f"At least one result should contain '{search_keyword}'",
+            actual=f"Matching Results: {matching_results}",
+            message="Validate searched firmware appears in search results",
+        )
+
+        assert matching_results, (
+            f"No search results contain the keyword '{search_keyword}'. "
+            f"Actual Results: {result['results']}"
+        )
+
+        logger.info(
+            "Successfully validated search functionality for keyword '%s'",
+            search_keyword,
+        )
+
+    @pytest.mark.skip(
+        reason="Test case implementation pending and do not want to run the delete on actual data right now"
+    )
+    @pytest.mark.smoke
     def test_govt_server_page_working_of_delete_functionality_on_open_cpu_table(
         ## take searched firmware and delete it
         self,
@@ -1066,31 +1487,353 @@ class TestGovtServerPage:
     ):
         pass
 
-    ###############################################################
+    ################################################################################################
+    @pytest.mark.skip(
+        reason="Test case implementation pending"
+    )  ## come again to see this test case.
     def test_govt_server_page_validate_d_firmware_with_ui_table(
         self, govt_server_page, report_case
     ):
         pass
 
+    @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_add_device_firmware_opens_list_of_device_firmwares(
-        self, govt_server_page, report_case
+        self,
+        govt_server_page,
+        report_case,
     ):
-        pass
+        """
+        Validate that Device Firmware Master List contains
+        only Device firmware entries.
+        """
 
+        logger.info("Starting validation of Device Firmware Master List")
+
+        # Step 1: Search and open respective server
+        logger.info("Searching and opening the respective Government Server")
+
+        govt_server_page.search_respective_server()
+
+        # Step 2: Open Device Firmware Master List and fetch data
+        logger.info("Fetching firmware data from Device Firmware Master List")
+
+        actual_ui_list = govt_server_page.get_device_firmware_master_list_from_ui()
+
+        logger.info(
+            "Total firmwares displayed in Device Firmware Master List: %s",
+            len(actual_ui_list),
+        )
+
+        logger.info(
+            "Device Firmware Master List data: %s",
+            actual_ui_list,
+        )
+
+        report_case(
+            expected="Device Firmware Master List should be displayed with firmware entries",
+            actual=f"Total Firmwares Displayed: {len(actual_ui_list)}",
+            message="Validate Device Firmware Master List is displayed",
+        )
+
+        # Step 3: Validate all firmware entries belong to Device type
+        logger.info("Validating all firmware entries belong to Device type")
+
+        invalid_firmwares = []
+
+        for firmware in actual_ui_list:
+            logger.debug(
+                "Validating firmware entry: %s",
+                firmware,
+            )
+
+            if "device" not in firmware.lower():
+                invalid_firmwares.append(firmware)
+
+                logger.warning(
+                    "Invalid firmware found in Device Firmware Master List: %s",
+                    firmware,
+                )
+
+        logger.info(
+            "Invalid firmware entries found: %s",
+            invalid_firmwares,
+        )
+
+        report_case(
+            expected="All listed firmwares should belong to Device type",
+            actual=(
+                f"Total Firmwares: {len(actual_ui_list)}, "
+                f"Invalid Firmwares: {invalid_firmwares}"
+            ),
+            message="Validate Device Firmware Master List contains only Device firmwares",
+        )
+
+        assert not invalid_firmwares, (
+            "Found non-Device firmwares in Device Firmware Master List.\n"
+            f"Invalid Entries: {invalid_firmwares}"
+        )
+
+        logger.info("Successfully validated all firmware entries belong to Device type")
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_working_of_search_functionality_on_device_firmware_table(
-        self, govt_server_page, report_case
+        self,
+        govt_server_page,
+        report_case,
     ):
-        pass
+        """
+        Validate search functionality on Device Firmware Master List.
+        """
 
+        logger.info(
+            "Starting validation of search functionality on Device Firmware Master List"
+        )
+
+        # Step 1: Search and open respective server
+        logger.info("Searching and opening the respective Government Server")
+
+        govt_server_page.search_respective_server()
+
+        search_keyword = "A4TV_11.1.1_REL01F"
+
+        logger.info(
+            "Searching Device Firmware using keyword: %s",
+            search_keyword,
+        )
+
+        # Step 2: Execute search
+        search = SearchHelper(govt_server_page.page)
+
+        result = search.run_search(search_keyword)
+
+        logger.info(
+            "Search response received: %s",
+            result,
+        )
+
+        report_case(
+            expected=f"Search should execute successfully for '{search_keyword}'",
+            actual=f"Search Response: {result}",
+            message="Validate search execution on Device Firmware Master List",
+        )
+
+        assert (
+            result["success"] is True
+        ), f"Search operation failed for keyword '{search_keyword}'"
+
+        logger.info("Search executed successfully")
+
+        # Step 3: Validate result count
+        logger.info("Validating search result count")
+
+        report_case(
+            expected=f"One or more results should be returned for '{search_keyword}'",
+            actual=f"Results Found: {result['results_found']}",
+            message="Validate search result count",
+        )
+
+        assert (
+            result["results_found"] > 0
+        ), f"No results found for search keyword '{search_keyword}'"
+
+        logger.info(
+            "Total search results found: %s",
+            result["results_found"],
+        )
+
+        # Step 4: Validate searched firmware appears in results
+        matching_results = [
+            item for item in result["results"] if search_keyword.lower() in item.lower()
+        ]
+
+        logger.info(
+            "Matching search results for '%s': %s",
+            search_keyword,
+            matching_results,
+        )
+
+        report_case(
+            expected=f"At least one result should contain '{search_keyword}'",
+            actual=f"Matching Results: {matching_results}",
+            message="Validate searched firmware appears in Device Firmware search results",
+        )
+
+        assert matching_results, (
+            f"No search results contain the keyword '{search_keyword}'. "
+            f"Actual Results: {result['results']}"
+        )
+
+        logger.info(
+            "Successfully validated search functionality for Device Firmware "
+            "using keyword '%s'",
+            search_keyword,
+        )
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_device_firmware_list_have_unchecked_boxes_present_on_device_firmware_table(
-        self, govt_server_page, report_case
+        self,
+        govt_server_page,
+        report_case,
     ):
-        pass
+        """
+        Validate all Device Firmware checkboxes are present
+        and unchecked by default.
+        """
 
+        logger.info("Starting validation of Device Firmware checkbox default state")
+
+        # Step 1: Search and open respective server
+        logger.info("Searching and opening the respective Government Server")
+
+        govt_server_page.search_respective_server()
+
+        # Step 2: Validate checkbox default state
+        logger.info(
+            "Validating Device Firmware checkboxes are present and unchecked by default"
+        )
+
+        validation_result = (
+            govt_server_page.validate_device_firmware_checkboxes_default_state()
+        )
+
+        logger.info(
+            "Device Firmware checkbox validation result: %s",
+            validation_result,
+        )
+
+        report_case(
+            expected="All Device Firmware checkboxes should be present and unchecked by default",
+            actual=(
+                f"Total Checkboxes: {validation_result['total_checkboxes']}, "
+                f"Checked Checkboxes: "
+                f"{validation_result['checked_checkbox_indexes']}"
+            ),
+            message="Validate Device Firmware checkbox default state",
+        )
+
+        logger.info(
+            "Total Device Firmware checkboxes found: %s",
+            validation_result["total_checkboxes"],
+        )
+
+        assert (
+            validation_result["total_checkboxes"] > 0
+        ), "No firmware checkboxes found in Device Firmware table"
+
+        logger.info(
+            "Checked checkbox indexes: %s",
+            validation_result["checked_checkbox_indexes"],
+        )
+
+        assert validation_result["all_unchecked"], (
+            "Some Device Firmware checkboxes are checked by default. "
+            f"Checked checkbox indexes: "
+            f"{validation_result['checked_checkbox_indexes']}"
+        )
+
+        logger.info(
+            "Successfully validated all Device Firmware checkboxes "
+            "are present and unchecked by default"
+        )
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_submit_button_enabled_after_selecting_checkbox_on_device_firmware_table(
-        self, govt_server_page, report_case
+        self,
+        govt_server_page,
+        report_case,
     ):
-        pass
+        """
+        Validate that the Submit button becomes enabled
+        after selecting a Device Firmware checkbox.
+        """
+
+        logger.info(
+            "Starting validation of Submit button state after selecting Device Firmware"
+        )
+
+        # Step 1: Search and open respective server
+        logger.info("Searching and opening the respective Government Server")
+
+        govt_server_page.search_respective_server()
+
+        # Step 2: Validate checkbox default state
+        logger.info(
+            "Validating Device Firmware checkboxes are present and unchecked by default"
+        )
+
+        validation_result = (
+            govt_server_page.validate_device_firmware_checkboxes_default_state()
+        )
+
+        logger.info(
+            "Device Firmware checkbox validation result: %s",
+            validation_result,
+        )
+
+        report_case(
+            expected="Device Firmware checkboxes should be present and unchecked by default",
+            actual=(
+                f"Total Checkboxes: {validation_result['total_checkboxes']}, "
+                f"Checked Checkboxes: "
+                f"{validation_result['checked_checkbox_indexes']}"
+            ),
+            message="Validate default state of Device Firmware checkboxes",
+        )
+
+        assert (
+            validation_result["total_checkboxes"] > 0
+        ), "No firmware checkboxes found in Device Firmware table"
+
+        assert validation_result["all_unchecked"], (
+            "Some Device Firmware checkboxes are checked by default. "
+            f"Checked checkbox indexes: "
+            f"{validation_result['checked_checkbox_indexes']}"
+        )
+
+        # Step 3: Select firmware checkbox
+        firmware_index = 1
+
+        logger.info(
+            "Selecting Device Firmware checkbox at index: %s",
+            firmware_index,
+        )
+
+        govt_server_page.select_device_firmware_checkbox_by_index(firmware_index)
+
+        logger.info(
+            "Successfully selected Device Firmware checkbox at index: %s",
+            firmware_index,
+        )
+
+        # Step 4: Validate Submit button state
+        logger.info(
+            "Validating Submit button is enabled after selecting Device Firmware checkbox"
+        )
+
+        is_submit_enabled = govt_server_page.is_submit_button_enabled()
+
+        logger.info(
+            "Submit button enabled state after firmware selection: %s",
+            is_submit_enabled,
+        )
+
+        report_case(
+            expected="Submit button should be enabled after selecting a Device Firmware checkbox",
+            actual=f"Submit button enabled state: {is_submit_enabled}",
+            message="Validate Submit button state after selecting Device Firmware checkbox",
+        )
+
+        assert (
+            is_submit_enabled
+        ), "Submit button is not enabled after selecting a Device Firmware checkbox"
+
+        logger.info(
+            "Successfully validated Submit button is enabled after selecting Device Firmware"
+        )
 
     def test_govt_server_page_after_click_submit_firmware_adds_in_open_cpu_firmware_list(
         self, govt_server_page, report_case

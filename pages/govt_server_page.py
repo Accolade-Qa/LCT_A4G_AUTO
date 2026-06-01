@@ -412,17 +412,401 @@ class GovtServerPage(BasePage):
             raise Exception("'Firmware Master' button is not clickable")
 
     def get_oc_firmware_list_from_ui(self):
-        """Get OC firmware list displayed in UI"""
+        """Get available OC firmware list from Firmware Master List table"""
 
-        oc_firmware_list_locator = self.page.locator("table tbody tr td:nth-child(3)")
+        logger.info("Clicking Add Open CPU Firmware button")
 
-        oc_firmware_list = oc_firmware_list_locator.all_inner_texts()
+        self.page.get_by_text("Add Open CPU Firmware").click()
 
-        oc_firmware_list = [firmware.strip() for firmware in oc_firmware_list]
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(3000)
 
-        logger.debug(
-            "Retrieved OC firmware list from UI: %s",
-            oc_firmware_list,
+        firmware_cells = self.page.locator(
+            "//h6[normalize-space()='Firmware Master List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr/td[3]"
         )
 
-        return oc_firmware_list
+        firmware_list = [
+            firmware.strip()
+            for firmware in firmware_cells.all_inner_texts()
+            if firmware.strip()
+        ]
+
+        logger.info(
+            "Total firmwares found in UI: %s",
+            len(firmware_list),
+        )
+
+        logger.info(
+            "Firmware list extracted from UI: %s",
+            firmware_list,
+        )
+
+        return sorted(firmware_list)
+
+    def search_respective_server(self):
+        """Search for a specific server"""
+        state_name = "Shital"
+
+        # Search server
+        logger.info("Searching server with state name: %s", state_name)
+
+        searched_response = self.search_server(state_name)
+
+        # Open View Page
+        self.click_view_button()
+        self.page.wait_for_load_state("networkidle")
+
+        logger.debug("Search response: %s", searched_response)
+
+    def get_oc_firmware_master_list_from_ui(self):
+        """Get OC firmware master list from UI"""
+
+        logger.info("Clicking Add Open CPU Firmware button")
+
+        self.page.get_by_text("Add Open CPU Firmware").click()
+
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(3000)
+
+        firmware_master_list = []
+
+        rows = self.page.locator(
+            "//h6[normalize-space()='Firmware Master List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr"
+        )
+
+        row_count = rows.count()
+
+        logger.info(
+            "Total rows found in Firmware Master List table: %s",
+            row_count,
+        )
+
+        for i in range(row_count):
+            firmware_name = rows.nth(i).locator("td").nth(1).inner_text().strip()
+
+            if firmware_name:
+                firmware_master_list.append(firmware_name)
+
+        logger.info(
+            "Firmware Master List extracted from UI: %s",
+            firmware_master_list,
+        )
+
+        return sorted(firmware_master_list)
+
+    def validate_open_cpu_firmware_checkboxes_default_state(self):
+        """
+        Validate all firmware checkboxes are present and unchecked by default.
+
+        Returns:
+            dict: Validation result details
+        """
+
+        logger.info("Opening Open CPU Firmware Master List")
+
+        self.page.get_by_text("Add Open CPU Firmware").click()
+
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(3000)
+
+        checkboxes = self.page.locator("input[type='checkbox']")
+
+        checkboxes.first.wait_for(state="visible")
+
+        total_checkboxes = checkboxes.count()
+
+        logger.info(
+            "Total firmware checkboxes found: %s",
+            total_checkboxes,
+        )
+
+        checked_checkbox_indexes = []
+
+        for index in range(total_checkboxes):
+            checkbox = checkboxes.nth(index)
+
+            if checkbox.is_checked():
+                checked_checkbox_indexes.append(index + 1)
+
+        logger.info(
+            "Checked checkbox indexes: %s",
+            checked_checkbox_indexes,
+        )
+
+        result = {
+            "total_checkboxes": total_checkboxes,
+            "checked_checkbox_indexes": checked_checkbox_indexes,
+            "all_unchecked": len(checked_checkbox_indexes) == 0,
+        }
+
+        logger.info(
+            "Checkbox validation result: %s",
+            result,
+        )
+
+        return result
+
+    def select_open_cpu_firmware_checkbox_by_index(self, index):
+        """
+        Select Open CPU firmware checkbox by index (1-based index)
+
+        Args:
+            index (int): 1-based index of the checkbox to select
+
+        Returns:
+            bool: True if checkbox is selected successfully, False otherwise
+        """
+
+        logger.info(
+            "Selecting Open CPU firmware checkbox at index: %s",
+            index,
+        )
+
+        checkboxes = self.page.locator("input[type='checkbox']")
+
+        total_checkboxes = checkboxes.count()
+
+        if index < 1 or index > total_checkboxes:
+            logger.error(
+                "Invalid checkbox index: %s. Total checkboxes available: %s",
+                index,
+                total_checkboxes,
+            )
+            return False
+
+        checkbox_to_select = checkboxes.nth(index - 1)
+
+        if not checkbox_to_select.is_checked():
+            checkbox_to_select.check()
+            logger.info(
+                "Checkbox at index %s selected successfully",
+                index,
+            )
+            return True
+        else:
+            logger.info(
+                "Checkbox at index %s is already selected",
+                index,
+            )
+            return True
+
+    def get_open_cpu_firmware_name_by_index(self, index):
+        """
+        Get Open CPU firmware name by index (1-based index)
+
+        Args:
+            index (int): 1-based index of the firmware
+
+        Returns:
+            str: Firmware name if found, None otherwise
+        """
+
+        logger.info(
+            "Getting Open CPU firmware name at index: %s",
+            index,
+        )
+
+        firmware_names = self.page.locator(
+            "//h6[normalize-space()='Firmware Master List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr/td[2]"
+        )
+
+        total_firmwares = firmware_names.count()
+
+        if index < 1 or index > total_firmwares:
+            logger.error(
+                "Invalid firmware index: %s. Total firmwares available: %s",
+                index,
+                total_firmwares,
+            )
+            return None
+
+        firmware_name = firmware_names.nth(index - 1).inner_text().strip()
+
+        logger.info(
+            "Firmware name at index %s: %s",
+            index,
+            firmware_name,
+        )
+
+        return firmware_name
+
+    def is_firmware_present_in_open_cpu_list(self, firmware_name):
+        """
+        Check if a specific firmware is present in the Open CPU Firmware Master List
+
+        Args:
+            firmware_name (str): Name of the firmware to check
+        Returns:
+
+            bool: True if firmware is present, False otherwise
+        """
+
+        logger.info(
+            "Checking presence of firmware '%s' in Open CPU Firmware Master List",
+            firmware_name,
+        )
+
+        firmware_names = self.page.locator(
+            "//h6[normalize-space()='Firmware Master List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr/td[2]"
+        )
+
+        total_firmwares = firmware_names.count()
+
+        for index in range(total_firmwares):
+            current_firmware_name = firmware_names.nth(index).inner_text().strip()
+
+            if current_firmware_name == firmware_name:
+                logger.info(
+                    "Firmware '%s' found in the list at index %s",
+                    firmware_name,
+                    index + 1,
+                )
+                return True
+
+        logger.info(
+            "Firmware '%s' not found in the Open CPU Firmware Master List",
+            firmware_name,
+        )
+        return False
+
+    def get_device_firmware_master_list_from_ui(self):
+        """Get Device firmware master list from UI"""
+
+        logger.info("Opening Device Firmware Master List")
+
+        self.page.get_by_text("Add Device Firmware").click()
+
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(3000)
+
+        firmware_master_list = []
+
+        rows = self.page.locator(
+            "//h6[normalize-space()='Device Firmware Master List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr"
+        )
+
+        row_count = rows.count()
+
+        logger.info(
+            "Total rows found in Device Firmware Master List table: %s",
+            row_count,
+        )
+
+        for i in range(row_count):
+            firmware_name = rows.nth(i).locator("td").nth(1).inner_text().strip()
+
+            if firmware_name:
+                firmware_master_list.append(firmware_name)
+
+        logger.info(
+            "Device Firmware Master List extracted from UI: %s",
+            firmware_master_list,
+        )
+
+        return sorted(firmware_master_list)
+
+    def validate_device_firmware_checkboxes_default_state(self):
+        """
+        Validate all firmware checkboxes are present and unchecked by default in Device Firmware Master List.
+
+        Returns:
+            dict: Validation result details
+        """
+
+        logger.info("Opening Device Firmware Master List")
+
+        self.page.get_by_text("Add Device Firmware").click()
+
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(3000)
+
+        checkboxes = self.page.locator("input[type='checkbox']")
+
+        checkboxes.first.wait_for(state="visible")
+
+        total_checkboxes = checkboxes.count()
+
+        logger.info(
+            "Total firmware checkboxes found: %s",
+            total_checkboxes,
+        )
+
+        checked_checkbox_indexes = []
+
+        for index in range(total_checkboxes):
+            checkbox = checkboxes.nth(index)
+
+            if checkbox.is_checked():
+                checked_checkbox_indexes.append(index + 1)
+
+        logger.info(
+            "Checked checkbox indexes: %s",
+            checked_checkbox_indexes,
+        )
+
+        result = {
+            "total_checkboxes": total_checkboxes,
+            "checked_checkbox_indexes": checked_checkbox_indexes,
+            "all_unchecked": len(checked_checkbox_indexes) == 0,
+        }
+
+        logger.info(
+            "Checkbox validation result: %s",
+            result,
+        )
+
+        return result
+
+    def select_device_firmware_checkbox_by_index(self, index):
+        """
+        Select Device firmware checkbox by index (1-based index)
+
+        Args:
+            index (int): 1-based index of the checkbox to select
+
+        Returns:
+            bool: True if checkbox is selected successfully, False otherwise
+        """
+
+        logger.info(
+            "Selecting Device firmware checkbox at index: %s",
+            index,
+        )
+
+        checkboxes = self.page.locator("input[type='checkbox']")
+
+        total_checkboxes = checkboxes.count()
+
+        if index < 1 or index > total_checkboxes:
+            logger.error(
+                "Invalid checkbox index: %s. Total checkboxes available: %s",
+                index,
+                total_checkboxes,
+            )
+            return False
+
+        checkbox_to_select = checkboxes.nth(index - 1)
+
+        if not checkbox_to_select.is_checked():
+            checkbox_to_select.check()
+            logger.info(
+                "Checkbox at index %s selected successfully",
+                index,
+            )
+            return True
+        else:
+            logger.info(
+                "Checkbox at index %s is already selected",
+                index,
+            )
+            return True
