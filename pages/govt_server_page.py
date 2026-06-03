@@ -595,42 +595,31 @@ class GovtServerPage(BasePage):
             return True
 
     def get_open_cpu_firmware_name_by_index(self, index):
-        """
-        Get Open CPU firmware name by index (1-based index)
-
-        Args:
-            index (int): 1-based index of the firmware
-
-        Returns:
-            str: Firmware name if found, None otherwise
-        """
-
-        logger.info(
-            "Getting Open CPU firmware name at index: %s",
-            index,
-        )
-
-        firmware_names = self.page.locator(
+        rows = self.page.locator(
             "//h6[normalize-space()='Firmware Master List']"
             "/ancestor::div[contains(@class,'component-container')]"
-            "//table/tbody/tr/td[2]"
+            "//table/tbody/tr"
         )
 
-        total_firmwares = firmware_names.count()
-
-        if index < 1 or index > total_firmwares:
-            logger.error(
-                "Invalid firmware index: %s. Total firmwares available: %s",
-                index,
-                total_firmwares,
-            )
-            return None
-
-        firmware_name = firmware_names.nth(index - 1).inner_text().strip()
+        row_text = rows.nth(index).inner_text().strip()
 
         logger.info(
-            "Firmware name at index %s: %s",
+            "Row %s text: %s",
             index,
+            row_text,
+        )
+
+        cols = row_text.split("\t")
+
+        logger.info(
+            "Columns extracted: %s",
+            cols,
+        )
+
+        firmware_name = cols[1].strip()
+
+        logger.info(
+            "Firmware name extracted: %s",
             firmware_name,
         )
 
@@ -676,6 +665,37 @@ class GovtServerPage(BasePage):
             firmware_name,
         )
         return False
+
+    def get_open_cpu_firmware_version_by_index(self, index):
+        rows = self.page.locator(
+            "//h6[normalize-space()='Firmware Master List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr"
+        )
+
+        row_text = rows.nth(index).inner_text().strip()
+
+        logger.info(
+            "Row %s text: %s",
+            index,
+            row_text,
+        )
+
+        cols = row_text.split("\t")
+
+        logger.info(
+            "Columns extracted: %s",
+            cols,
+        )
+
+        firmware_version = cols[2].strip()
+
+        logger.info(
+            "Firmware version extracted: %s",
+            firmware_version,
+        )
+
+        return firmware_version
 
     def get_device_firmware_master_list_from_ui(self):
         """Get Device firmware master list from UI"""
@@ -810,3 +830,106 @@ class GovtServerPage(BasePage):
                 index,
             )
             return True
+
+    def validate_add_firmware_master_title(self):
+        """Validate title on Add Firmware Master page"""
+
+        title_locator = self.page.locator("span.page-title")
+
+        title_locator.wait_for(state="visible")
+
+        title_text = title_locator.inner_text().strip()
+
+        logger.info(
+            "Retrieved title on Add Firmware Master page: %s",
+            title_text,
+        )
+
+        return title_text
+
+    def get_firmware_master_table_headers(self):
+        """Get headers of the table on Firmware Master page"""
+
+        table = TableSection(self.page)
+
+        if table.has_no_data():
+            logger.warning("Firmware Master table has no data, cannot retrieve headers")
+            return []
+
+        headers = table.get_headers()
+
+        logger.debug(
+            "Retrieved Firmware Master table headers: %s",
+            headers,
+        )
+
+        return headers
+
+    def is_add_firmware_button_visible_and_enabled(self):
+        """Check if the 'Add Firmware' button is visible and enabled on Firmware Master page"""
+
+        button_locator = self.page.get_by_text("Add Firmware open_in_new")
+
+        is_visible = button_locator.is_visible()
+        is_enabled = button_locator.is_enabled()
+        logger.debug(
+            "'Add Firmware' button visibility: %s, enabled state: %s",
+            is_visible,
+            is_enabled,
+        )
+
+        return is_visible, is_enabled
+
+    def get_add_firmware_form_title(self):
+        """Get title of the form displayed after clicking 'Add Firmware' button"""
+
+        title_locator = self.page.locator("span.page-title")
+
+        title_locator.wait_for(state="visible")
+
+        title_text = title_locator.inner_text().strip()
+
+        logger.info(
+            "Retrieved title on Add Firmware form: %s",
+            title_text,
+        )
+
+        return title_text
+
+    def click_add_firmware_button(self):
+        """Click the 'Add Firmware' button and wait for the form to appear."""
+        button_locator = self.page.get_by_text("Add Firmware open_in_new")
+
+        if button_locator.is_visible() and button_locator.is_enabled():
+            button_locator.click()
+            title_locator = self.page.locator("span.page-title")
+            title_locator.wait_for(state="visible")
+            self.page.wait_for_load_state("networkidle")
+            logger.info("Clicked 'Add Firmware' button and opened Add Firmware form")
+        else:
+            logger.error(
+                "'Add Firmware' button is not clickable. Visible: %s, Enabled: %s",
+                button_locator.is_visible(),
+                button_locator.is_enabled(),
+            )
+            raise Exception("'Add Firmware' button is not clickable")
+
+    def get_input_fields_on_add_firmware_details(self):
+        """Get the input fields displayed on the Add Firmware form."""
+
+        form_title_locator = self.page.locator("span.page-title")
+        form_title_locator.wait_for(state="visible")
+        logger.info(
+            "Locating Add Firmware input fields on form with title: %s",
+            form_title_locator.inner_text().strip(),
+        )
+
+        return {
+            "firmware_name": self.page.locator("input[id='firmwareName']"),
+            "description": self.page.locator("input[id='description']"),
+            "file": self.page.locator("input[formcontrolname='fileName']"),
+            "release_date": self.page.locator("input[formcontrolname='releaseDate']"),
+            "device_type": self.page.locator(
+                "mat-select[formcontrolname='firmwareType']"
+            ),
+        }

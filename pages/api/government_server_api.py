@@ -58,7 +58,7 @@ class GovtServerAPI(APIClient):
         Fetch all servers from government server list.
 
         Returns:
-            tuple: (servers_list, first_server_id)
+            tuple: (servers_list, first_server_id, user_id)
         """
 
         user_id = GovtServerAPI._get_user_id(page)
@@ -87,6 +87,23 @@ class GovtServerAPI(APIClient):
         logger.debug("Servers: %s", servers)
 
         return servers, server_id, user_id
+
+    @staticmethod
+    def _get_server_id_by_state_name(page, state_name):
+        """
+        Fetch server ID for a given state name.
+        """
+
+        servers, _, _ = GovtServerAPI._get_all_servers_list(page)
+
+        matching_server = next(
+            (server for server in servers if server.get("state") == state_name),
+            None,
+        )
+
+        assert matching_server, f"No server found with state name: {state_name}"
+
+        return matching_server.get("id")
 
     @staticmethod
     def get_all_firmware(page):
@@ -118,27 +135,36 @@ class GovtServerAPI(APIClient):
         return firmware_versions
 
     @staticmethod
-    def _get_firmwares_by_type(page, firmware_type, added_in_state=False):
+    def _get_firmwares_by_type(
+        page,
+        firmware_type,
+        added_in_state=False,
+        state_server_id=None,
+    ):
         """
         Fetch firmware list by firmware type.
 
         Args:
             firmware_type: OC or D
             added_in_state: True if fetching firmwares added in state, False otherwise
+            state_server_id: Optional state server ID to use for the request
 
         Returns:
             list: Firmware list
         """
 
-        _, server_id, user_id = GovtServerAPI._get_all_servers_list(page)
+        if state_server_id is None:
+            _, state_server_id, user_id = GovtServerAPI._get_all_servers_list(page)
+        else:
+            user_id = GovtServerAPI._get_user_id(page)
 
         if added_in_state:
-            endpoint = f"/firmwareMaster/getStateFirmwares?page=0&size=1000&search=&firmwareType={firmware_type}&userId={user_id}&stateServerId={server_id}"
+            endpoint = f"/firmwareMaster/getStateFirmwares?page=0&size=1000&search=&firmwareType={firmware_type}&userId={user_id}&stateServerId={state_server_id}"
         else:
             endpoint = (
                 "/firmwareMaster/getFirmwaresListNotAddedInState?"
                 f"page=0&size=1000&search=&firmwareType={firmware_type}"
-                f"&stateServerId={server_id}"
+                f"&stateServerId={state_server_id}"
             )
 
         firmware_versions = GovtServerAPI._send_get_request(
@@ -164,12 +190,28 @@ class GovtServerAPI(APIClient):
         return GovtServerAPI._get_firmwares_by_type(page, "OC", False)
 
     @staticmethod
-    def get_oc_firmwares_added_in_state(page):
+    def get_oc_firmwares_added_in_state(page, state_name=None, state_server_id=None):
         """
-        Fetch OC firmware list.
+        Fetch OC firmware list added in state.
+
+        Args:
+            page: Playwright page object
+            state_name: Optional state name to scope the request
+            state_server_id: Optional server ID to scope the request
         """
 
-        return GovtServerAPI._get_firmwares_by_type(page, "OC", True)
+        if state_name:
+            state_server_id = GovtServerAPI._get_server_id_by_state_name(
+                page,
+                state_name,
+            )
+
+        return GovtServerAPI._get_firmwares_by_type(
+            page,
+            "OC",
+            True,
+            state_server_id,
+        )
 
     @staticmethod
     def get_d_firmwares_not_added(page):

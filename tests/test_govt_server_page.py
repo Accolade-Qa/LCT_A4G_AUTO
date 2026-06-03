@@ -1,3 +1,6 @@
+from pathlib import Path
+from unittest import result
+
 import pytest
 from playwright.sync_api import expect
 from config.config import GOVERNMENT_SERVERS_URL
@@ -1835,19 +1838,209 @@ class TestGovtServerPage:
             "Successfully validated Submit button is enabled after selecting Device Firmware"
         )
 
-    def test_govt_server_page_after_click_submit_firmware_adds_in_open_cpu_firmware_list(
-        self, govt_server_page, report_case
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_govt_server_page_after_click_submit_adds_firmware_in_open_cpu_firmware_list(
+        self,
+        govt_server_page,
+        report_case,
     ):
-        pass
+        """
+        Validate selected Open CPU firmware is added successfully
+        after clicking Submit.
+        """
 
+        logger.info(
+            "Starting validation of Open CPU firmware addition after Submit action"
+        )
+
+        # Step 1: Search server
+        logger.info("Searching and opening the respective Government Server")
+
+        govt_server_page.search_respective_server()
+
+        # Step 2: Get currently added OC firmwares count from API for the selected state
+        api_before = GovtServerAPI.get_oc_firmwares_added_in_state(
+            govt_server_page.page,
+            state_name="Shital",
+        )
+
+        firmware_count_before = len(api_before)
+
+        logger.info(
+            "OC firmware count before submit: %s",
+            firmware_count_before,
+        )
+
+        report_case(
+            expected="OC firmware count should be fetched before submit",
+            actual=f"OC firmware count before submit: {firmware_count_before}",
+            message="Capture OC firmware count from API before adding new firmware",
+        )
+
+        # Step 3: Open firmware master list
+        logger.info("Opening Open CPU Firmware Master List")
+
+        govt_server_page.get_oc_firmware_list_from_ui()
+
+        # Step 4: Select firmware from Open CPU master list
+        firmware_index = 1
+
+        selected_firmware_name = govt_server_page.get_open_cpu_firmware_name_by_index(
+            firmware_index
+        )
+
+        logger.info(
+            "Selected firmware for addition: %s",
+            selected_firmware_name,
+        )
+
+        report_case(
+            expected="A firmware should be selected from Open CPU Firmware Master List",
+            actual=f"Selected Firmware: {selected_firmware_name}",
+            message="Validate firmware selection",
+        )
+
+        # Step 5: Select checkbox
+        govt_server_page.select_open_cpu_firmware_checkbox_by_index(firmware_index)
+
+        logger.info("Firmware checkbox selected successfully")
+
+        # Step 6: Verify submit button enabled
+        is_submit_enabled = govt_server_page.is_submit_button_enabled()
+
+        logger.info(
+            "Submit button enabled state: %s",
+            is_submit_enabled,
+        )
+
+        report_case(
+            expected="Submit button should be enabled after firmware selection",
+            actual=f"Submit Button Enabled: {is_submit_enabled}",
+            message="Validate Submit button state",
+        )
+
+        assert (
+            is_submit_enabled
+        ), "Submit button is not enabled after selecting firmware"
+
+        # Step 7: Click submit
+        logger.info("Clicking Submit button")
+
+        govt_server_page.click_submit_button()
+
+        govt_server_page.page.wait_for_load_state("networkidle")
+        govt_server_page.page.wait_for_timeout(3000)
+
+        logger.info("Submit action completed")
+
+        # Step 8: Get OC firmware count from API after submit for the selected state
+        api_after = GovtServerAPI.get_oc_firmwares_added_in_state(
+            govt_server_page.page,
+            state_name="Shital",
+        )
+
+        firmware_count_after = len(api_after)
+
+        logger.info(
+            "OC firmware count after submit: %s",
+            firmware_count_after,
+        )
+
+        report_case(
+            expected=(
+                f"OC firmware count after submit should be {firmware_count_before + 1}"
+            ),
+            actual=f"OC firmware count after submit: {firmware_count_after}",
+            message="Validate OC firmware count increment after submit",
+        )
+
+        assert firmware_count_after == firmware_count_before + 1, (
+            f"OC firmware count did not increase by 1 after submit. "
+            f"Before: {firmware_count_before}, After: {firmware_count_after}"
+        )
+
+        logger.info("Successfully validated OC firmware count increment after submit")
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_working_of_search_functionality_on_device_firmware_table(
         ## take which firmware adds searched for it.
         self,
         govt_server_page,
         report_case,
     ):
-        pass
+        govt_server_page.search_respective_server()
 
+        # see the implementation of search functionality test case on open cpu firmware table and do the same for device firmware table.
+
+        search_keyword = "A4TV_11.1.1_REL02F"
+
+        logger.info(
+            "Starting validation of search functionality on Device Firmware Master List"
+        )
+        logger.info(
+            "Searching firmware using keyword: %s",
+            search_keyword,
+        )
+        search = SearchHelper(govt_server_page.page)
+        result = search.run_search(search_keyword)
+        logger.info(
+            "Search response received: %s",
+            result,
+        )
+        report_case(
+            expected=f"Search should execute successfully for '{search_keyword}'",
+            actual=f"Search Response: {result}",
+            message="Validate search execution on Device Firmware Master List",
+        )
+        assert (
+            result["success"] is True
+        ), f"Search operation failed for keyword '{search_keyword}'"
+        logger.info("Search executed successfully")
+        logger.info(
+            "Validating search result count",
+        )
+        report_case(
+            expected=f"One or more results should be returned for '{search_keyword}'",
+            actual=f"Results Found: {result['results_found']}",
+            message="Validate search result count",
+        )
+        assert (
+            result["results_found"] > 0
+        ), f"No results found for search keyword '{search_keyword}'"
+        logger.info(
+            "Total search results found: %s",
+            result["results_found"],
+        )
+        matching_results = [
+            item for item in result["results"] if search_keyword.lower() in item.lower()
+        ]
+        logger.info(
+            "Matching search results for '%s': %s",
+            search_keyword,
+            matching_results,
+        )
+        report_case(
+            expected=f"At least one result should contain '{search_keyword}'",
+            actual=f"Matching Results: {matching_results}",
+            message="Validate searched firmware appears in Device Firmware search results",
+        )
+        assert matching_results, (
+            f"No search results contain the keyword '{search_keyword}'. "
+            f"Actual Results: {result['results']}"
+        )
+        logger.info(
+            "Successfully validated search functionality for Device Firmware "
+            "using keyword '%s'",
+            search_keyword,
+        )
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    @pytest.mark.skip(
+        reason="Test case implementation pending and do not want to run the delete on actual data right now"
+    )
     def test_govt_server_page_working_of_delete_functionality_on_device_firmware_table(
         ## take searched firmware and delete it
         self,
@@ -1857,62 +2050,248 @@ class TestGovtServerPage:
         pass
 
     ##### Firmware Master Test Cases #####
-    # is enabled and visible of add firmware button
+    @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_add_firmware_button_is_visible_and_enable(
-        self, govt_server_page, report_case
+        self,
+        govt_server_page,
+        report_case,
     ):
-        pass
+        """
+        Validate Add Firmware Master button is visible and enabled.
+        """
+
+        logger.info(
+            "Starting validation of Add Firmware Master button visibility and enabled state"
+        )
+
+        logger.info("Checking Add Firmware Master button visibility and enabled state")
+
+        is_visible, is_enabled = (
+            govt_server_page.is_firmware_master_button_visible_and_enabled()
+        )
+
+        logger.info(
+            "Add Firmware Master button visibility and enabled state: %s, %s",
+            is_visible,
+            is_enabled,
+        )
+
+        report_case(
+            expected="Add Firmware Master button should be visible and enabled",
+            actual=f"Add Firmware Master button visible and enabled: {is_visible}, {is_enabled}",
+            message="Validate Add Firmware Master button visibility and enabled state",
+        )
+
+        assert is_visible and is_enabled, (
+            "Add Firmware Master button is either not visible " "or not enabled"
+        )
+
+        logger.info(
+            "Successfully validated Add Firmware Master button is visible and enabled"
+        )
 
     # click on add firmware master button and validate title of the component
+    @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_click_add_firmware_master_btn_and_validate_title(
-        self, govt_server_page, report_case
+        self,
+        govt_server_page,
+        report_case,
     ):
-        pass
+        """
+        Validate Add Firmware Master page opens successfully
+        and displays the correct title.
+        """
+
+        logger.info("Starting validation of Add Firmware Master page title")
+
+        # Step 1: Click Add Firmware Master button
+        logger.info("Clicking Add Firmware Master button")
+
+        govt_server_page.click_firmware_master_button()
+
+        govt_server_page.page.wait_for_load_state("networkidle")
+
+        logger.info("Add Firmware Master page opened successfully")
+
+        # Step 2: Validate title
+        expected_title = "Firmware Master"
+
+        actual_title = govt_server_page.validate_add_firmware_master_title()
+
+        logger.info(
+            "Validating Add Firmware Master page title. Expected: '%s', Actual: '%s'",
+            expected_title,
+            actual_title,
+        )
+
+        report_case(
+            expected=f"Add Firmware Master page should display title '{expected_title}'",
+            actual=f"Actual title displayed: '{actual_title}'",
+            message="Validate Add Firmware Master page title",
+        )
+
+        assert actual_title == expected_title, (
+            f"Add Firmware Master page title mismatch.\n"
+            f"Expected: '{expected_title}'\n"
+            f"Actual: '{actual_title}'"
+        )
+
+        logger.info(
+            "Successfully validated Add Firmware Master page title: '%s'",
+            actual_title,
+        )
 
     # validate table headers of firmware master table with ui table headers
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_govt_server_page_validate_table_headers_of_firmware_master_table_with_ui_table(
-        self, govt_server_page, report_case
+        self,
+        govt_server_page,
+        report_case,
     ):
-        pass
+        """
+        Validate Firmware Master table displays all expected column headers
+        in the correct order.
+        """
+        logger.info("Clicking Add Firmware Master button")
 
-    # validate data on table with api response of firmware master api for oc firmware type
-    def test_govt_server_page_validate_oc_firmware_master_table_data_with_api_response(
-        self, govt_server_page, report_case
-    ):
-        pass
+        govt_server_page.click_firmware_master_button()
 
-    #  validate the no data found image presence when there is no data in firmware master table
-    def test_govt_server_page_validate_no_data_found_image_presence_on_firmware_master_table_when_no_data(
-        self, govt_server_page, report_case
-    ):
-        pass
+        govt_server_page.page.wait_for_load_state("networkidle")
 
-    # validate count of oc and d firmware by name from api reponse and ui table
-    def test_govt_server_page_validate_count_of_oc_and_d_firmware_by_name_from_api_response_and_ui_table(
-        self, govt_server_page, report_case
-    ):
-        pass
+        logger.info("Add Firmware Master page opened successfully")
 
-    # validate pagination of firmware master table
-    def test_govt_server_page_validate_pagination_of_firmware_master_table(
-        self, govt_server_page, report_case
-    ):
-        pass
+        expected_headers = [
+            "FIRMWARE TYPE",
+            "FIRMWARE VERSION",
+            "UPLOAD FILE / FILE NAME",
+            "DESCRIPTION",
+            "RELEASE DATE",
+            "CREATED BY",
+            "ACTION",
+        ]
+
+        logger.debug(
+            "Expected Firmware Master table headers: %s",
+            expected_headers,
+        )
+
+        logger.info("Retrieving Firmware Master table headers from UI")
+
+        actual_headers = govt_server_page.get_firmware_master_table_headers()
+
+        logger.debug(
+            "Actual Firmware Master table headers retrieved from UI: %s",
+            actual_headers,
+        )
+
+        logger.info("Comparing expected and actual Firmware Master table headers")
+
+        report_case(
+            expected="Firmware Master table should display all configured column headers in the correct sequence",
+            actual=f"Expected Headers: {expected_headers} | Actual Headers: {actual_headers}",
+            message="Validate Firmware Master table header configuration",
+        )
+
+        assert actual_headers == expected_headers, (
+            "Firmware Master table header validation failed.\n"
+            f"Expected Headers: {expected_headers}\n"
+            f"Actual Headers: {actual_headers}"
+        )
+
+        logger.info("Firmware Master table headers validated successfully")
+
+        logger.debug(
+            "Validated header sequence: %s",
+            actual_headers,
+        )
 
     ##### Add firmware test cases #####
     # validate add firmware button is enabled and visible
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_govt_server_page_add_firmware_button_is_visible_and_enabled(
-        self, govt_server_page, report_case
+        self,
+        govt_server_page,
+        report_case,
     ):
-        pass
+        """
+        Validate Add Firmware button is visible and enabled
+        on the Add Firmware page.
+        """
+
+        logger.info(
+            "Starting validation of Add Firmware button visibility and enabled state"
+        )
+
+        logger.info(
+            "Navigating to Add Firmware page by clicking Firmware Master button"
+        )
+
+        govt_server_page.click_firmware_master_button()
+
+        govt_server_page.page.wait_for_load_state("networkidle")
+
+        logger.info("Successfully navigated to Add Firmware page")
+
+        logger.info("Checking Add Firmware button visibility and enabled state")
+
+        is_visible, is_enabled = (
+            govt_server_page.is_add_firmware_button_visible_and_enabled()
+        )
+
+        logger.debug(
+            "Add Firmware button state | Visible: %s | Enabled: %s",
+            is_visible,
+            is_enabled,
+        )
+
+        report_case(
+            expected="Add Firmware button should be displayed and enabled for user interaction",
+            actual=(f"Button Visible: {is_visible}, " f"Button Enabled: {is_enabled}"),
+            message="Validate Add Firmware button availability",
+        )
+
+        assert is_visible, "Add Firmware button is not visible on the page"
+
+        assert is_enabled, "Add Firmware button is visible but disabled"
+
+        logger.info("Successfully validated Add Firmware button is visible and enabled")
 
     # click on add firmware button and validate title of the component
     def test_govt_server_page_click_add_firmware_btn_and_validate_title(
         self, govt_server_page, report_case
     ):
-        pass
+        govt_server_page.click_add_firmware_button()
+        govt_server_page.page.wait_for_load_state("networkidle")
+        expected_title = "Add Firmware"
+
+        actual_title = govt_server_page.get_add_firmware_form_title()
+
+        logger.info(
+            "Validating Add Firmware form title. Expected: '%s', Actual: '%s'",
+            expected_title,
+            actual_title,
+        )
+        report_case(
+            expected=f"Add Firmware form should display title '{expected_title}'",
+            actual=f"Actual title displayed: '{actual_title}'",
+            message="Validate Add Firmware form title",
+        )
+        assert actual_title == expected_title, (
+            f"Add Firmware form title mismatch.\n"
+            f"Expected: '{expected_title}'\n"
+            f"Actual: '{actual_title}'"
+        )
+        logger.info(
+            "Successfully validated Add Firmware form title: '%s'",
+            actual_title,
+        )
 
     # validate all input fields are enabled and editable
+    @pytest.mark.ui
     def test_govt_server_page_validate_all_input_fields_are_enabled_and_editable(
         self, govt_server_page, report_case
     ):

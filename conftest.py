@@ -93,6 +93,16 @@ def _new_context_with_zoom(browser, **kwargs):
     return context
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--iterations",
+        action="store",
+        default=1,
+        type=int,
+        help="Number of times to run the loop test",
+    )
+
+
 # Authenticated Page Fixture
 @pytest.fixture(scope="function")
 def page(browser):
