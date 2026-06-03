@@ -35,8 +35,8 @@ python -m venv .venv
 ```
 3. **Activate the virtual environment**
    ```bash
-# PowerShell
 .venv\Scripts\Activate.ps1
+```
 
 # Command Prompt
 .venv\Scripts\activate.bat

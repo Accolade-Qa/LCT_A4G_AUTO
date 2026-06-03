@@ -42,6 +42,7 @@ class TestOtaPage:
     """ OTA Batch Page Tests """
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_ota_page_navigates_correctly(self, ota_page, report_case):
         """Verify OTA page is loaded with correct URL."""
         logger.info("Validating OTA page load state")
@@ -59,6 +60,7 @@ class TestOtaPage:
         assert page_loaded, f"OTA page did not load at {ota_page.page.url}"
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_ota_page_title_is_correct(self, ota_page, report_case):
         """Verify OTA Batch page title is correct."""
         logger.info("Verifying OTA Batch page title")
@@ -82,6 +84,7 @@ class TestOtaPage:
         ), f"Expected title '{expected_title}', but got '{actual_title}'"
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_ota_page_all_elements_are_visible(self, ota_page, report_case):
         """Verify all OTA Batch page elements are visible and loaded."""
         logger.info("Validating OTA Batch page elements")
@@ -413,38 +416,68 @@ class TestOtaPage:
 
     """ Add Ota Command Page"""
 
-    def test_ota_page_add_command_button_is_visible(self, ota_page):
+    @pytest.mark.regression
+    def test_ota_page_add_command_button_is_visible(self, ota_page, report_case):
         """Verify Add OTA Command button is visible on OTA Master page."""
+        logger.info("Validating Add OTA Command button visibility and navigation")
         ota_page.go_to_ota_master_page()
-        assert (
-            ota_page.is_add_ota_command_button_visible()
-        ), "Add OTA Command button is not visible on OTA Master page"
 
-        if ota_page.is_add_ota_command_button_visible():
+        button_visible = ota_page.is_add_ota_command_button_visible()
+        logger.debug("Add OTA Command button visible: %s", button_visible)
+
+        report_case(
+            expected="Add OTA Command button should be visible on OTA Master page",
+            actual=f"Add OTA Command button visible: {button_visible}",
+            message="Validate Add OTA Command button visibility",
+        )
+
+        assert button_visible, "Add OTA Command button is not visible on OTA Master page"
+
+        if button_visible:
             logger.info("Add OTA Command button is visible on OTA Master page")
             ota_page.validate_add_ota_button_and_click()
         else:
             logger.warning("Add OTA Command button is not visible - cannot click")
 
         page_title = ota_page.is_on_add_ota_command_page()
+        logger.debug("Add OTA Command page title after navigation: %s", page_title)
+
+        report_case(
+            expected="Should navigate to Add OTA Command page",
+            actual=f"Page title after navigation: '{page_title}'",
+            message="Validate Add OTA Command page navigation",
+        )
+
         assert page_title, "Did not navigate to Add OTA Command page"
         assert (
             "Add OTA Command" in page_title
         ), f"Expected 'Add OTA Command' in page title, got '{page_title}'"
+        logger.info("Successfully validated Add OTA Command button navigation")
 
-    def test_ota_page_add_command_form_fields_are_visible(self, ota_page):
+    @pytest.mark.regression
+    def test_ota_page_add_command_form_fields_are_visible(self, ota_page, report_case):
         """Verify all Add OTA Command form fields are visible."""
         logger.info("Validating Add OTA Command form fields visibility")
         ota_page.go_to_ota_master_page()
         ota_page.validate_add_ota_button_and_click()
 
-        assert (
-            ota_page.are_add_ota_command_form_fields_visible()
-        ), "Not all Add OTA Command form fields are visible"
+        fields_visible = ota_page.are_add_ota_command_form_fields_visible()
+        logger.debug("Add OTA Command form fields visible: %s", fields_visible)
+
+        report_case(
+            expected="All Add OTA Command form fields should be visible",
+            actual=f"Form fields visible: {fields_visible}",
+            message="Validate Add OTA Command form fields visibility",
+        )
+
+        assert fields_visible, "Not all Add OTA Command form fields are visible"
 
         logger.info("All Add OTA Command form fields are visible")
 
-    def test_ota_page_add_command_form_ota_name_field_accepts_input(self, ota_page):
+    @pytest.mark.regression
+    def test_ota_page_add_command_form_ota_name_field_accepts_input(
+        self, ota_page, report_case
+    ):
         """Verify OTA Name field can be filled."""
         logger.info("Testing OTA Name field fill")
         ota_page.go_to_ota_master_page()
@@ -454,12 +487,27 @@ class TestOtaPage:
         ota_page.fill_ota_name(test_name)
 
         actual_value = ota_page.get_ota_name_value()
+        logger.debug(
+            "OTA Name field check | expected=%s | actual=%s",
+            test_name,
+            actual_value,
+        )
+
+        report_case(
+            expected=f"OTA Name field should accept value '{test_name}'",
+            actual=f"Actual value in field: '{actual_value}'",
+            message="Validate OTA Name field input",
+        )
+
         assert (
             actual_value == test_name
         ), f"Expected '{test_name}', but got '{actual_value}'"
         logger.info("OTA Name field filled successfully: %s", test_name)
 
-    def test_ota_page_add_command_form_ota_command_field_accepts_input(self, ota_page):
+    @pytest.mark.regression
+    def test_ota_page_add_command_form_ota_command_field_accepts_input(
+        self, ota_page, report_case
+    ):
         """Verify OTA Command field can be filled."""
         logger.info("Testing OTA Command field fill")
         ota_page.go_to_ota_master_page()
@@ -469,6 +517,18 @@ class TestOtaPage:
         ota_page.fill_ota_command(test_command)
 
         actual_value = ota_page.get_ota_command_value()
+        logger.debug(
+            "OTA Command field check | expected=%s | actual=%s",
+            test_command,
+            actual_value,
+        )
+
+        report_case(
+            expected=f"OTA Command field should accept value '{test_command}'",
+            actual=f"Actual value in field: '{actual_value}'",
+            message="Validate OTA Command field input",
+        )
+
         assert (
             actual_value == test_command
         ), f"Expected '{test_command}', but got '{actual_value}'"

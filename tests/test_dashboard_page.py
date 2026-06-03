@@ -33,6 +33,7 @@ class TestDashboardPage:
 
     @pytest.mark.smoke
     @pytest.mark.critical
+    @pytest.mark.regression
     def test_dashboard_page_navigates_to_correct_url(self, dashboard_page, report_case):
         logger.info("Validating dashboard landing URL")
 
@@ -50,6 +51,7 @@ class TestDashboardPage:
         ), f"Expected {DASHBOARD_URL}, got {actual_url}"
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_dashboard_page_title_is_correct(self, dashboard_page, report_case):
         base_page = BasePage(dashboard_page.page)
         logger.info("Validating dashboard page title")
@@ -64,6 +66,7 @@ class TestDashboardPage:
         assert actual_title == "Device Dashboard", "Dashboard title is incorrect"
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_dashboard_page_all_elements_are_visible(self, dashboard_page, report_case):
         logger.info("Checking all dashboard elements (cards/graph/table)")
         cards_visible = dashboard_page._is_cards_visible()
@@ -84,6 +87,7 @@ class TestDashboardPage:
         # assert dashboard_page._is_buttons_visible(), "Dashboard buttons are not visible"
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_dashboard_page_cards_are_visible(self, dashboard_page, report_case):
         logger.info("Confirming dashboard cards are visible")
         cards_visible = dashboard_page._is_cards_visible()
@@ -91,6 +95,7 @@ class TestDashboardPage:
         assert cards_visible, "Dashboard cards are not visible"
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_dashboard_page_displays_four_cards(self, dashboard_page, report_case):
         expected_cards_count = 4
         actual_cards_count = dashboard_page.get_cards_count()
@@ -161,6 +166,7 @@ class TestDashboardPage:
         report_case(expected=True, actual=graph_visible)
         assert graph_visible, "Dashboard graph is not visible"
 
+    @pytest.mark.regression
     def test_dashboard_page_graph_title_is_correct(self, dashboard_page, report_case):
         logger.info("Validating each graph title")
         expected_graph_title = ["Device Activity Overview", "Firmware Wise Devices"]
@@ -179,12 +185,14 @@ class TestDashboardPage:
             ), f"Expected graph title '{title}', got '{actual_graph_title}'"
         report_case(expected=expected_graph_title, actual=actual_graph_titles)
 
+    @pytest.mark.regression
     def test_dashboard_page_table_is_visible(self, dashboard_page, report_case):
         logger.info("Verifying table visibility")
         table_visible = dashboard_page._is_table_visible()
         report_case(expected=True, actual=table_visible)
         assert table_visible, "Dashboard table is not visible"
 
+    @pytest.mark.regression
     def test_dashboard_page_card_and_graph_clicks_update_table_title(
         self, dashboard_page, report_case
     ):
@@ -210,6 +218,7 @@ class TestDashboardPage:
             ), f"Expected table title '{title}', got '{actual_table_title}'"
         report_case(expected=expected_table_title, actual=actual_table_titles)
 
+    @pytest.mark.regression
     def test_dashboard_page_export_button_is_visible_and_functional(
         self, dashboard_page, report_case
     ):
@@ -224,6 +233,7 @@ class TestDashboardPage:
             "success"
         ], f"Export button functionality failed: {result['error']}"
 
+    @pytest.mark.regression
     def test_dashboard_page_search_filters_table_data(
         self, dashboard_page, report_case
     ):
@@ -245,6 +255,7 @@ class TestDashboardPage:
             search_query in item for item in result["results"]
         ), "Search results do not match the query"
 
+    @pytest.mark.regression
     def test_dashboard_page_table_headers_are_correct(
         self, dashboard_page, report_case
     ):
@@ -261,6 +272,7 @@ class TestDashboardPage:
             actual_headers == expected_headers
         ), f"Expected table headers {expected_headers}, got {actual_headers}"
 
+    @pytest.mark.regression
     def test_dashboard_page_pagination_navigates_across_pages(
         self, dashboard_page, report_case
     ):

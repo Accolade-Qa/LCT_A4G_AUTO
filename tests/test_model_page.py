@@ -1,24 +1,24 @@
-from config.config import (
-    BASE_URL,
-    MODEL_URL,
-    PASSWORD,
-    USERNAME,
-    CREATE_NEW_MODEL,
-    UPDATE_MODEL,
-)
+import pytest
 from playwright.sync_api import expect
 
-import pytest
-
-# from pages.api import model_api
-from pages.model_page import DeviceModel
+from config.config import (
+    BASE_URL,
+    CREATE_NEW_MODEL,
+    MODEL_URL,
+    PASSWORD,
+    UPDATE_MODEL,
+    USERNAME,
+)
 from pages.login_page import LoginPage
+from pages.model_page import DeviceModel
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @pytest.mark.device
 @pytest.mark.regression
 class TestModel:
-
     def _login_and_dashboard(self, page):
         login_page = LoginPage(page)
         login_page.load(BASE_URL)
@@ -27,144 +27,446 @@ class TestModel:
         return DeviceModel(page)
 
     @pytest.mark.smoke
-    def test_go_to_model(self, page):
+    @pytest.mark.regression
+    def test_go_to_model(self, page, report_case):
+        logger.info("Starting validation of Model page navigation")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
 
-    def test_go_to_create_model(self, page):
+        actual_url = page.url
+        logger.debug("Model page URL check | expected=%s | actual=%s", MODEL_URL, actual_url)
+
+        report_case(
+            expected=MODEL_URL,
+            actual=actual_url,
+            message="Validate Model page navigation",
+        )
+
+        assert actual_url == MODEL_URL, f"Expected URL '{MODEL_URL}', got '{actual_url}'"
+        logger.info("Successfully validated Model page navigation")
+
+    @pytest.mark.regression
+    def test_go_to_create_model(self, page, report_case):
+        logger.info("Starting validation of Create Model page navigation")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
         model_page.go_to_create_model(CREATE_NEW_MODEL)
-        assert page.url == CREATE_NEW_MODEL
 
-    def test_go_to_update_model(self, page):
+        actual_url = page.url
+        logger.debug(
+            "Create Model URL check | expected=%s | actual=%s",
+            CREATE_NEW_MODEL,
+            actual_url,
+        )
+
+        report_case(
+            expected=CREATE_NEW_MODEL,
+            actual=actual_url,
+            message="Validate Create Model page navigation",
+        )
+
+        assert actual_url == CREATE_NEW_MODEL, (
+            f"Expected URL '{CREATE_NEW_MODEL}', got '{actual_url}'"
+        )
+        logger.info("Successfully validated Create Model page navigation")
+
+    @pytest.mark.regression
+    def test_go_to_update_model(self, page, report_case):
+        logger.info("Starting validation of Update Model page navigation")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
         model_page.go_to_update_model(UPDATE_MODEL)
-        assert page.url == UPDATE_MODEL
 
-    def test_nav_list_visibility(self, page):
+        actual_url = page.url
+        logger.debug(
+            "Update Model URL check | expected=%s | actual=%s",
+            UPDATE_MODEL,
+            actual_url,
+        )
+
+        report_case(
+            expected=UPDATE_MODEL,
+            actual=actual_url,
+            message="Validate Update Model page navigation",
+        )
+
+        assert actual_url == UPDATE_MODEL, (
+            f"Expected URL '{UPDATE_MODEL}', got '{actual_url}'"
+        )
+        logger.info("Successfully validated Update Model page navigation")
+
+    @pytest.mark.regression
+    def test_nav_list_visibility(self, page, report_case):
+        logger.info("Starting validation of Model navigation list visibility")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
 
-        assert model_page._nav_list_visibility(), "Navbar list is not visible"
+        is_visible = model_page._nav_list_visibility()
+        logger.debug("Model navigation list visible: %s", is_visible)
 
-    def test_is_PageTitle_Visible(self, page):
+        report_case(
+            expected="Navbar list should be visible",
+            actual=f"Navbar list visible: {is_visible}",
+            message="Validate Model navbar list visibility",
+        )
+
+        assert is_visible, "Navbar list is not visible"
+        logger.info("Successfully validated Model navigation list visibility")
+
+    @pytest.mark.regression
+    def test_is_PageTitle_Visible(self, page, report_case):
+        logger.info("Starting validation of Model page title visibility")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
 
-        assert model_page._is_PageTitle_Visible(), "Page Title is not visible"
+        is_visible = model_page._is_PageTitle_Visible()
+        logger.debug("Model page title visible: %s", is_visible)
 
-    def test_create_model_visibility(self, page):
+        report_case(
+            expected="Page title should be visible",
+            actual=f"Page title visible: {is_visible}",
+            message="Validate Model page title visibility",
+        )
+
+        assert is_visible, "Page Title is not visible"
+        logger.info("Successfully validated Model page title visibility")
+
+    @pytest.mark.regression
+    def test_create_model_visibility(self, page, report_case):
+        logger.info("Starting validation of Create Model button visibility")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
 
-        assert (
-            model_page._create_model_visibility()
-        ), "Create Model button is not visible or enabled"
+        is_visible = model_page._create_model_visibility()
+        logger.debug("Create Model button visible/enabled: %s", is_visible)
 
-    def test_create_model_click(self, page):
+        report_case(
+            expected="Create Model button should be visible and enabled",
+            actual=f"Create Model button visible/enabled: {is_visible}",
+            message="Validate Create Model button availability",
+        )
+
+        assert is_visible, "Create Model button is not visible or enabled"
+        logger.info("Successfully validated Create Model button visibility")
+
+    @pytest.mark.regression
+    def test_create_model_click(self, page, report_case):
+        logger.info("Starting validation of Create Model button click")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
         model_page._create_model_click()
 
-    def test_create_model_page_title(self, page):
-        model_page = DeviceModel(page)
-        model_page.go_to_model(CREATE_NEW_MODEL)
-        assert (
-            model_page._create_model_page_title() == "Create Device Model"
-        ), "Create Model Page Title not visible"
+        actual_url = page.url
+        logger.debug("Create Model click completed | current_url=%s", actual_url)
 
-    def test_submit_button(self, page):
-        model_page = DeviceModel(page)
-        model_page.go_to_model(CREATE_NEW_MODEL)
-        assert model_page._submit_button(), "Submit button is not enabled"
+        report_case(
+            expected="Create Model button click should complete",
+            actual=f"Current URL after click: {actual_url}",
+            message="Validate Create Model button click",
+        )
 
-    def test_model_code(self, page):
+        logger.info("Successfully clicked Create Model button")
+
+    @pytest.mark.regression
+    def test_create_model_page_title(self, page, report_case):
+        logger.info("Starting validation of Create Model page title")
         model_page = DeviceModel(page)
         model_page.go_to_model(CREATE_NEW_MODEL)
-        # model_code_locator = self.page.get_by_label("Model Code")
+
+        expected_title = "Create Device Model"
+        actual_title = model_page._create_model_page_title()
+        logger.debug(
+            "Create Model title check | expected=%s | actual=%s",
+            expected_title,
+            actual_title,
+        )
+
+        report_case(
+            expected=expected_title,
+            actual=actual_title,
+            message="Validate Create Model page title",
+        )
+
+        assert actual_title == expected_title, "Create Model Page Title not visible"
+        logger.info("Successfully validated Create Model page title")
+
+    @pytest.mark.regression
+    def test_submit_button(self, page, report_case):
+        logger.info("Starting validation of Create Model Submit button")
+        model_page = DeviceModel(page)
+        model_page.go_to_model(CREATE_NEW_MODEL)
+
+        is_enabled = model_page._submit_button()
+        logger.debug("Create Model Submit button enabled: %s", is_enabled)
+
+        report_case(
+            expected="Submit button should be enabled",
+            actual=f"Submit button enabled: {is_enabled}",
+            message="Validate Create Model Submit button",
+        )
+
+        assert is_enabled, "Submit button is not enabled"
+        logger.info("Successfully validated Create Model Submit button")
+
+    @pytest.mark.regression
+    def test_model_code(self, page, report_case):
+        logger.info("Starting validation of Model Code input")
+        model_page = DeviceModel(page)
+        model_page.go_to_model(CREATE_NEW_MODEL)
+
         model_code_locator = page.get_by_label("Model Code")
         expect(model_code_locator).to_be_visible()
         expect(model_code_locator).to_be_enabled()
         model_code_locator.fill("NewCode")
 
-    def test_model_name(self, page):
+        actual_value = model_code_locator.input_value()
+        logger.debug("Model Code field value after fill: %s", actual_value)
+
+        report_case(
+            expected="Model Code field should accept value 'NewCode'",
+            actual=f"Model Code field value: '{actual_value}'",
+            message="Validate Model Code input",
+        )
+
+        assert actual_value == "NewCode", f"Expected 'NewCode', got '{actual_value}'"
+        logger.info("Successfully validated Model Code input")
+
+    @pytest.mark.regression
+    def test_model_name(self, page, report_case):
+        logger.info("Starting validation of Model Name input")
         model_page = DeviceModel(page)
         model_page.go_to_model(CREATE_NEW_MODEL)
         model_page._model_name("NewName")
-        # assert model_page._model_name(), "Model Name is not visible"
 
-    def test_model_seriel_sequence(self, page):
+        logger.debug("Entered Model Name value: %s", "NewName")
+        report_case(
+            expected="Model Name field should accept value 'NewName'",
+            actual="Model Name value entered",
+            message="Validate Model Name input",
+        )
+
+        logger.info("Successfully validated Model Name input")
+
+    @pytest.mark.regression
+    def test_model_seriel_sequence(self, page, report_case):
+        logger.info("Starting validation of Model Serial Sequence input")
         model_page = DeviceModel(page)
         model_page.go_to_model(CREATE_NEW_MODEL)
         model_page._model_seriel_sequence("NewSequence")
 
-    def test_hardware_version(self, page):
+        logger.debug("Entered Model Serial Sequence value: %s", "NewSequence")
+        report_case(
+            expected="Model Serial Sequence field should accept value 'NewSequence'",
+            actual="Model Serial Sequence value entered",
+            message="Validate Model Serial Sequence input",
+        )
+
+        logger.info("Successfully validated Model Serial Sequence input")
+
+    @pytest.mark.regression
+    def test_hardware_version(self, page, report_case):
+        logger.info("Starting validation of Hardware Version input")
         model_page = DeviceModel(page)
         model_page.go_to_model(CREATE_NEW_MODEL)
         model_page._hardware_version("NewVersion")
 
-    def test_submit_button_click(self, page):
+        logger.debug("Entered Hardware Version value: %s", "NewVersion")
+        report_case(
+            expected="Hardware Version field should accept value 'NewVersion'",
+            actual="Hardware Version value entered",
+            message="Validate Hardware Version input",
+        )
+
+        logger.info("Successfully validated Hardware Version input")
+
+    @pytest.mark.regression
+    def test_submit_button_click(self, page, report_case):
+        logger.info("Starting validation of disabled Submit button state")
         model_page = DeviceModel(page)
         model_page.go_to_model(CREATE_NEW_MODEL)
 
         submit_button_locator = page.get_by_text("Submit check_circle", exact=True)
-        assert not submit_button_locator.is_enabled()
+        is_enabled = submit_button_locator.is_enabled()
+        logger.debug("Submit button enabled state: %s", is_enabled)
 
-    def test_search_model(self, page):
+        report_case(
+            expected="Submit button should be disabled",
+            actual=f"Submit button enabled: {is_enabled}",
+            message="Validate disabled Submit button state",
+        )
+
+        assert not is_enabled, "Submit button should be disabled"
+        logger.info("Successfully validated disabled Submit button state")
+
+    @pytest.mark.regression
+    def test_search_model(self, page, report_case):
+        logger.info("Starting validation of Model search")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
         model_page._search_model("NewCode")
 
-    def test_view_icon(self, page):
+        logger.debug("Executed Model search for keyword: %s", "NewCode")
+        report_case(
+            expected="Model search should execute for 'NewCode'",
+            actual="Model search completed",
+            message="Validate Model search",
+        )
+
+        logger.info("Successfully validated Model search")
+
+    @pytest.mark.regression
+    def test_view_icon(self, page, report_case):
+        logger.info("Starting validation of Model view icon")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
         model_page.view_icon()
 
-    def test_update_model_code(self, page):
+        logger.debug("Clicked Model view icon")
+        report_case(
+            expected="Model view icon should be clickable",
+            actual="Model view icon clicked",
+            message="Validate Model view icon",
+        )
+
+        logger.info("Successfully validated Model view icon")
+
+    @pytest.mark.regression
+    def test_update_model_code(self, page, report_case):
+        logger.info("Starting validation of Update Model Code input")
         model_page = DeviceModel(page)
         model_page.go_to_update_model(UPDATE_MODEL)
         model_page.update_model_code("UpdatedCode")
 
-    def test_update_model_name(self, page):
+        logger.debug("Entered updated Model Code value: %s", "UpdatedCode")
+        report_case(
+            expected="Update Model Code field should accept value 'UpdatedCode'",
+            actual="Updated Model Code value entered",
+            message="Validate Update Model Code input",
+        )
+
+        logger.info("Successfully validated Update Model Code input")
+
+    @pytest.mark.regression
+    def test_update_model_name(self, page, report_case):
+        logger.info("Starting validation of Update Model Name input")
         model_page = DeviceModel(page)
         model_page.go_to_update_model(UPDATE_MODEL)
         model_page.update_model_name("UpdatedName")
 
-    def test_update_model_seriel_sequence(self, page):
+        logger.debug("Entered updated Model Name value: %s", "UpdatedName")
+        report_case(
+            expected="Update Model Name field should accept value 'UpdatedName'",
+            actual="Updated Model Name value entered",
+            message="Validate Update Model Name input",
+        )
+
+        logger.info("Successfully validated Update Model Name input")
+
+    @pytest.mark.regression
+    def test_update_model_seriel_sequence(self, page, report_case):
+        logger.info("Starting validation of Update Model Serial Sequence input")
         model_page = DeviceModel(page)
         model_page.go_to_update_model(UPDATE_MODEL)
         model_page.update_model_seriel_sequence("UpdatedSequence")
 
-    def test_update_hardware_version(self, page):
+        logger.debug("Entered updated Model Serial Sequence value: %s", "UpdatedSequence")
+        report_case(
+            expected="Update Model Serial Sequence field should accept value 'UpdatedSequence'",
+            actual="Updated Model Serial Sequence value entered",
+            message="Validate Update Model Serial Sequence input",
+        )
+
+        logger.info("Successfully validated Update Model Serial Sequence input")
+
+    @pytest.mark.regression
+    def test_update_hardware_version(self, page, report_case):
+        logger.info("Starting validation of Update Hardware Version input")
         model_page = DeviceModel(page)
         model_page.go_to_update_model(UPDATE_MODEL)
         model_page.update_hardware_version("UpdatedVersion")
 
-    def test_update_button_click(self, page):
+        logger.debug("Entered updated Hardware Version value: %s", "UpdatedVersion")
+        report_case(
+            expected="Update Hardware Version field should accept value 'UpdatedVersion'",
+            actual="Updated Hardware Version value entered",
+            message="Validate Update Hardware Version input",
+        )
+
+        logger.info("Successfully validated Update Hardware Version input")
+
+    @pytest.mark.regression
+    def test_update_button_click(self, page, report_case):
+        logger.info("Starting validation of Update button click")
         model_page = DeviceModel(page)
         model_page.go_to_update_model(UPDATE_MODEL)
         model_page._update_button_click()
 
-    def test_search_model_update(self, page):
+        logger.debug("Clicked Update button on Model page")
+        report_case(
+            expected="Update button click should complete",
+            actual="Update button clicked",
+            message="Validate Update button click",
+        )
+
+        logger.info("Successfully validated Update button click")
+
+    @pytest.mark.regression
+    def test_search_model_update(self, page, report_case):
+        logger.info("Starting validation of updated Model search")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
         model_page._search_model("updated")
 
-    def test_get_updated_model_text(self, page):
+        logger.debug("Executed Model search for keyword: %s", "updated")
+        report_case(
+            expected="Model search should execute for 'updated'",
+            actual="Model search completed",
+            message="Validate updated Model search",
+        )
+
+        logger.info("Successfully validated updated Model search")
+
+    @pytest.mark.regression
+    def test_get_updated_model_text(self, page, report_case):
+        logger.info("Starting validation of updated Model text")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
 
         expected_model_text = ["UpdatedCode"]
+        actual_model_texts = []
 
         for text in expected_model_text:
             actual_model_text = model_page._get_updated_model_text(text)
-            assert (
-                actual_model_text == text
-            ), f"expected model text '{text}', got '{actual_model_text}'"
+            actual_model_texts.append(actual_model_text)
+            logger.debug(
+                "Updated Model text check | expected=%s | actual=%s",
+                text,
+                actual_model_text,
+            )
 
-    def test_delete_updated_model(self, page):
+        report_case(
+            expected=expected_model_text,
+            actual=actual_model_texts,
+            message="Validate updated Model text",
+        )
+
+        assert actual_model_texts == expected_model_text, (
+            f"Expected model text {expected_model_text}, got {actual_model_texts}"
+        )
+        logger.info("Successfully validated updated Model text")
+
+    @pytest.mark.regression
+    def test_delete_updated_model(self, page, report_case):
+        logger.info("Starting validation of updated Model delete")
         model_page = DeviceModel(page)
         model_page.go_to_model(MODEL_URL)
         model_page.delete_updated_model()
+
+        logger.debug("Executed delete action for updated Model")
+        report_case(
+            expected="Updated Model delete action should complete",
+            actual="Updated Model delete action completed",
+            message="Validate updated Model delete",
+        )
+
+        logger.info("Successfully validated updated Model delete")

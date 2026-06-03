@@ -39,6 +39,7 @@ class TestSimBatchDataDetails:
             logger.warning("SIM Batch Data Details test skipped: %s", test_name)
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_sim_batch_page_navigates_correctly(
         self, page, sim_data_details_page, report_case
     ):
@@ -54,6 +55,7 @@ class TestSimBatchDataDetails:
             page.url == SIM_DATA_DETAILS_URL
         ), f"Expected URL to be '{SIM_DATA_DETAILS_URL}', got {page.url}"
 
+    @pytest.mark.regression
     def test_sim_batch_page_title_is_correct(self, sim_data_details_page, report_case):
         logger.info("Asserting SIM Data Details title")
         sim_data_details_page.go_to_simbatchpage(SIM_DATA_DETAILS_URL)
@@ -69,6 +71,7 @@ class TestSimBatchDataDetails:
             actual_title == expected_title
         ), f"Expected title to be '{expected_title}', got '{actual_title}'"
 
+    @pytest.mark.regression
     def test_sim_batch_page_manual_upload_and_download_buttons_are_visible(
         self, sim_data_details_page, report_case
     ):
@@ -97,6 +100,7 @@ class TestSimBatchDataDetails:
             "Download Sample" in download_button_text
         ), "Download Sample button text mismatch"
 
+    @pytest.mark.regression
     def test_sim_batch_page_manual_upload_form_shows_instructions(
         self, sim_data_details_page, report_case
     ):
@@ -115,6 +119,7 @@ class TestSimBatchDataDetails:
         # placeholder = sim_data_details_page.get_iccid_upload_placeholder()
         # assert "ICCID" in (placeholder or ""), "ICCID placeholder should mention ICCID"
 
+    @pytest.mark.regression
     def test_sim_batch_page_submit_button_is_disabled_initially(
         self, sim_data_details_page, report_case
     ):
@@ -123,6 +128,7 @@ class TestSimBatchDataDetails:
         report_case(expected=True, actual=is_disabled)
         assert is_disabled, "Submit button should be disabled before upload"
 
+    @pytest.mark.regression
     def test_sim_batch_page_manual_button_opens_upload_form(
         self, sim_data_details_page, report_case
     ):
@@ -137,6 +143,7 @@ class TestSimBatchDataDetails:
             "sensorise-sim-manual-upload" in sim_data_details_page.page.url
         ), f"Expected manual upload URL fragment in '{sim_data_details_page.page.url}'"
 
+    @pytest.mark.regression
     def test_sim_batch_page_manual_upload_form_shows_error_for_blank_input(
         self, sim_data_details_page, report_case
     ):
@@ -156,6 +163,7 @@ class TestSimBatchDataDetails:
             actual_error_message == expected_error_message
         ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
 
+    @pytest.mark.regression
     def test_sim_batch_page_manual_upload_form_shows_error_for_20_character_input(
         self, sim_data_details_page, report_case
     ):
@@ -176,6 +184,7 @@ class TestSimBatchDataDetails:
             actual_error_message == expected_error_message
         ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
 
+    @pytest.mark.regression
     def test_sim_batch_page_submit_button_is_enabled_with_valid_input(
         self, sim_data_details_page, report_case
     ):
@@ -189,6 +198,7 @@ class TestSimBatchDataDetails:
         report_case(expected=False, actual=is_disabled)
         assert not is_disabled, "Submit button should be enabled after valid input"
 
+    @pytest.mark.regression
     def test_sim_batch_page_submit_button_displays_table_results(
         self, sim_data_details_page, report_case
     ):
@@ -205,6 +215,7 @@ class TestSimBatchDataDetails:
             is_visible
         ), "Results table should be visible after submitting valid ICCID"
 
+    @pytest.mark.regression
     def test_sim_batch_page_table_header_is_visible_and_correct(
         self, sim_data_details_page, report_case
     ):
@@ -228,6 +239,7 @@ class TestSimBatchDataDetails:
             actual_headers == expected_header
         ), f"Expected table headers to be {expected_header}, got {actual_headers}"
 
+    @pytest.mark.regression
     def test_sim_batch_page_table_headers_are_correct(
         self, sim_data_details_page, report_case
     ):
@@ -266,6 +278,7 @@ class TestSimBatchDataDetails:
             actual_headers == expected_headers
         ), f"Expected table headers {expected_headers}, got {actual_headers}"
 
+    @pytest.mark.regression
     def test_sim_batch_page_table_pagination_navigates_across_pages(
         self, sim_data_details_page, report_case
     ):
@@ -293,6 +306,7 @@ class TestSimBatchDataDetails:
 
     ## Batch upload test cases
 
+    @pytest.mark.regression
     def test_sim_batch_page_batch_upload_validates_file_input(
         self, sim_data_details_page, report_case
     ):
@@ -311,6 +325,7 @@ class TestSimBatchDataDetails:
             actual_error_message == expected_error_message
         ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
 
+    @pytest.mark.regression
     def test_sim_batch_page_download_sample_button_is_functional(
         self, sim_data_details_page, report_case
     ):
@@ -330,6 +345,7 @@ class TestSimBatchDataDetails:
 
         assert is_downloaded, "Sample file validation failed"
 
+    @pytest.mark.regression
     def test_sim_batch_page_submit_button_is_disabled_when_input_cleared(
         self, sim_data_details_page, report_case
     ):
@@ -338,6 +354,7 @@ class TestSimBatchDataDetails:
         report_case(expected=True, actual=is_disabled)
         assert is_disabled, "Submit button should not be enabled"
 
+    @pytest.mark.regression
     def test_sim_batch_page_submit_button_is_enabled_after_valid_file_upload(
         self, sim_data_details_page, report_case
     ):

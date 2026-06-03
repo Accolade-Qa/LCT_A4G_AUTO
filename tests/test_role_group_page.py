@@ -83,6 +83,7 @@ class TestRoleGroupPage:
     #     logger.info("Delete role permission test completed")
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_role_group_page_title_is_correct(self, role_group_page, report_case):
         logger.info("Testing Role Group page title")
         title = role_group_page.get_title()
@@ -97,6 +98,7 @@ class TestRoleGroupPage:
         ), f"Expected page title 'Group Management', but got '{title}'"
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_role_group_page_all_elements_are_visible(
         self, role_group_page, report_case
     ):
@@ -122,6 +124,7 @@ class TestRoleGroupPage:
 
         logger.info("All Role Group page elements are present and visible")
 
+    @pytest.mark.regression
     def test_role_group_page_add_button_navigates_to_form(
         self, role_group_page, report_case
     ):
@@ -146,6 +149,7 @@ class TestRoleGroupPage:
         )
         assert component_title == "Add Group", "Add Group page did not load correctly"
 
+    @pytest.mark.regression
     def test_role_group_page_form_shows_validation_errors_for_invalid_input(
         self, role_group_page, report_case
     ):
@@ -207,6 +211,7 @@ class TestRoleGroupPage:
         )
         assert "Success" in success_message, "Expected success message not found"
 
+    @pytest.mark.regression
     def test_role_group_page_table_search_filters_results(
         self, role_group_page, report_case
     ):
@@ -243,6 +248,7 @@ class TestRoleGroupPage:
                 self.group.lower() in row.lower() for row in rows
             ), f"Group '{self.group}' not found in search results. Results: {rows}"
 
+    @pytest.mark.regression
     def test_role_group_page_table_displays_valid_group_data(
         self, role_group_page, report_case
     ):
@@ -264,6 +270,7 @@ class TestRoleGroupPage:
             assert table.has_no_data()
             return
 
+    @pytest.mark.regression
     def test_role_group_page_table_search_helper_finds_groups(
         self, role_group_page, report_case
     ):
@@ -292,6 +299,7 @@ class TestRoleGroupPage:
             for row in result["results"]:
                 assert self.group.lower() in row.lower()
 
+    @pytest.mark.regression
     def test_role_group_page_table_pagination_navigates_across_pages(
         self, role_group_page, report_case
     ):
@@ -323,6 +331,7 @@ class TestRoleGroupPage:
                 actual="No pagination elements found; assuming single page",
             )
 
+    @pytest.mark.regression
     def test_role_group_page_search_results_match_table_data(
         self, role_group_page, report_case
     ):
@@ -349,6 +358,7 @@ class TestRoleGroupPage:
             for row in rows:
                 assert self.group.lower() in row.lower()
 
+    @pytest.mark.regression
     def test_role_group_page_table_headers_are_correct(
         self, role_group_page, report_case
     ):
@@ -365,6 +375,7 @@ class TestRoleGroupPage:
         for header in expected_headers:
             assert header in headers, f"{header} not found in table headers"
 
+    @pytest.mark.regression
     def test_role_group_page_created_at_timestamps_are_not_future_dates(
         self, role_group_page, report_case
     ):
@@ -390,6 +401,7 @@ class TestRoleGroupPage:
             actual=created_dates,
         )
 
+    @pytest.mark.regression
     def test_role_group_page_created_at_column_is_sorted_correctly(
         self, role_group_page, report_case
     ):
@@ -412,6 +424,7 @@ class TestRoleGroupPage:
         report_case(expected=sorted(dates), actual=dates)
         assert dates == sorted(dates), "Dates are not sorted in ascending order"
 
+    @pytest.mark.regression
     def test_role_group_page_created_at_column_has_correct_date_format(
         self, role_group_page, report_case
     ):

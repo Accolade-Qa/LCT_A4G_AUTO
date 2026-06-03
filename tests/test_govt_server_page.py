@@ -42,6 +42,7 @@ class TestGovtServerPage:
             logger.warning("Government Server test skipped: %s", test_name)
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_title_is_correct(self, govt_server_page, report_case):
         """Verify the title of the Government Server page"""
         logger.info("Verifying Government Server page title")
@@ -71,6 +72,7 @@ class TestGovtServerPage:
         )
         logger.info("Government Server page title verified successfully")
 
+    @pytest.mark.regression
     def test_govt_server_page_table_headers(self, govt_server_page, report_case):
         """Verify the table headers on the Government Server page"""
         logger.info("Verifying Government Server table headers")
@@ -104,6 +106,7 @@ class TestGovtServerPage:
 
         logger.info("Government Server table headers verified successfully")
 
+    @pytest.mark.regression
     def test_govt_server_page_table_no_data(self, govt_server_page, report_case):
         """Verify the 'No Data Found' state of the table on the Government Server page"""
         logger.info("Verifying 'No Data Found' state of Government Server table")
@@ -131,6 +134,7 @@ class TestGovtServerPage:
             "'No Data Found' state verified successfully for Government Server table"
         )
 
+    @pytest.mark.regression
     def test_govt_server_page_table_row_count(self, govt_server_page, report_case):
         """Verify Government Server table has rows"""
 
@@ -159,6 +163,7 @@ class TestGovtServerPage:
             actual_row_count,
         )
 
+    @pytest.mark.regression
     def test_govt_server_page_table_data_validation(
         self, govt_server_page, report_case
     ):
@@ -195,6 +200,7 @@ class TestGovtServerPage:
 
         logger.info("Expected Government Server row data validated successfully")
 
+    @pytest.mark.regression
     def test_govt_server_page_search_functionality(self, govt_server_page, report_case):
         """Verify the search functionality of the Government Server table"""
         logger.info("Verifying search functionality of Government Server table")
@@ -227,6 +233,7 @@ class TestGovtServerPage:
             search_query,
         )
 
+    @pytest.mark.regression
     def test_govt_server_page_table_action_buttons(self, govt_server_page, report_case):
         """Verify the presence of action buttons in the Government Server table"""
         logger.info("Verifying action buttons in Government Server table")
@@ -256,6 +263,7 @@ class TestGovtServerPage:
             "Action buttons in Government Server table verified successfully for first row"
         )
 
+    @pytest.mark.regression
     def test_govt_server_page_pagination_validations(
         self, govt_server_page, report_case
     ):
@@ -292,6 +300,7 @@ class TestGovtServerPage:
     """ test add goverment server page test """
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_add_government_button_is_visible_and_enable(
         self, govt_server_page, report_case
     ):
@@ -322,6 +331,7 @@ class TestGovtServerPage:
             "Presence and state of Add Government Server button verified successfully"
         )
 
+    @pytest.mark.regression
     def test_govt_server_page_click_add_gov_server_btn_and_validate_title(
         self, govt_server_page, report_case
     ):
@@ -353,6 +363,7 @@ class TestGovtServerPage:
             "Navigation to Add Government Server page and its title verified successfully"
         )
 
+    @pytest.mark.regression
     def test_govt_server_page_validate_component_title(
         self, govt_server_page, report_case
     ):
@@ -380,6 +391,7 @@ class TestGovtServerPage:
         ), f"Expected component title '{expected_component_title}' to be in '{actual_component_title}'"
         logger.info("Component title on Government Server page verified successfully")
 
+    @pytest.mark.regression
     def test_govt_server_page_validate_all_input_enabled_and_editable(
         self, govt_server_page, report_case
     ):
@@ -411,6 +423,7 @@ class TestGovtServerPage:
             assert is_visible, f"Expected input field '{field}' to be visible"
             assert is_enabled, f"Expected input field '{field}' to be enabled"
 
+    @pytest.mark.regression
     def test_govt_server_page_validate_input_fields_accept_text_except_port_and_ip(
         self, govt_server_page, report_case
     ):
@@ -452,6 +465,7 @@ class TestGovtServerPage:
                 actual_value == test_input
             ), f"Expected input field '{field}' to accept entered input"
 
+    @pytest.mark.regression
     def test_govt_server_page_validate_input_fields_accept_valid_ip_and_port(
         self, govt_server_page, report_case
     ):
@@ -491,6 +505,7 @@ class TestGovtServerPage:
                 actual_value == test_input
             ), f"Expected input field '{field}' to accept valid input, but it did not"
 
+    @pytest.mark.regression
     def test_govt_server_page_validate_error_messages_on_invalid_inputs(
         self, govt_server_page, report_case
     ):
@@ -562,6 +577,7 @@ class TestGovtServerPage:
                     f"for field '{field_name}'"
                 )
 
+    @pytest.mark.regression
     def test_govt_server_page_validate_submit_button_disabled_on_blank_form(
         self, govt_server_page, report_case
     ):
@@ -588,6 +604,7 @@ class TestGovtServerPage:
 
         assert submit_button_enabled is False, "Submit button is enabled on blank form"
 
+    @pytest.mark.regression
     def test_govt_server_page_validate_submit_button_disabled_on_invalid_inputs(
         self, govt_server_page, report_case
     ):
@@ -628,6 +645,7 @@ class TestGovtServerPage:
             submit_button_enabled is False
         ), "Submit button is enabled on invalid inputs"
 
+    @pytest.mark.regression
     def test_govt_server_page_validate_submit_button_enabled_on_valid_inputs(
         self, govt_server_page, report_case
     ):
@@ -683,6 +701,7 @@ class TestGovtServerPage:
             submit_button_enabled is True
         ), "Submit button is not enabled on valid inputs"
 
+    @pytest.mark.regression
     def test_govt_server_page_validate_success_message_on_valid_form_submission(
         self, govt_server_page, report_case
     ):
@@ -740,7 +759,10 @@ class TestGovtServerPage:
     @pytest.mark.api
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_govt_server_page_validating_all_api_of_firmwares(self, govt_server_page):
+    def test_govt_server_page_validating_all_api_of_firmwares(
+        self, govt_server_page, report_case
+    ):
+        logger.info("Starting validation of firmware APIs")
         all_firmwares = GovtServerAPI.get_all_firmware(govt_server_page.page)
         # logger.info(f"all firmwares -> ", all_firmwares)
         total_firmware_count = len(all_firmwares)
@@ -767,12 +789,27 @@ class TestGovtServerPage:
         d_firmware_count_not_added_count = len(d_firmwares_not_added_in_server)
         d_firmware_count_added_count = len(d_firmwares)
 
-        assert (
-            total_firmware_count
-            == oc_firmware_count_not_added_count
+        calculated_total = (
+            oc_firmware_count_not_added_count
             + d_firmware_count_not_added_count
             + oc_firmware_count_added_count
             + d_firmware_count_added_count
+        )
+
+        logger.debug(
+            "Firmware API count check | total=%s | calculated_total=%s",
+            total_firmware_count,
+            calculated_total,
+        )
+
+        report_case(
+            expected=f"All firmware count should match grouped firmware count: {total_firmware_count}",
+            actual=f"Calculated grouped firmware count: {calculated_total}",
+            message="Validate firmware API count consistency",
+        )
+
+        assert (
+            total_firmware_count == calculated_total
         ), "Total count is mismatched"
 
         # ---------------- OC Firmware Validation ---------------- #
@@ -826,7 +863,10 @@ class TestGovtServerPage:
             f"From D firmware API: {d_firmware_data}"
         )
 
+        logger.info("Successfully validated firmware APIs")
+
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_view_button_is_enabled_for_searched_server(
         self, govt_server_page, report_case
     ):
@@ -877,6 +917,7 @@ class TestGovtServerPage:
         ), "Navigation did not happen after clicking view button"
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_validate_page_title_after_view_button_clicked(
         self, govt_server_page, report_case
     ):
@@ -1484,22 +1525,36 @@ class TestGovtServerPage:
         reason="Test case implementation pending and do not want to run the delete on actual data right now"
     )
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_govt_server_page_working_of_delete_functionality_on_open_cpu_table(
         ## take searched firmware and delete it
         self,
         govt_server_page,
         report_case,
     ):
-        pass
+        logger.info("Pending implementation for Open CPU firmware delete functionality")
+        report_case(
+            expected="Open CPU firmware delete functionality should be validated",
+            actual="Pending implementation",
+            message="Validate Open CPU firmware delete functionality",
+        )
+        pytest.skip("Test case implementation pending")
 
     ################################################################################################
     @pytest.mark.skip(
         reason="Test case implementation pending"
     )  ## come again to see this test case.
+    @pytest.mark.regression
     def test_govt_server_page_validate_d_firmware_with_ui_table(
         self, govt_server_page, report_case
     ):
-        pass
+        logger.info("Pending implementation for D firmware UI table validation")
+        report_case(
+            expected="D firmware API data should match UI table data",
+            actual="Pending implementation",
+            message="Validate D firmware data with UI table",
+        )
+        pytest.skip("Test case implementation pending")
 
     @pytest.mark.smoke
     @pytest.mark.regression
@@ -2049,7 +2104,13 @@ class TestGovtServerPage:
         govt_server_page,
         report_case,
     ):
-        pass
+        logger.info("Pending implementation for Device Firmware delete functionality")
+        report_case(
+            expected="Device Firmware delete functionality should be validated",
+            actual="Pending implementation",
+            message="Validate Device Firmware delete functionality",
+        )
+        pytest.skip("Test case implementation pending")
 
     ##### Firmware Master Test Cases #####
     @pytest.mark.smoke
@@ -2148,6 +2209,7 @@ class TestGovtServerPage:
     # validate table headers of firmware master table with ui table headers
     @pytest.mark.smoke
     @pytest.mark.ui
+    @pytest.mark.regression
     def test_govt_server_page_validate_table_headers_of_firmware_master_table_with_ui_table(
         self,
         govt_server_page,
@@ -2214,6 +2276,7 @@ class TestGovtServerPage:
     # validate add firmware button is enabled and visible
     @pytest.mark.smoke
     @pytest.mark.ui
+    @pytest.mark.regression
     def test_govt_server_page_add_firmware_button_is_visible_and_enabled(
         self,
         govt_server_page,
@@ -2263,6 +2326,7 @@ class TestGovtServerPage:
         logger.info("Successfully validated Add Firmware button is visible and enabled")
 
     # click on add firmware button and validate title of the component
+    @pytest.mark.regression
     def test_govt_server_page_click_add_firmware_btn_and_validate_title(
         self, govt_server_page, report_case
     ):
@@ -2295,41 +2359,83 @@ class TestGovtServerPage:
 
     # validate all input fields are enabled and editable
     @pytest.mark.ui
+    @pytest.mark.regression
     def test_govt_server_page_validate_all_input_fields_are_enabled_and_editable(
         self, govt_server_page, report_case
     ):
-        pass
+        logger.info("Pending implementation for Add Firmware input field editability")
+        report_case(
+            expected="All Add Firmware input fields should be enabled and editable",
+            actual="Pending implementation",
+            message="Validate Add Firmware input field editability",
+        )
+        pytest.skip("Test case implementation pending")
 
     # validate upload file input field accepts only files and validate with invalid and valid file formats
+    @pytest.mark.regression
     def test_govt_server_page_validate_upload_file_input_field_accepts_only_files_and_valid_formats(
         self, govt_server_page, report_case
     ):
-        pass
+        logger.info("Pending implementation for Add Firmware upload file validation")
+        report_case(
+            expected="Upload file input should accept only valid file formats",
+            actual="Pending implementation",
+            message="Validate Add Firmware upload file input",
+        )
+        pytest.skip("Test case implementation pending")
 
     # validate release date input field have currunt date selected by default and accepts only date format
+    @pytest.mark.regression
     def test_govt_server_page_validate_release_date_input_field_have_current_date_by_default_and_accepts_only_date_format(
         self, govt_server_page, report_case
     ):
-        pass
+        logger.info("Pending implementation for Add Firmware release date validation")
+        report_case(
+            expected="Release date should default to current date and accept date format only",
+            actual="Pending implementation",
+            message="Validate Add Firmware release date input",
+        )
+        pytest.skip("Test case implementation pending")
 
     # validate firmware type dropdown have correct options and accepts only those options
+    @pytest.mark.regression
     def test_govt_server_page_validate_firmware_type_dropdown_options_and_selection(
         self, govt_server_page, report_case
     ):
-        pass
+        logger.info("Pending implementation for Add Firmware type dropdown validation")
+        report_case(
+            expected="Firmware type dropdown should expose and accept valid options",
+            actual="Pending implementation",
+            message="Validate Add Firmware type dropdown",
+        )
+        pytest.skip("Test case implementation pending")
 
     # validate submit button is enabled only when all mandatory fields are filled with valid data
+    @pytest.mark.regression
     def test_govt_server_page_validate_submit_button_enabled_only_on_valid_mandatory_fields(
         self, govt_server_page, report_case
     ):
-        pass
+        logger.info("Pending implementation for Add Firmware submit button state")
+        report_case(
+            expected="Submit button should be enabled only when mandatory fields are valid",
+            actual="Pending implementation",
+            message="Validate Add Firmware submit button state",
+        )
+        pytest.skip("Test case implementation pending")
 
     ##### End of add  firmware test cases #####
 
     # validate search functionality of firmware master table with firmware added by add firmware form
+    @pytest.mark.regression
     def test_govt_server_page_validate_search_functionality_of_firmware_master_table_with_added_firmware(
         self, govt_server_page, report_case
     ):
-        pass
+        logger.info("Pending implementation for Firmware Master table search validation")
+        report_case(
+            expected="Firmware Master table search should find added firmware",
+            actual="Pending implementation",
+            message="Validate Firmware Master table search",
+        )
+        pytest.skip("Test case implementation pending")
 
     #### End of Firmware Master Test Cases #####

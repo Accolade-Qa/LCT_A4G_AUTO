@@ -42,6 +42,7 @@ class TestLoginPage:
             logger.warning("Login Page test skipped: %s", test_name)
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_login_with_valid_credentials(self, page, report_case):
         """Validate successful login with valid username and password"""
         logger.info("Starting validation of login with valid credentials")
@@ -215,6 +216,7 @@ class TestLoginPage:
         logger.info("Password only validation completed successfully")
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_page_title_is_correct(self, page, report_case):
         """Validate that the login page title is correct"""
         logger.info("Starting validation of login page title")

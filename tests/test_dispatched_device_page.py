@@ -40,6 +40,7 @@ class TestDispatchedDevicePage:
             logger.warning("Dispatched Device test skipped: %s", test_name)
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_dispatched_device_page_url_is_correct(
         self, dispatched_device_page, report_case
     ):
@@ -69,6 +70,7 @@ class TestDispatchedDevicePage:
     """ Dispatched Device Page Test Cases """
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_dispatched_device_page_title_is_correct(
         self, dispatched_device_page, report_case
     ):
@@ -101,6 +103,7 @@ class TestDispatchedDevicePage:
 
         logger.info("Dispatched Device page title validated successfully")
 
+    @pytest.mark.regression
     def test_dispatched_device_page_all_elements_are_visible(
         self, dispatched_device_page, report_case
     ):
@@ -159,6 +162,7 @@ class TestDispatchedDevicePage:
 
         logger.info("All Dispatched Device page elements validated successfully")
 
+    @pytest.mark.regression
     def test_dispatched_device_page_component_title_is_correct(
         self, dispatched_device_page, report_case
     ):
@@ -193,6 +197,7 @@ class TestDispatchedDevicePage:
 
         logger.info("Dispatched Device component title validated successfully")
 
+    @pytest.mark.regression
     def test_dispatched_device_page_table_headers_are_correct(
         self, dispatched_device_page, report_case
     ):
@@ -237,6 +242,7 @@ class TestDispatchedDevicePage:
 
         logger.info("Dispatched Device table headers validated successfully")
 
+    @pytest.mark.regression
     def test_dispatched_device_page_table_data_contains_valid_device_information(
         self, dispatched_device_page, report_case
     ):
@@ -351,6 +357,7 @@ class TestDispatchedDevicePage:
 
         logger.info("Dispatched Device table data validation completed successfully")
 
+    @pytest.mark.regression
     def test_dispatched_device_page_shows_no_data_message_when_table_is_empty(
         self, dispatched_device_page, report_case
     ):
@@ -415,6 +422,7 @@ class TestDispatchedDevicePage:
             "Completed validation of 'No Data Found' message on Dispatched Device page"
         )
 
+    @pytest.mark.regression
     def test_dispatched_device_page_customer_dropdown_matches_api_list(
         self, dispatched_device_page, report_case
     ):
@@ -467,6 +475,7 @@ class TestDispatchedDevicePage:
         logger.info("Select Customer dropdown values validated successfully")
 
     # test select dropdown one by one and validate the table data with if no data then with no data found message
+    @pytest.mark.regression
     def test_dispatched_device_page_customer_dropdown_filters_table_by_selected_customer(
         self, dispatched_device_page, report_case
     ):
@@ -549,6 +558,7 @@ class TestDispatchedDevicePage:
                     )
 
     # Test the search functionality by entering a value in search box and validating the table data with that value if no data then with no data found message
+    @pytest.mark.regression
     def test_dispatched_device_page_search_finds_devices_by_imei(
         self, dispatched_device_page, report_case
     ):
@@ -599,6 +609,7 @@ class TestDispatchedDevicePage:
             )
 
     ## Pagination test case should be added
+    @pytest.mark.regression
     def test_dispatched_device_page_pagination_navigates_across_pages(
         self, dispatched_device_page, report_case
     ):
@@ -633,6 +644,7 @@ class TestDispatchedDevicePage:
     """ Manual Upload Test Cases should be added here """
 
     # test the manual upload button is visible and on clicking it should open the manual upload form and then validate it.
+    @pytest.mark.regression
     def test_dispatched_device_page_manual_upload_button_opens_form(
         self, dispatched_device_page, report_case
     ):
@@ -670,6 +682,7 @@ class TestDispatchedDevicePage:
             "Manual Upload button functionality validated successfully on Dispatched Device page"
         )
 
+    @pytest.mark.regression
     def test_manual_upload_form_uid_field_shows_error_when_empty(
         self, dispatched_device_page, report_case
     ):
@@ -704,6 +717,7 @@ class TestDispatchedDevicePage:
 
         logger.info("Empty UID field validation completed successfully")
 
+    @pytest.mark.regression
     def test_manual_upload_form_uid_field_shows_error_for_special_characters(
         self, dispatched_device_page, report_case
     ):
@@ -738,6 +752,7 @@ class TestDispatchedDevicePage:
 
         logger.info("UID special characters validation completed successfully")
 
+    @pytest.mark.regression
     def test_manual_upload_form_uid_field_accepts_valid_alphanumeric_input(
         self, dispatched_device_page, report_case
     ):
@@ -768,6 +783,7 @@ class TestDispatchedDevicePage:
 
         logger.info("Valid UID input validation completed successfully")
 
+    @pytest.mark.regression
     def test_manual_upload_form_uid_field_shows_error_for_leading_trailing_spaces(
         self, dispatched_device_page, report_case
     ):
@@ -802,6 +818,7 @@ class TestDispatchedDevicePage:
 
         logger.info("UID leading/trailing spaces validation completed successfully")
 
+    @pytest.mark.regression
     def test_manual_upload_form_customer_part_number_shows_error_when_empty(
         self, dispatched_device_page, report_case
     ):
@@ -840,6 +857,7 @@ class TestDispatchedDevicePage:
             "Empty Customer Part Number field validation completed successfully"
         )
 
+    @pytest.mark.regression
     def test_manual_upload_form_customer_part_number_shows_error_for_leading_trailing_spaces(
         self, dispatched_device_page, report_case
     ):
@@ -879,6 +897,7 @@ class TestDispatchedDevicePage:
         )
 
     # test the select customer dropdown is present and validate the values of the customers on the dropdown
+    @pytest.mark.regression
     def test_manual_upload_form_customer_dropdown_matches_api_list(
         self, dispatched_device_page, report_case
     ):
@@ -941,6 +960,7 @@ class TestDispatchedDevicePage:
         )
 
     # test that all if fields are not filled then the submit button should be disabled
+    @pytest.mark.regression
     def test_manual_upload_form_submit_button_is_disabled_when_required_fields_empty(
         self, dispatched_device_page, report_case
     ):
@@ -975,6 +995,7 @@ class TestDispatchedDevicePage:
             "Submit button disabled state validation completed successfully for empty required fields in Manual Upload form"
         )
 
+    @pytest.mark.regression
     def test_manual_upload_form_submit_button_is_disabled_when_fields_invalid(
         self, dispatched_device_page, report_case
     ):
@@ -1009,6 +1030,7 @@ class TestDispatchedDevicePage:
             "Submit button disabled state validation completed successfully for invalid input in required fields in Manual Upload form"
         )
 
+    @pytest.mark.regression
     def test_manual_upload_form_submit_button_is_enabled_when_all_fields_valid(
         self, dispatched_device_page, report_case
     ):
@@ -1046,6 +1068,7 @@ class TestDispatchedDevicePage:
             "Submit button enabled state validation completed successfully for valid input in required fields in Manual Upload form"
         )
 
+    @pytest.mark.regression
     def test_manual_upload_form_submission_succeeds_with_valid_device_uid(
         self, dispatched_device_page, report_case
     ):
@@ -1123,6 +1146,7 @@ class TestDispatchedDevicePage:
 
     """ Bulk Upload Test Cases added here """
 
+    @pytest.mark.regression
     def test_dispatched_device_page_bulk_upload_button_opens_form(
         self, dispatched_device_page, report_case
     ):
@@ -1158,6 +1182,7 @@ class TestDispatchedDevicePage:
             "Bulk Upload button functionality validated successfully on Dispatched Device page"
         )
 
+    @pytest.mark.regression
     def test_dispatched_device_page_bulk_upload_button_navigates_to_add_devices_form(
         self, dispatched_device_page, report_case
     ):
@@ -1191,6 +1216,7 @@ class TestDispatchedDevicePage:
             "Bulk Upload button click and navigation to Bulk Upload page validated successfully on Dispatched Device page"
         )
 
+    @pytest.mark.regression
     def test_dispatched_device_page_input_box_error_validation(
         self, dispatched_device_page, report_case
     ):
@@ -1230,6 +1256,7 @@ class TestDispatchedDevicePage:
         )
 
     # test the submit button on bulk upload is disabled when no file is selected and enabled when a file is selected
+    @pytest.mark.regression
     def test_dispatched_device_page_bulk_upload_submit_button_state(
         self, dispatched_device_page, report_case
     ):
@@ -1288,6 +1315,7 @@ class TestDispatchedDevicePage:
         )
 
     # upload file and click submit button and validate
+    @pytest.mark.regression
     def test_dispatched_device_page_bulk_upload_submission(
         self, dispatched_device_page, report_case
     ):
@@ -1338,6 +1366,7 @@ class TestDispatchedDevicePage:
         )
 
     # test after upload file 2 components will appears on ui 1. Uploaded Dispatch Device List 2. Invalid Dispatch Device List... validate for both them
+    @pytest.mark.regression
     def test_dispatched_device_page_bulk_upload_result_components(
         self, dispatched_device_page, report_case
     ):
@@ -1400,6 +1429,7 @@ class TestDispatchedDevicePage:
         )
 
     # test that both tables have same headers present
+    @pytest.mark.regression
     def test_dispatched_device_page_bulk_upload_result_tables_have_same_headers(
         self, dispatched_device_page, report_case
     ):
@@ -1452,6 +1482,7 @@ class TestDispatchedDevicePage:
         )
 
     # test if no data image present then validate data on other table. if no data image is present on both tables then it should show no data found message
+    @pytest.mark.regression
     def test_dispatched_device_page_bulk_upload_result_tables_no_data_validation(
         self, dispatched_device_page, report_case
     ):
@@ -1487,6 +1518,15 @@ class TestDispatchedDevicePage:
         logger.debug(
             "Invalid Dispatch Device List 'No Data Found' state check | expected=Depends on data | actual=%s",
             is_invalid_list_no_data,
+        )
+
+        report_case(
+            expected="Bulk upload result tables should expose no-data state for validation",
+            actual=(
+                f"Uploaded list no data: {is_uploaded_list_no_data}, "
+                f"Invalid list no data: {is_invalid_list_no_data}"
+            ),
+            message="Validate no-data state in bulk upload result tables",
         )
 
         if is_uploaded_list_no_data and not is_invalid_list_no_data:
@@ -1528,6 +1568,7 @@ class TestDispatchedDevicePage:
             )
 
     # test export button state based on data availability in result tables
+    @pytest.mark.regression
     def test_dispatched_device_page_bulk_upload_result_tables_export_button_validation(
         self, dispatched_device_page, report_case
     ):
