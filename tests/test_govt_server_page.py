@@ -1330,6 +1330,8 @@ class TestGovtServerPage:
 
         govt_server_page.search_respective_server()
 
+        govt_server_page.click_on_add_open_cpu_firmware_button()
+
         # Step 2: Select firmware checkbox
         firmware_index = 1
 
@@ -2264,6 +2266,7 @@ class TestGovtServerPage:
     def test_govt_server_page_click_add_firmware_btn_and_validate_title(
         self, govt_server_page, report_case
     ):
+        govt_server_page.click_firmware_master_button()
         govt_server_page.click_add_firmware_button()
         govt_server_page.page.wait_for_load_state("networkidle")
         expected_title = "Add Firmware"

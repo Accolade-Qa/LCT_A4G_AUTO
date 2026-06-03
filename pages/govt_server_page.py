@@ -288,8 +288,10 @@ class GovtServerPage(BasePage):
         submit_button.wait_for(state="visible")
 
         submit_button.click(force=True)
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
 
-        logger.info("Clicked Submit button")
+        logger.info("Clicked Submit button and waited for page activity to settle")
 
     def click_outside_to_get_error_msg(self):
         component_title = self.page.locator("h6.component-title")
@@ -445,6 +447,12 @@ class GovtServerPage(BasePage):
 
         return sorted(firmware_list)
 
+    def click_on_add_open_cpu_firmware_button(self):
+        logger.info("Clicking on the add open cpu firmware button")
+        self.page.get_by_text("Add Open CPU Firmware").click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
+
     def search_respective_server(self):
         """Search for a specific server"""
         state_name = "Shital"
@@ -513,21 +521,25 @@ class GovtServerPage(BasePage):
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(3000)
 
-        checkboxes = self.page.locator("input[type='checkbox']")
+        firmware_rows = self.page.locator(
+            "//h6[normalize-space()='Firmware Master List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr"
+        )
 
-        checkboxes.first.wait_for(state="visible")
+        firmware_rows.first.wait_for(state="visible")
 
-        total_checkboxes = checkboxes.count()
+        total_rows = firmware_rows.count()
 
         logger.info(
-            "Total firmware checkboxes found: %s",
-            total_checkboxes,
+            "Total firmware rows found: %s",
+            total_rows,
         )
 
         checked_checkbox_indexes = []
 
-        for index in range(total_checkboxes):
-            checkbox = checkboxes.nth(index)
+        for index in range(total_rows):
+            checkbox = firmware_rows.nth(index).locator("input[type='checkbox']")
 
             if checkbox.is_checked():
                 checked_checkbox_indexes.append(index + 1)
@@ -538,7 +550,7 @@ class GovtServerPage(BasePage):
         )
 
         result = {
-            "total_checkboxes": total_checkboxes,
+            "total_checkboxes": total_rows,
             "checked_checkbox_indexes": checked_checkbox_indexes,
             "all_unchecked": len(checked_checkbox_indexes) == 0,
         }
@@ -566,33 +578,42 @@ class GovtServerPage(BasePage):
             index,
         )
 
-        checkboxes = self.page.locator("input[type='checkbox']")
+        firmware_rows = self.page.locator(
+            "//h6[normalize-space()='Firmware Master List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr"
+        )
 
-        total_checkboxes = checkboxes.count()
+        firmware_rows.first.wait_for(state="visible")
 
-        if index < 1 or index > total_checkboxes:
+        total_rows = firmware_rows.count()
+
+        if index < 1 or index > total_rows:
             logger.error(
-                "Invalid checkbox index: %s. Total checkboxes available: %s",
+                "Invalid checkbox index: %s. Total firmware rows available: %s",
                 index,
-                total_checkboxes,
+                total_rows,
             )
             return False
 
-        checkbox_to_select = checkboxes.nth(index - 1)
+        checkbox_to_select = firmware_rows.nth(index - 1).locator(
+            "input[type='checkbox']"
+        )
+        checkbox_to_select.wait_for(state="visible")
 
         if not checkbox_to_select.is_checked():
-            checkbox_to_select.check()
+            checkbox_to_select.check(force=True)
             logger.info(
                 "Checkbox at index %s selected successfully",
                 index,
             )
             return True
-        else:
-            logger.info(
-                "Checkbox at index %s is already selected",
-                index,
-            )
-            return True
+
+        logger.info(
+            "Checkbox at index %s is already selected",
+            index,
+        )
+        return True
 
     def get_open_cpu_firmware_name_by_index(self, index):
         rows = self.page.locator(
@@ -601,7 +622,15 @@ class GovtServerPage(BasePage):
             "//table/tbody/tr"
         )
 
-        row_text = rows.nth(index).inner_text().strip()
+        if index < 1 or index > rows.count():
+            logger.error(
+                "Invalid firmware row index: %s. Total rows available: %s",
+                index,
+                rows.count(),
+            )
+            return ""
+
+        row_text = rows.nth(index - 1).inner_text().strip()
 
         logger.info(
             "Row %s text: %s",
@@ -616,7 +645,7 @@ class GovtServerPage(BasePage):
             cols,
         )
 
-        firmware_name = cols[1].strip()
+        firmware_name = cols[1].strip() if len(cols) > 1 else ""
 
         logger.info(
             "Firmware name extracted: %s",
@@ -627,12 +656,12 @@ class GovtServerPage(BasePage):
 
     def is_firmware_present_in_open_cpu_list(self, firmware_name):
         """
-        Check if a specific firmware is present in the Open CPU Firmware Master List
+        Check if a specific firmware is present in the Open CPU Firmware Master List.
 
         Args:
             firmware_name (str): Name of the firmware to check
-        Returns:
 
+        Returns:
             bool: True if firmware is present, False otherwise
         """
 
@@ -641,28 +670,49 @@ class GovtServerPage(BasePage):
             firmware_name,
         )
 
-        firmware_names = self.page.locator(
+        candidate_selectors = [
+            "//h6[normalize-space()='Open CPU Firmware List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr/td[2]",
+            "//h6[normalize-space()='Open CPU Firmware List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr/td[3]",
             "//h6[normalize-space()='Firmware Master List']"
             "/ancestor::div[contains(@class,'component-container')]"
-            "//table/tbody/tr/td[2]"
-        )
+            "//table/tbody/tr/td[2]",
+            "//h6[normalize-space()='Firmware Master List']"
+            "/ancestor::div[contains(@class,'component-container')]"
+            "//table/tbody/tr/td[3]",
+        ]
 
-        total_firmwares = firmware_names.count()
+        seen_firmware_names = []
+        for selector in candidate_selectors:
+            firmware_names = self.page.locator(selector)
+            total_firmwares = firmware_names.count()
 
-        for index in range(total_firmwares):
-            current_firmware_name = firmware_names.nth(index).inner_text().strip()
+            logger.debug(
+                "Checking selector '%s' with %s candidate firmware names",
+                selector,
+                total_firmwares,
+            )
 
-            if current_firmware_name == firmware_name:
-                logger.info(
-                    "Firmware '%s' found in the list at index %s",
-                    firmware_name,
-                    index + 1,
-                )
-                return True
+            for index in range(total_firmwares):
+                current_firmware_name = firmware_names.nth(index).inner_text().strip()
+                seen_firmware_names.append(current_firmware_name)
+
+                if current_firmware_name == firmware_name:
+                    logger.info(
+                        "Firmware '%s' found in the list at selector '%s' index %s",
+                        firmware_name,
+                        selector,
+                        index + 1,
+                    )
+                    return True
 
         logger.info(
-            "Firmware '%s' not found in the Open CPU Firmware Master List",
+            "Firmware '%s' not found in any candidate list. Seen firmware names: %s",
             firmware_name,
+            seen_firmware_names,
         )
         return False
 

@@ -425,15 +425,21 @@ class OtaPage(BasePage):
 
     def is_new_ota_button_enabled(self) -> bool:
         logger.debug("Checking if New OTA button is enabled on Manual OTA page")
+        abort = self.page.locator("button.delete-button")
+
         try:
-            button = self.page.get_by_text("New OTA add_circle")
-            button.wait_for(state="visible", timeout=3000)
-            is_enabled = not button.is_disabled()
-            logger.debug("New OTA button enabled state: %s", is_enabled)
-            return is_enabled
+            abort.wait_for(state="visible", timeout=1000)
+            if abort.is_enabled():
+                logger.debug("Abort button found and enabled, clicking it")
+                abort.click()
         except Exception as e:
-            logger.error("Error checking New OTA button enabled state: %s", str(e))
-            return False
+            logger.debug("Abort button not found or not visible: %s", str(e))
+
+        button = self.page.get_by_text("New OTA add_circle")
+        button.wait_for(state="visible", timeout=3000)
+        is_enabled = not button.is_disabled()
+        logger.debug("New OTA button enabled state: %s", is_enabled)
+        return is_enabled
 
     def click_new_ota_button(self) -> None:
         logger.debug("Clicking New OTA button on Manual OTA page")
