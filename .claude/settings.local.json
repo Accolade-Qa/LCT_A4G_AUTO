@@ -1,4 +1,4 @@
 {
-  "local_agent": "assistant",
-  "notes": "Use CLAUDE.local.md for machine-specific details and avoid committing secrets."
+  "$schema": "https://json-schema.org/claude-code-settings.json",
+  "respectGitignore": true
 }
