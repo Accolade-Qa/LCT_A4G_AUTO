@@ -44,8 +44,7 @@ Artifacts/
 Reports/
 
 # Claude code files
-# *.claude
-# CLAUDE.local.md
-# CLAUDE.md
+CLAUDE.local.md
+.claude/settings.local.json
 
 # test_data/
