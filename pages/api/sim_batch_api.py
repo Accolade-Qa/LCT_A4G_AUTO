@@ -2,6 +2,7 @@ import json
 
 from utils.logger import get_logger
 from .api_client import APIClient
+from test_data.device_data import DeviceData
 
 logger = get_logger(__name__)
 
@@ -10,7 +11,7 @@ class SIMBatchAPI(APIClient):
     """API client for SIM batch data operations."""
 
     @staticmethod
-    def get_sim_batch_details(page):
+    def get_sim_batch_details_by_csv(page):
         """Fetch SIM batch details from API by ICCID list.
 
         Args:
@@ -21,19 +22,66 @@ class SIMBatchAPI(APIClient):
         """
         sim_details_endpoint = "/sensoriseSimData/getSimDetailsByIccidUsingCsv"
 
-        logger.info("Fetching SIM batch details from %s", sim_details_endpoint)
+        with open("./test_data/Sensorise_SIM_data_Details.xlsx", "rb") as f:
+            file_content = f.read()
+            multipart = {
+                "file": {
+                    "name": "Sensorise_SIM_data_Details.xlsx",
+                    "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "buffer": file_content,
+                }
+            }
+
+            logger.info("Fetching SIM batch details from %s", sim_details_endpoint)
+
+            try:
+                sim_details_data = APIClient.send_request(
+                    page,
+                    "POST",
+                    sim_details_endpoint,
+                    files=multipart,
+                )
+                logger.info("Successfully fetched SIM batch details")
+                duplicate_rows = sim_details_data.get("duplicateRows", [])
+                sim_details = sim_details_data.get("simDetails", {})
+                errors = sim_details_data.get("errors", [])
+
+                return duplicate_rows, sim_details, errors
+            except Exception as e:
+                logger.error("Failed to fetch SIM batch details: %s", str(e))
+                raise
+
+    @staticmethod
+    def get_sim_batch_by_manual_upload(page):
+        """Fetch sim data details from a manual upload iccid
+
+        Args:
+            page: Playwright page object with request context.
+
+        Return:
+            dict: Sim batch details from api response
+        """
+        devices = DeviceData().get_device_data()
+
+        iccid = devices.get("device_3")[1]
+        endpoint = "/sensoriseSimData/getSimDetailsByIccid"
+        payload = [iccid]
+        logger.info("Fetching sim data details from %s", endpoint)
 
         try:
-            sim_details_data = APIClient.send_request(
+            sim_data = APIClient.send_request(
                 page,
                 "POST",
-                sim_details_endpoint,
-                data=json.dumps({"iccidList": ["89916450344844659043"]}),
+                endpoint=endpoint,
+                data=json.dumps(payload),
             )
-            logger.info("Successfully fetched SIM batch details")
-            sim_details = sim_details_data.get("data", {})
-            logger.debug("SIM batch details: %s", sim_details)
-            return sim_details
+
+            data = sim_data.get("data", {})
+
+            return data
+
         except Exception as e:
-            logger.error("Failed to fetch SIM batch details: %s", str(e))
+            logger.error(
+                "Failed to fetch sim data details via manual upload: %s", str(e)
+            )
             raise

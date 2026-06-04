@@ -67,20 +67,26 @@ class APIClient:
         return token
 
     @staticmethod
-    def get_request_headers(page):
+    def get_request_headers(page, extra_headers=None, include_json_content_type=True):
         """Get authorization headers for API requests.
 
         Args:
             page: Playwright page object with request context.
+            extra_headers: Optional headers to merge.
+            include_json_content_type: If False, omit Content-Type.
 
         Returns:
-            dict: Headers with Bearer token and Content-Type.
+            dict: Authorization headers for API requests.
         """
         token = APIClient.get_bearer_token(page)
-        return {
+        headers = {
             "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
         }
+        if include_json_content_type:
+            headers["Content-Type"] = "application/json"
+        if extra_headers:
+            headers.update(extra_headers)
+        return headers
 
     @staticmethod
     def send_request(page, method, endpoint, **kwargs):
@@ -98,7 +104,17 @@ class APIClient:
         Raises:
             Exception: If the request fails.
         """
-        headers = APIClient.get_request_headers(page)
+        headers = kwargs.pop("headers", None)
+
+        files = kwargs.pop("files", None)
+        if files is not None:
+            kwargs["multipart"] = files
+        include_json_content_type = files is None
+        headers = APIClient.get_request_headers(
+            page,
+            extra_headers=headers,
+            include_json_content_type=include_json_content_type,
+        )
         url = f"{API_BASE_URL}{endpoint}"
 
         logger.info("Sending %s request to %s", method, endpoint)
@@ -132,56 +148,3 @@ class APIClient:
             raise Exception(
                 f"API request to {endpoint} failed: {response.status} {response.text()}"
             )
-
-    @staticmethod
-    def delete_resource(page, endpoint):
-        """Delete a resource from the API.
-
-        Args:
-            page: Playwright page object with request context.
-            endpoint: API endpoint path for the resource to delete.
-
-        Returns:
-            dict: Response data (empty dict for 204 No Content responses).
-
-        Raises:
-            Exception: If the delete request fails.
-        """
-        logger.info("Deleting resource at %s", endpoint)
-        return APIClient.send_request(page, "DELETE", endpoint)
-
-    @staticmethod
-    def update_resource(page, endpoint, data):
-        """Update an entire resource (PUT) in the API.
-
-        Args:
-            page: Playwright page object with request context.
-            endpoint: API endpoint path for the resource to update.
-            data: Dictionary of data to update (will be JSON encoded).
-
-        Returns:
-            dict: Updated resource data from API response.
-
-        Raises:
-            Exception: If the update request fails.
-        """
-        logger.info("Updating resource at %s", endpoint)
-        return APIClient.send_request(page, "PUT", endpoint, data=json.dumps(data))
-
-    @staticmethod
-    def partial_update_resource(page, endpoint, data):
-        """Partially update a resource (PATCH) in the API.
-
-        Args:
-            page: Playwright page object with request context.
-            endpoint: API endpoint path for the resource to partially update.
-            data: Dictionary of fields to update (will be JSON encoded).
-
-        Returns:
-            dict: Updated resource data from API response.
-
-        Raises:
-            Exception: If the partial update request fails.
-        """
-        logger.info("Partially updating resource at %s", endpoint)
-        return APIClient.send_request(page, "PATCH", endpoint, data=json.dumps(data))
