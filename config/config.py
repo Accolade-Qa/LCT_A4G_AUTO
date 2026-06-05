@@ -32,16 +32,24 @@ OTA_URL = os.getenv(
 )
 
 PRODUCTION_PAGE_URL = os.getenv(
-    "PRODUCTION_PAGE_URL", "http://lct-a4g-qa.accoladeelectronics.com/production-device-page"
+    "PRODUCTION_PAGE_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/production-device-page",
 )
 
 CREATE_PRODUCTION_URL = os.getenv(
-    "CREATE_PRODUCTION_URL", "http://lct-a4g-qa.accoladeelectronics.com/create-production-device"
+    "CREATE_PRODUCTION_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/create-production-device",
 )
 
 ADD_PRODUCTION_URL = os.getenv(
-    "ADD_PRODUCTION_URL", "http://lct-a4g-qa.accoladeelectronics.com/add-production-device"
+    "ADD_PRODUCTION_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/add-production-device",
 )
+
+USER_MANAGEMENT_URL = os.getenv(
+    "USER_MANAGEMENT_URL", "http://lct-a4g-qa.accoladeelectronics.com/user-tab"
+)
+
 
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")
