@@ -17,6 +17,7 @@ from config.config import (
     HEADLESS,
     USERNAME,
     PASSWORD,
+    USER_MANAGEMENT_URL,
 )
 from config.global_var import SCREENSHOT_PATH
 from pages.base_page import BasePage
@@ -36,7 +37,7 @@ logger = get_logger(__name__)
 ZOOM_SCRIPT = """
 () => {
     const applyZoom = () => {
-        const zoomLevel = '0.75';
+        const zoomLevel = '1';
 
         if (document.documentElement) {
             document.documentElement.style.zoom = zoomLevel;
@@ -88,6 +89,7 @@ def browser(playwright_instance):
 # Context with zoom applied
 def _new_context_with_zoom(browser, **kwargs):
     context = browser.new_context(viewport=None)
+    
     context.add_init_script(ZOOM_SCRIPT)
     logger.debug("Created new browser context with zoom applied")
     return context
@@ -293,3 +295,12 @@ def profile_page(page):
 
     logger.info("Profile page fixture ready")
     return profile
+
+@pytest.fixture
+def user_management(page):
+    from pages.user_management import UserManagementPage
+    
+    usermanagement = UserManagementPage(page)
+    usermanagement.go_to_user(USER_MANAGEMENT_URL)    
+    return usermanagement
+

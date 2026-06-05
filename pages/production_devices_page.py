@@ -55,10 +55,10 @@ class ProductionDevices(BasePage):
         self.page.goto(url)
 
     def _nav_list_visibility(self):
-        nav_bar_locator = self.page.locator(".nav-list")
+        nav_bar_locator = self.page.locator("ul.nav-list")
         nav_bar_locator.wait_for(state="visible")
         self.highlight(nav_bar_locator)
-        self.page.wait_for_timeout(5000)
+
         return nav_bar_locator.is_enabled()
 
     def _is_PageTitle_Visible(self):
@@ -66,7 +66,7 @@ class ProductionDevices(BasePage):
         page_title_locator = self.page.locator(":text-is('Production Device')")
         page_title_locator.wait_for(state="visible")
         self.highlight(page_title_locator)
-        self.page.wait_for_timeout(5000)
+
         return page_title_locator.is_visible()
 
     def _manual_upload_btn_visibility(self):
@@ -75,7 +75,7 @@ class ProductionDevices(BasePage):
         )
         manual_btn_locator.wait_for(state="visible")
         self.highlight(manual_btn_locator)
-        self.page.wait_for_timeout(5000)
+
         return manual_btn_locator.is_visible()
 
     def _manual_upload_click(self):
@@ -84,7 +84,7 @@ class ProductionDevices(BasePage):
         )
         manual_btn_locator.wait_for(state="visible")
         self.highlight(manual_btn_locator)
-        self.page.wait_for_timeout(5000)
+
         manual_btn_locator.click()
 
     def _create_prod_PageTitle(self):
@@ -93,14 +93,14 @@ class ProductionDevices(BasePage):
         )
         create_title_locator.wait_for(state="visible")
         self.highlight(create_title_locator)
-        self.page.wait_for_timeout(5000)
+
         return create_title_locator.is_visible()
 
     def _uid_visibility(self):
 
         self.uid_locator.wait_for(state="visible")
         self.highlight(self.uid_locator)
-        self.page.wait_for_timeout(5000)
+
         return self.uid_locator.is_visible()
 
     def _new_uid(self):
@@ -159,7 +159,7 @@ class ProductionDevices(BasePage):
         self.alt_mob_locator.wait_for(state="visible")
         self.highlight(self.alt_mob_locator)
         self.alt_mob_locator.fill("9182736455")
-        self.page.wait_for_timeout(5000)
+        
 
     def _new_alt_ser_pro(self):
 
@@ -180,11 +180,11 @@ class ProductionDevices(BasePage):
         self.sim_vendor_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"
         )
-        self.page.wait_for_timeout(10000)
+
         self.sim_vendor_locator.wait_for(state="visible")
         self.highlight(self.sim_vendor_locator)
         self.sim_vendor_locator.fill("Sensorise")
-        self.page.wait_for_timeout(5000)
+        
 
     def _new_boot_exp_date(self):
 
@@ -199,7 +199,7 @@ class ProductionDevices(BasePage):
 
         date.wait_for(state="visible")
         date.click()
-        self.page.wait_for_timeout(5000)
+
 
     def _submit_button(self):
 
@@ -225,7 +225,7 @@ class ProductionDevices(BasePage):
         self.page.get_by_text("Model Name", exact=True).click()
         self.dropdown.wait_for(state="visible")
         self.highlight(self.dropdown)
-        self.page.wait_for_timeout(5000)
+
 
         self.mobile_locator.fill("918273645512345")
 
@@ -249,7 +249,7 @@ class ProductionDevices(BasePage):
         date.wait_for(state="visible")
         date.click()
         self.highlight(self.boot_exp_locator)
-        self.page.wait_for_timeout(5000)
+        
 
         self.submit_button_locator.click()
 
@@ -272,7 +272,7 @@ class ProductionDevices(BasePage):
         self.page.get_by_text("Update Model", exact=True).click()
         self.dropdown.wait_for(state="visible")
         self.highlight(self.dropdown)
-        self.page.wait_for_timeout(5000)
+        
 
         self.mobile_locator.fill("918273645554321")
 
@@ -295,10 +295,10 @@ class ProductionDevices(BasePage):
         date.wait_for(state="visible")
         date.click()
         self.highlight(self.boot_exp_locator)
-        self.page.wait_for_timeout(5000)
+        
 
         self.update_button_locator.click()
-        self.page.wait_for_timeout(5000)
+
 
     def _search_device_2(self):
 
@@ -327,7 +327,7 @@ class ProductionDevices(BasePage):
         self.bulk_btn_locator.wait_for(state="visible")
         self.highlight(self.bulk_btn_locator)
         self.bulk_btn_locator.click()
-        self.page.wait_for_timeout(3000)
+
 
     def _btn_enability(self):
 
@@ -337,7 +337,7 @@ class ProductionDevices(BasePage):
         assert self.sam_btn_locator.is_enabled()
         assert self.up_btn_locator.is_enabled()
         assert not self.add_submit_btn_locator.is_enabled()
-        self.page.wait_for_timeout(5000)
+        
 
     def click_sample_btn(self):
         self.sam_btn_locator.wait_for(state="visible")
@@ -385,7 +385,10 @@ class ProductionDevices(BasePage):
 
         self.export_invalid_locator
 
-        return row_count > 0 and self.export_invalid_locator.is_enabled(), "Export button is disabled"
+        return (
+            row_count > 0 and self.export_invalid_locator.is_enabled(),
+            "Export button is disabled",
+        )
 
     def _check_file(self):
         self.add_submit_btn_locator.wait_for(state="visible")
@@ -396,7 +399,7 @@ class ProductionDevices(BasePage):
         self.duplicate_title_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"
         )
-        self.page.wait_for_timeout(3000)
+        
 
         self.invalid_title_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"
@@ -443,7 +446,10 @@ class ProductionDevices(BasePage):
 
         self.export_uploaded_locator
 
-        return row_count > 0 and self.export_uploaded_locator.is_enabled(), "Export button is disabled"
+        return (
+            row_count > 0 and self.export_uploaded_locator.is_enabled(),
+            "Export button is disabled",
+        )
 
     def upload_duplicate_file(self, file_path):
 
@@ -455,4 +461,7 @@ class ProductionDevices(BasePage):
 
         self.export_duplicate_locator
 
-        return row_count > 0 and self.export_duplicate_locator.is_enabled(), "Export button is disabled"
+        return (
+            row_count > 0 and self.export_duplicate_locator.is_enabled(),
+            "Export button is disabled",
+        )

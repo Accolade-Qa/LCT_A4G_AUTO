@@ -46,6 +46,11 @@ ADD_PRODUCTION_URL = os.getenv(
     "http://lct-a4g-qa.accoladeelectronics.com/add-production-device",
 )
 
+USER_MANAGEMENT_URL = os.getenv(
+    "USER_MANAGEMENT_URL", "http://lct-a4g-qa.accoladeelectronics.com/user-tab"
+)
+
+
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")
 BROWSER = os.getenv("BROWSER", "chromium")
