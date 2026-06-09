@@ -27,7 +27,6 @@ from pages.login_page import LoginPage
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-os.makedirs("reports", exist_ok=True)
 os.makedirs(SCREENSHOT_PATH, exist_ok=True)
 
 from utils.logger import get_logger
@@ -89,7 +88,7 @@ def browser(playwright_instance):
 # Context with zoom applied
 def _new_context_with_zoom(browser, **kwargs):
     context = browser.new_context(viewport=None)
-    
+
     context.add_init_script(ZOOM_SCRIPT)
     logger.debug("Created new browser context with zoom applied")
     return context
@@ -296,11 +295,11 @@ def profile_page(page):
     logger.info("Profile page fixture ready")
     return profile
 
+
 @pytest.fixture
 def user_management(page):
     from pages.user_management import UserManagementPage
-    
-    usermanagement = UserManagementPage(page)
-    usermanagement.go_to_user(USER_MANAGEMENT_URL)    
-    return usermanagement
 
+    usermanagement = UserManagementPage(page)
+    usermanagement.go_to_user(USER_MANAGEMENT_URL)
+    return usermanagement
