@@ -3,7 +3,6 @@ from unittest import result
 
 import pytest
 from playwright.sync_api import expect
-from config.config import GOVERNMENT_SERVERS_URL
 from pages import govt_server_page
 from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
@@ -808,9 +807,7 @@ class TestGovtServerPage:
             message="Validate firmware API count consistency",
         )
 
-        assert (
-            total_firmware_count == calculated_total
-        ), "Total count is mismatched"
+        assert total_firmware_count == calculated_total, "Total count is mismatched"
 
         # ---------------- OC Firmware Validation ---------------- #
 
@@ -2430,7 +2427,9 @@ class TestGovtServerPage:
     def test_govt_server_page_validate_search_functionality_of_firmware_master_table_with_added_firmware(
         self, govt_server_page, report_case
     ):
-        logger.info("Pending implementation for Firmware Master table search validation")
+        logger.info(
+            "Pending implementation for Firmware Master table search validation"
+        )
         report_case(
             expected="Firmware Master table search should find added firmware",
             actual="Pending implementation",

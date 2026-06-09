@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from config.config import SIM_DATA_DETAILS_URL
 from pages.api.sim_batch_api import SIMBatchAPI
 from utils.logger import get_logger
 

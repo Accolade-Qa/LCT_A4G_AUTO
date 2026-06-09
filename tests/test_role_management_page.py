@@ -2,7 +2,6 @@ import time
 
 import pytest
 
-from config.config import ROLE_MANAGEMENT_URL
 from pages.common import TableSection, PaginationHelper
 from utils.helpers import Helpers
 from utils.logger import get_logger

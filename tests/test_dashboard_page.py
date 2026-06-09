@@ -1,4 +1,3 @@
-from config.config import DASHBOARD_URL
 from conftest import page
 from pages.api import DeviceDashboardAPI
 from pages.base_page import BasePage
@@ -34,21 +33,22 @@ class TestDashboardPage:
     @pytest.mark.smoke
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_dashboard_page_navigates_to_correct_url(self, dashboard_page, report_case):
+    def test_dashboard_page_navigates_to_correct_url(
+        self, dashboard_page, project_config, report_case
+    ):
         logger.info("Validating dashboard landing URL")
 
-        actual_url = dashboard_page.go_to_dashboard(DASHBOARD_URL)
+        expected_url = project_config["dashboard_url"]
+        actual_url = dashboard_page.page.url
 
         logger.debug(
             "Dashboard URL check | expected=%s | actual=%s",
-            DASHBOARD_URL,
+            expected_url,
             actual_url,
         )
-        report_case(expected=DASHBOARD_URL, actual=actual_url)
+        report_case(expected=expected_url, actual=actual_url)
 
-        assert (
-            actual_url == DASHBOARD_URL
-        ), f"Expected {DASHBOARD_URL}, got {actual_url}"
+        assert actual_url == expected_url, f"Expected {expected_url}, got {actual_url}"
 
     @pytest.mark.smoke
     @pytest.mark.regression

@@ -6,7 +6,6 @@ from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
 from test_data.device_data import DeviceData
 from utils.logger import get_logger
-from config.config import DISPATCHED_DEVICE_URL, IMEI
 from pages.base_page import BasePage
 from pages.api.customer_api import CustomerAPI
 

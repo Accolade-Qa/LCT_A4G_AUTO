@@ -1,23 +1,8 @@
 import logging
 import re
-
-from pytest_playwright.pytest_playwright import page
-
-from utils.excel_report import write_result  # ✅ ADD THIS
-from utils.logger import get_logger  # (if using custom logger)
-from playwright.async_api import expect
-from streamlit import text, title
-from pages.base_page import BasePage
 from datetime import datetime
-from config.config import (
-    BASE_URL,
-    PAGE_TITLE,
-    USERNAME,
-    PASSWORD,
-    INVALID_USERNAME,
-    INVALID_PASSWORD,
-    DASHBOARD_URL,
-)
+
+from pages.base_page import BasePage
 
 
 class LoginPage(BasePage):
@@ -58,7 +43,7 @@ class LoginPage(BasePage):
         self.logger.info(f"Opening URL: {url}")
         self.page.goto(url, wait_until="domcontentloaded", timeout=60000)
 
-    def login(self, username=USERNAME, password=PASSWORD):
+    def login(self, username, password):
         self.logger.info("Entering username")
         self.username.fill(username)
         self.logger.info("Entering password")
@@ -66,14 +51,10 @@ class LoginPage(BasePage):
         self.logger.info("Clicking login button")
         self.login_btn.click()
         self.page.wait_for_load_state("networkidle")
-        self.logger.info("Waiting for dashboard URL")
-        # self.page.wait_for_url(DASHBOARD_URL, timeout=60000)
-        self.logger.info("Login successful")
+        self.logger.info("Login action completed")
 
     # 🔹 New Method 2: Invalid Login Method
-    def login_with_invalid_credentials(
-        self, username=INVALID_USERNAME, password=INVALID_PASSWORD
-    ):
+    def login_with_invalid_credentials(self, username, password):
         self.logger.info(f"Login started | Username: {username}")
         self.username.fill(username)
         self.password.fill(password)
@@ -82,7 +63,7 @@ class LoginPage(BasePage):
         return self.errormsg.inner_text().strip()
 
     #  🔹 New Method 3: Login with username
-    def login_with_usernameonly(self, username=USERNAME):
+    def login_with_usernameonly(self, username):
         self.username.fill(username)
         self.page.keyboard.press("Tab")
         self.login_btn.click()
@@ -91,7 +72,7 @@ class LoginPage(BasePage):
         print(f"Captured Error: [{error_text}]")
         return error_text
 
-    def login_with_passwordonly(self, username="", password=PASSWORD):
+    def login_with_passwordonly(self, username, password):
         try:
             self.logger.info(f"Login with password only: {password}")
             # Fill fields
@@ -109,7 +90,7 @@ class LoginPage(BasePage):
             self.logger.error(f"Error in password-only login: {e}")
             raise
 
-    def verify_page_title(self, page_title=PAGE_TITLE):
+    def verify_page_title(self, page_title):
         try:
             self.logger.info("Verifying page title...")
             self.page.wait_for_load_state("load")

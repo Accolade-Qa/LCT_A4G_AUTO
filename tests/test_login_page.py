@@ -1,15 +1,6 @@
 import re
 import pytest
 from pages.login_page import LoginPage
-from config.config import (
-    PAGE_TITLE,
-    USERNAME,
-    PASSWORD,
-    DASHBOARD_URL,
-    BASE_URL,
-    INVALID_PASSWORD,
-    INVALID_USERNAME,
-)
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -43,25 +34,41 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_login_with_valid_credentials(self, page, report_case):
+    def test_login_with_valid_credentials(
+        self,
+        login_page,
+        project_config,
+        test_data,
+        report_case,
+    ):
         """Validate successful login with valid username and password"""
         logger.info("Starting validation of login with valid credentials")
 
-        login_page = LoginPage(page)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
-
-        expected_url = DASHBOARD_URL
+        expected_url = project_config["dashboard_url"]
         logger.debug("Expected dashboard URL: %s", expected_url)
 
-        logger.debug("Submitting login credentials for user: %s", USERNAME)
-        login_page.login(USERNAME, PASSWORD)
+        logger.debug(
+            "Submitting login credentials for user: %s",
+            project_config["username"],
+        )
+        login_page.login(
+            project_config["username"],
+            project_config["password"],
+        )
 
-        logger.debug("Waiting for URL to change to dashboard")
-        page.wait_for_url("**/device-dashboard-page", timeout=20000)
+        login_page.page.wait_for_url("**/device-dashboard-page", timeout=60000)
 
-        actual_url = page.url
+        actual_url = login_page.page.url
+
+        assert project_config["username"] == test_data.get(
+            "login_user"
+        ), "Configured username should match project login user"
+        assert (
+            project_config["dashboard_url"] in actual_url
+        ), f"Expected dashboard URL to contain {project_config['dashboard_url']}, got {actual_url}"
 
         logger.debug(
             "Login URL check | expected=%s | actual=%s",
@@ -85,25 +92,29 @@ class TestLoginPage:
         logger.info("Login validation with valid credentials completed successfully")
 
     @pytest.mark.regression
-    def test_login_with_invalid_credentials(self, page, report_case):
+    def test_login_with_invalid_credentials(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate error message when logging in with invalid credentials"""
         logger.info("Starting validation of login with invalid credentials")
 
-        login_page = LoginPage(page)
-
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
         expected_error_message = "Minimum 6 characters required"
 
         logger.debug(
             "Submitting invalid credentials | username=%s | password=%s",
-            INVALID_USERNAME,
-            INVALID_PASSWORD,
+            project_config["invalid_username"],
+            project_config["invalid_password"],
         )
         actual_error_message = (
             login_page.login_with_invalid_credentials(
-                INVALID_USERNAME, INVALID_PASSWORD
+                project_config["invalid_username"],
+                project_config["invalid_password"],
             )
             .strip()
             .lower()
@@ -134,19 +145,25 @@ class TestLoginPage:
         logger.info("Invalid credentials validation completed successfully")
 
     @pytest.mark.regression
-    def test_login_with_username_only(self, page, report_case):
+    def test_login_with_username_only(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate error message when logging in with username only"""
         logger.info("Starting validation of login with username only")
 
-        login_page = LoginPage(page)
-
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
         expected_error_message = "minimum 6 characters required"
 
-        logger.debug("Submitting username only: %s", USERNAME)
-        error_message = login_page.login_with_usernameonly(USERNAME)
+        logger.debug(
+            "Submitting username only: %s",
+            project_config["username"],
+        )
+        error_message = login_page.login_with_usernameonly(project_config["username"])
 
         logger.debug("Received error message: %s", error_message)
         assert error_message != "", "Error message should not be empty"
@@ -175,19 +192,25 @@ class TestLoginPage:
         logger.info("Username only validation completed successfully")
 
     @pytest.mark.regression
-    def test_login_with_password_only(self, page, report_case):
+    def test_login_with_password_only(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate error message when logging in with password only"""
         logger.info("Starting validation of login with password only")
 
-        login_page = LoginPage(page)
-
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
         expected_error_message = "This field is required and can't be only spaces."
 
         logger.debug("Submitting password only with username field as spaces")
-        error_message = login_page.login_with_passwordonly(" ", PASSWORD)
+        error_message = login_page.login_with_passwordonly(
+            " ",
+            project_config["password"],
+        )
 
         logger.debug("Received error message: %s", error_message)
         assert error_message != "", "Error message should not be empty"
@@ -217,16 +240,19 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_page_title_is_correct(self, page, report_case):
+    def test_page_title_is_correct(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate that the login page title is correct"""
         logger.info("Starting validation of login page title")
 
-        login_page = LoginPage(page)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
-
-        expected_title = PAGE_TITLE
+        expected_title = project_config["page_title"]
         logger.debug("Expected page title: %s", expected_title)
 
         logger.debug("Verifying page title")
@@ -256,13 +282,16 @@ class TestLoginPage:
         logger.info("Page title validation completed successfully")
 
     @pytest.mark.regression
-    def test_login_with_long_username_and_short_password(self, page, report_case):
+    def test_login_with_long_username_and_short_password(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate error messages when logging in with long username and short password"""
         logger.info(
             "Starting validation of login with long username and short password"
         )
-
-        login_page = LoginPage(page)
 
         expected_errors = [
             "Please enter a valid Email ID.",
@@ -270,8 +299,8 @@ class TestLoginPage:
         ]
         logger.debug("Expected error messages: %s", expected_errors)
 
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
         logger.debug(
             "Submitting invalid credentials | username=shitalaccolade | password=ABCD"
@@ -315,13 +344,16 @@ class TestLoginPage:
         )
 
     @pytest.mark.regression
-    def test_login_with_short_username_and_short_password(self, page, report_case):
+    def test_login_with_short_username_and_short_password(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate error messages when logging in with short username and short password"""
         logger.info(
             "Starting validation of login with short username and short password"
         )
-
-        login_page = LoginPage(page)
 
         expected_errors = [
             "Please enter a valid Email ID.",
@@ -329,8 +361,8 @@ class TestLoginPage:
         ]
         logger.debug("Expected error messages: %s", expected_errors)
 
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
         logger.debug("Submitting invalid credentials | username=shital | password=ABCD")
         login_page.login("shital", "ABCD")
@@ -372,14 +404,17 @@ class TestLoginPage:
         )
 
     @pytest.mark.regression
-    def test_footer_links_are_present(self, page, report_case):
+    def test_footer_links_are_present(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate that footer links are present on the login page"""
         logger.info("Starting validation of footer links presence")
 
-        login_page = LoginPage(page)
-
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
         expected_links = ["Accolade Electronics Pvt. Ltd."]
         logger.debug("Expected footer links: %s", expected_links)
@@ -423,14 +458,17 @@ class TestLoginPage:
         logger.info("Footer links presence validation completed successfully")
 
     @pytest.mark.regression
-    def test_footer_links_are_clickable(self, page, report_case):
+    def test_footer_links_are_clickable(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate that footer links are clickable on the login page"""
         logger.info("Starting validation of footer links clickability")
 
-        login_page = LoginPage(page)
-
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
         logger.debug("Verifying footer links clickability")
         results = login_page.verify_footer_links_clickable()
@@ -468,14 +506,17 @@ class TestLoginPage:
         logger.info("Footer links clickability validation completed successfully")
 
     @pytest.mark.regression
-    def test_footer_contains_current_year(self, page, report_case):
+    def test_footer_contains_current_year(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate that footer contains the current year"""
         logger.info("Starting validation of footer year")
 
-        login_page = LoginPage(page)
-
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
         logger.debug("Verifying footer year")
         footer_text, current_year = login_page.verify_footer_year()
@@ -513,14 +554,17 @@ class TestLoginPage:
         logger.info("Footer year validation completed successfully")
 
     @pytest.mark.regression
-    def test_build_version_format_is_valid(self, page, report_case):
+    def test_build_version_format_is_valid(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
         """Validate that build version is in valid format (X.Y.Z)"""
         logger.info("Starting validation of build version format")
 
-        login_page = LoginPage(page)
-
-        logger.debug("Loading base URL: %s", BASE_URL)
-        login_page.load(BASE_URL)
+        logger.debug("Loading base URL: %s", project_config["base_url"])
+        login_page.load(project_config["base_url"])
 
         logger.debug("Retrieving build version from page")
         version = login_page.get_build_version()

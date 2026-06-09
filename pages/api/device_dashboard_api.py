@@ -8,11 +8,14 @@ class DeviceDashboardAPI(APIClient):
     """API client for device dashboard operations."""
 
     @staticmethod
-    def get_device_counts(page):
+    def get_device_counts(page, api_base_url, api_username, api_password):
         """Fetch device counts by status from API.
 
         Args:
             page: Playwright page object with request context.
+            api_base_url: Base URL for API.
+            api_username: API username.
+            api_password: API password.
 
         Returns:
             dict: Device status titles mapped to their counts.
@@ -41,7 +44,9 @@ class DeviceDashboardAPI(APIClient):
         for title, endpoint in device_count_endpoints:
             try:
                 logger.info("Fetching %s from %s", title, endpoint)
-                data = APIClient.send_request(page, "GET", endpoint)
+                data = APIClient.send_request(
+                    page, api_base_url, api_username, api_password, "GET", endpoint
+                )
                 count = data.get("data")
                 logger.debug("API response for '%s': %s", title, data)
                 if count is None:

@@ -1,7 +1,6 @@
 import re
 
 import pytest
-from config.config import IMEI
 from playwright.sync_api import expect
 from pages import ota_page
 from pages.common.search import SearchHelper
@@ -431,7 +430,9 @@ class TestOtaPage:
             message="Validate Add OTA Command button visibility",
         )
 
-        assert button_visible, "Add OTA Command button is not visible on OTA Master page"
+        assert (
+            button_visible
+        ), "Add OTA Command button is not visible on OTA Master page"
 
         if button_visible:
             logger.info("Add OTA Command button is visible on OTA Master page")

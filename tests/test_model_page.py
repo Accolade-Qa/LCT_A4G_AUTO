@@ -1,14 +1,6 @@
 import pytest
 from playwright.sync_api import expect
 
-from config.config import (
-    BASE_URL,
-    CREATE_NEW_MODEL,
-    MODEL_URL,
-    PASSWORD,
-    UPDATE_MODEL,
-    USERNAME,
-)
 from pages.login_page import LoginPage
 from pages.model_page import DeviceModel
 from utils.logger import get_logger
@@ -19,87 +11,90 @@ logger = get_logger(__name__)
 @pytest.mark.device
 @pytest.mark.regression
 class TestModel:
-    def _login_and_dashboard(self, page):
+    def _login_and_dashboard(self, page, project_config):
         login_page = LoginPage(page)
-        login_page.load(BASE_URL)
-        login_page.login(USERNAME, PASSWORD)
+        login_page.load(project_config["base_url"])
+        login_page.login(project_config["username"], project_config["password"])
 
         return DeviceModel(page)
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_go_to_model(self, page, report_case):
+    def test_go_to_model(self, model_page, project_config, report_case):
         logger.info("Starting validation of Model page navigation")
-        model_page = DeviceModel(page)
-        model_page.go_to_model(MODEL_URL)
 
-        actual_url = page.url
-        logger.debug("Model page URL check | expected=%s | actual=%s", MODEL_URL, actual_url)
+        expected_url = project_config["model_url"]
+        actual_url = model_page.page.url
+        logger.debug(
+            "Model page URL check | expected=%s | actual=%s", expected_url, actual_url
+        )
 
         report_case(
-            expected=MODEL_URL,
+            expected=expected_url,
             actual=actual_url,
             message="Validate Model page navigation",
         )
 
-        assert actual_url == MODEL_URL, f"Expected URL '{MODEL_URL}', got '{actual_url}'"
+        assert (
+            actual_url == expected_url
+        ), f"Expected URL '{expected_url}', got '{actual_url}'"
         logger.info("Successfully validated Model page navigation")
 
     @pytest.mark.regression
-    def test_go_to_create_model(self, page, report_case):
+    def test_go_to_create_model(self, page, project_config, report_case):
         logger.info("Starting validation of Create Model page navigation")
-        self._login_and_dashboard(page)
+        self._login_and_dashboard(page, project_config)
         model_page = DeviceModel(page)
-        model_page.go_to_create_model(CREATE_NEW_MODEL)
+        model_page.go_to_create_model(project_config["create_new_model"])
 
         actual_url = page.url
+        expected_url = project_config["create_new_model"]
         logger.debug(
             "Create Model URL check | expected=%s | actual=%s",
-            CREATE_NEW_MODEL,
+            expected_url,
             actual_url,
         )
 
         report_case(
-            expected=CREATE_NEW_MODEL,
+            expected=expected_url,
             actual=actual_url,
             message="Validate Create Model page navigation",
         )
 
-        assert actual_url == CREATE_NEW_MODEL, (
-            f"Expected URL '{CREATE_NEW_MODEL}', got '{actual_url}'"
-        )
+        assert (
+            actual_url == expected_url
+        ), f"Expected URL '{expected_url}', got '{actual_url}'"
         logger.info("Successfully validated Create Model page navigation")
 
     @pytest.mark.regression
-    def test_go_to_update_model(self, page, report_case):
+    def test_go_to_update_model(self, page, project_config, report_case):
         logger.info("Starting validation of Update Model page navigation")
-        self._login_and_dashboard(page)
+        self._login_and_dashboard(page, project_config)
         model_page = DeviceModel(page)
-        model_page.go_to_update_model(UPDATE_MODEL)
+        model_page.go_to_update_model(project_config["update_model"])
 
         actual_url = page.url
+        expected_url = project_config["update_model"]
         logger.debug(
             "Update Model URL check | expected=%s | actual=%s",
-            UPDATE_MODEL,
+            expected_url,
             actual_url,
         )
 
         report_case(
-            expected=UPDATE_MODEL,
+            expected=expected_url,
             actual=actual_url,
             message="Validate Update Model page navigation",
         )
 
-        assert actual_url == UPDATE_MODEL, (
-            f"Expected URL '{UPDATE_MODEL}', got '{actual_url}'"
-        )
+        assert (
+            actual_url == expected_url
+        ), f"Expected URL '{expected_url}', got '{actual_url}'"
         logger.info("Successfully validated Update Model page navigation")
 
     @pytest.mark.regression
-    def test_nav_list_visibility(self, page, report_case):
+    def test_nav_list_visibility(self, model_page, project_config, report_case):
         logger.info("Starting validation of Model navigation list visibility")
-        model_page = DeviceModel(page)
-        model_page.go_to_model(MODEL_URL)
 
         is_visible = model_page._nav_list_visibility()
         logger.debug("Model navigation list visible: %s", is_visible)
@@ -369,7 +364,9 @@ class TestModel:
         model_page.go_to_update_model(UPDATE_MODEL)
         model_page.update_model_seriel_sequence("UpdatedSequence")
 
-        logger.debug("Entered updated Model Serial Sequence value: %s", "UpdatedSequence")
+        logger.debug(
+            "Entered updated Model Serial Sequence value: %s", "UpdatedSequence"
+        )
         report_case(
             expected="Update Model Serial Sequence field should accept value 'UpdatedSequence'",
             actual="Updated Model Serial Sequence value entered",
@@ -450,9 +447,9 @@ class TestModel:
             message="Validate updated Model text",
         )
 
-        assert actual_model_texts == expected_model_text, (
-            f"Expected model text {expected_model_text}, got {actual_model_texts}"
-        )
+        assert (
+            actual_model_texts == expected_model_text
+        ), f"Expected model text {expected_model_text}, got {actual_model_texts}"
         logger.info("Successfully validated updated Model text")
 
     @pytest.mark.regression
