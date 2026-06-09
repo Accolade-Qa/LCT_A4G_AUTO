@@ -4,6 +4,58 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_URL = os.getenv("BASE_URL")
+<<<<<<< HEAD
+=======
+
+
+DASHBOARD_URL = os.getenv(
+    "DASHBOARD_URL", "http://lct-a4g-qa.accoladeelectronics.com/device-dashboard-page"
+)
+
+SIM_DATA_DETAILS_URL = os.getenv(
+    "SIM_DATA_DETAILS_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/sensorise-sim-data-details",
+)
+ROLE_MANAGEMENT_URL = os.getenv(
+    "ROLE_MANAGEMENT_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/user-role",
+)
+
+ROLE_GROUP_URL = os.getenv(
+    "ROLE_GROUP_URL", "http://lct-a4g-qa.accoladeelectronics.com/role-group"
+)
+
+DEVICE_DETAILS_URL = os.getenv(
+    "DEVICE_DETAILS_URL", "http://lct-a4g-qa.accoladeelectronics.com/device-details"
+)
+
+OTA_URL = os.getenv(
+    "OTA_URL", "http://lct-a4g-qa.accoladeelectronics.com/ota-batch-page"
+)
+
+PRODUCTION_PAGE_URL = os.getenv(
+    "PRODUCTION_PAGE_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/production-device-page",
+)
+
+CREATE_PRODUCTION_URL = os.getenv(
+    "CREATE_PRODUCTION_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/create-production-device",
+)
+
+ADD_PRODUCTION_URL = os.getenv(
+    "ADD_PRODUCTION_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/add-production-device",
+)
+
+USER_MANAGEMENT_URL = os.getenv(
+    "USER_MANAGEMENT_URL", "http://lct-a4g-qa.accoladeelectronics.com/user-tab"
+)
+
+CUSTOMER_MASTER_URL = os.getenv("CUSTOMER_MASTER_URL", "http://lct-a4g-qa.accoladeelectronics.com/customer-master")
+
+
+>>>>>>> JDK_User
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")
 BROWSER = os.getenv("BROWSER", "chromium")
