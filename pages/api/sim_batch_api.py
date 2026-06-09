@@ -11,11 +11,14 @@ class SIMBatchAPI(APIClient):
     """API client for SIM batch data operations."""
 
     @staticmethod
-    def get_sim_batch_details_by_csv(page):
+    def get_sim_batch_details_by_csv(page, api_base_url, api_username, api_password):
         """Fetch SIM batch details from API by ICCID list.
 
         Args:
             page: Playwright page object with request context.
+            api_base_url: Base URL for API.
+            api_username: API username.
+            api_password: API password.
 
         Returns:
             dict: SIM batch details from API response.
@@ -37,6 +40,9 @@ class SIMBatchAPI(APIClient):
             try:
                 sim_details_data = APIClient.send_request(
                     page,
+                    api_base_url,
+                    api_username,
+                    api_password,
                     "POST",
                     sim_details_endpoint,
                     files=multipart,
@@ -52,11 +58,14 @@ class SIMBatchAPI(APIClient):
                 raise
 
     @staticmethod
-    def get_sim_batch_by_manual_upload(page):
+    def get_sim_batch_by_manual_upload(page, api_base_url, api_username, api_password):
         """Fetch sim data details from a manual upload iccid
 
         Args:
             page: Playwright page object with request context.
+            api_base_url: Base URL for API.
+            api_username: API username.
+            api_password: API password.
 
         Return:
             dict: Sim batch details from api response
@@ -71,6 +80,9 @@ class SIMBatchAPI(APIClient):
         try:
             sim_data = APIClient.send_request(
                 page,
+                api_base_url,
+                api_username,
+                api_password,
                 "POST",
                 endpoint=endpoint,
                 data=json.dumps(payload),

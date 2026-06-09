@@ -2,14 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from config.config import (
-    ADD_PRODUCTION_URL,
-    BASE_URL,
-    CREATE_PRODUCTION_URL,
-    PASSWORD,
-    PRODUCTION_PAGE_URL,
-    USERNAME,
-)
 from pages.login_page import LoginPage
 from pages.production_devices_page import ProductionDevices
 from utils.logger import get_logger
@@ -21,45 +13,44 @@ logger = get_logger(__name__)
 @pytest.mark.device
 @pytest.mark.regression
 class TestProductionDevices:
-    def _login_and_dashboard(self, page):
+    def _login_and_dashboard(self, page, project_config):
         login_page = LoginPage(page)
-        login_page.load(BASE_URL)
-        login_page.login(USERNAME, PASSWORD)
+        login_page.load(project_config["base_url"])
+        login_page.login(project_config["username"], project_config["password"])
 
         return ProductionDevices(page)
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_go_to_prod(self, page, report_case):
+    def test_go_to_prod(self, production_devices_page, project_config, report_case):
         logger.info("Starting validation of Production Devices page navigation")
-        production_page = self._login_and_dashboard(page)
-        production_page.go_to_prod(PRODUCTION_PAGE_URL)
 
-        actual_url = page.url
+        expected_url = project_config["production_page_url"]
+        actual_url = production_devices_page.page.url
         logger.debug(
             "Production Devices URL check | expected=%s | actual=%s",
-            PRODUCTION_PAGE_URL,
+            expected_url,
             actual_url,
         )
 
         report_case(
-            expected=PRODUCTION_PAGE_URL,
+            expected=expected_url,
             actual=actual_url,
             message="Validate Production Devices page navigation",
         )
 
-        assert actual_url == PRODUCTION_PAGE_URL, (
-            f"Expected URL '{PRODUCTION_PAGE_URL}', got '{actual_url}'"
-        )
+        assert (
+            actual_url == expected_url
+        ), f"Expected URL '{expected_url}', got '{actual_url}'"
         logger.info("Successfully validated Production Devices page navigation")
 
     @pytest.mark.regression
-    def test_nav_list_visibility(self, page, report_case):
+    def test_nav_list_visibility(
+        self, production_devices_page, project_config, report_case
+    ):
         logger.info("Starting validation of Production navbar list visibility")
-        production_page = self._login_and_dashboard(page)
-        production_page.go_to_prod(PRODUCTION_PAGE_URL)
 
-        is_visible = production_page._nav_list_visibility()
+        is_visible = production_devices_page._nav_list_visibility()
         logger.debug("Production navbar list visible: %s", is_visible)
 
         report_case(
@@ -72,11 +63,12 @@ class TestProductionDevices:
         logger.info("Successfully validated Production navbar list visibility")
 
     @pytest.mark.regression
-    def test_is_PageTitle_Visible(self, page, report_case):
+    def test_is_PageTitle_Visible(
+        self, production_devices_page, project_config, report_case
+    ):
         logger.info("Starting validation of Production page title visibility")
-        production_page = self._login_and_dashboard(page)
 
-        is_visible = production_page._is_PageTitle_Visible()
+        is_visible = production_devices_page._is_PageTitle_Visible()
         logger.debug("Production page title visible: %s", is_visible)
 
         report_case(

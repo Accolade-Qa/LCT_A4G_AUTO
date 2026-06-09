@@ -8,11 +8,14 @@ class CustomerAPI(APIClient):
     """API client for customer data operations."""
 
     @staticmethod
-    def get_customer_list(page):
+    def get_customer_list(page, api_base_url, api_username, api_password):
         """Fetch all customer names from API.
 
         Args:
             page: Playwright page object with request context.
+            api_base_url: Base URL for API.
+            api_username: API username.
+            api_password: API password.
 
         Returns:
             list: Customer names fetched from API.
@@ -22,7 +25,9 @@ class CustomerAPI(APIClient):
         logger.info("Fetching customer list from %s", customer_endpoint)
 
         try:
-            response_data = APIClient.send_request(page, "GET", customer_endpoint)
+            response_data = APIClient.send_request(
+                page, api_base_url, api_username, api_password, "GET", customer_endpoint
+            )
 
             customers = response_data.get("data", [])
 

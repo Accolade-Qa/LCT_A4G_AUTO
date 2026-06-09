@@ -1,4 +1,3 @@
-from config.config import PRODUCTION_PAGE_URL
 from playwright.sync_api import expect
 from .base_page import BasePage
 import os
@@ -159,7 +158,6 @@ class ProductionDevices(BasePage):
         self.alt_mob_locator.wait_for(state="visible")
         self.highlight(self.alt_mob_locator)
         self.alt_mob_locator.fill("9182736455")
-        
 
     def _new_alt_ser_pro(self):
 
@@ -184,7 +182,6 @@ class ProductionDevices(BasePage):
         self.sim_vendor_locator.wait_for(state="visible")
         self.highlight(self.sim_vendor_locator)
         self.sim_vendor_locator.fill("Sensorise")
-        
 
     def _new_boot_exp_date(self):
 
@@ -199,7 +196,6 @@ class ProductionDevices(BasePage):
 
         date.wait_for(state="visible")
         date.click()
-
 
     def _submit_button(self):
 
@@ -226,7 +222,6 @@ class ProductionDevices(BasePage):
         self.dropdown.wait_for(state="visible")
         self.highlight(self.dropdown)
 
-
         self.mobile_locator.fill("918273645512345")
 
         self.ser_pro_locator.fill("Airtel")
@@ -249,7 +244,6 @@ class ProductionDevices(BasePage):
         date.wait_for(state="visible")
         date.click()
         self.highlight(self.boot_exp_locator)
-        
 
         self.submit_button_locator.click()
 
@@ -272,7 +266,6 @@ class ProductionDevices(BasePage):
         self.page.get_by_text("Update Model", exact=True).click()
         self.dropdown.wait_for(state="visible")
         self.highlight(self.dropdown)
-        
 
         self.mobile_locator.fill("918273645554321")
 
@@ -295,10 +288,8 @@ class ProductionDevices(BasePage):
         date.wait_for(state="visible")
         date.click()
         self.highlight(self.boot_exp_locator)
-        
 
         self.update_button_locator.click()
-
 
     def _search_device_2(self):
 
@@ -328,7 +319,6 @@ class ProductionDevices(BasePage):
         self.highlight(self.bulk_btn_locator)
         self.bulk_btn_locator.click()
 
-
     def _btn_enability(self):
 
         self.sam_btn_locator.wait_for(state="visible")
@@ -337,7 +327,6 @@ class ProductionDevices(BasePage):
         assert self.sam_btn_locator.is_enabled()
         assert self.up_btn_locator.is_enabled()
         assert not self.add_submit_btn_locator.is_enabled()
-        
 
     def click_sample_btn(self):
         self.sam_btn_locator.wait_for(state="visible")
@@ -399,7 +388,6 @@ class ProductionDevices(BasePage):
         self.duplicate_title_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"
         )
-        
 
         self.invalid_title_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"

@@ -1,6 +1,5 @@
 import pytest
 
-from config.config import API_PASSWORD, API_USERNAME
 from pages.api.sim_batch_api import SIMBatchAPI
 from utils.logger import get_logger
 
