@@ -335,8 +335,8 @@ class UserManagementPage(BasePage):
         self.mob_no_locator.clear()
         self.mob_no_locator.fill("789654321")
         self.highlight(self.mob_no_locator)
-        logger.info("Before clicking update anme is dhananjay")
-        # self.update.evaluate("element => element.scrollIntoView({block: 'center'})")
+        logger.info("Before clicking update name is dhananjay")
+
         self.page.wait_for_timeout(5000)
 
         self.update.click()

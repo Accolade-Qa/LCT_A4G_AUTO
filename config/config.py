@@ -50,6 +50,8 @@ USER_MANAGEMENT_URL = os.getenv(
     "USER_MANAGEMENT_URL", "http://lct-a4g-qa.accoladeelectronics.com/user-tab"
 )
 
+CUSTOMER_MASTER_URL = os.getenv("CUSTOMER_MASTER_URL", "http://lct-a4g-qa.accoladeelectronics.com/customer-master")
+
 
 USERNAME = os.getenv("APP_USERNAME")
 PASSWORD = os.getenv("APP_PASSWORD")

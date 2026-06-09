@@ -16,6 +16,7 @@ from config.config import (
     USERNAME,
     PASSWORD,
     USER_MANAGEMENT_URL,
+    CUSTOMER_MASTER_URL
 )
 from config.global_var import SCREENSHOT_PATH
 from pages.base_page import BasePage
@@ -281,4 +282,22 @@ def user_management(page):
     usermanagement = UserManagementPage(page)
     usermanagement.go_to_user(USER_MANAGEMENT_URL)    
     return usermanagement
+
+@pytest.fixture
+def customer_master(page):
+    from pages.customer_master_page import CustomerMasterPage
+    
+    customermaster = CustomerMasterPage(page)
+    customermaster.go_to_customer(CUSTOMER_MASTER_URL)
+    return customermaster
+
+
+
+
+
+
+
+
+
+
 
