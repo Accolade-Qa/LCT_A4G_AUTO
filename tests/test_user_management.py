@@ -17,7 +17,11 @@ class TestUsermanagement:
         logger.info("Testing page title visibility on user management page")
         expected_title = "User Management"
         actual_title = user_management.get_title()
-        logger.info("Expected page title: '%s', Actual page title: '%s'", expected_title, actual_title)
+        logger.info(
+            "Expected page title: '%s', Actual page title: '%s'",
+            expected_title,
+            actual_title,
+        )
 
         report_case(expected=expected_title, actual=actual_title)
         assert (
@@ -94,7 +98,7 @@ class TestUsermanagement:
 
         assert actual == data["expected"]
         logger.info("First name field validation test passed")
-        
+
     def test_last_name_field(self, user_management, report_case):
         logger.info("Starting test: Last name field validation")
         result = user_management.last_name_field()
@@ -130,7 +134,7 @@ class TestUsermanagement:
 
         assert actual == data["expected"]
         logger.info("Last name field validation test passed")
-        
+
     def test_email_field(self, user_management, report_case):
         logger.info("Starting test: Email field validation")
         result = user_management.email_field()
@@ -166,7 +170,7 @@ class TestUsermanagement:
 
         assert actual == data["expected"]
         logger.info("Email field validation test passed")
-        
+
     def test_mob_no_field(self, user_management, report_case):
 
         logger.info("Starting test: Mobile number field validation")
@@ -203,9 +207,9 @@ class TestUsermanagement:
 
         assert actual == data["expected"]
         logger.info("Mobile number field validation test passed")
-        
+
     def test_country_field(self, user_management, report_case):
-        
+
         logger.info("Starting test: Country field validation")
         result = user_management.country_field()
         logger.debug("Country field validation results: %s", result)
@@ -233,16 +237,16 @@ class TestUsermanagement:
         }
 
         for key, data in validations.items():
-            
+
             logger.info("Verifying validation message for: %s", key)
 
             actual = result[key]
             logger.debug("Expected: %s | Actual: %s", data["expected"], actual)
-            
+
         report_case(expected=data["expected"], actual=actual, message=data["message"])
 
         assert actual == data["expected"]
-        
+
         logger.info("Country field validation test passed")
 
     def test_state_field(self, user_management, report_case):
