@@ -97,7 +97,7 @@ class UserManagementPage(BasePage):
 
         # Select a few roles to exercise the dropdown (use explicit waits)
         roles = [
-            "Super Admin",
+            "super role",
             "Software Manager",
             "Admin",
             "VnV Manager",
@@ -333,7 +333,7 @@ class UserManagementPage(BasePage):
         self.email_locator.clear()
         self.email_locator.fill("qwer@demo.com")
         self.mob_no_locator.clear()
-        self.mob_no_locator.fill("789654321")
+        self.mob_no_locator.fill("9182734658")
         self.highlight(self.mob_no_locator)
         logger.info("Before clicking update name is dhananjay")
 

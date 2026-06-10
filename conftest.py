@@ -135,7 +135,8 @@ def report_case(record_property):
         # Always record properties, even if empty, to ensure they're in the report
         record_property("expected", str(expected) if expected != "" else "")
         record_property("actual", str(actual) if actual != "" else "")
-        if result:
+        
+        if message:
             record_property("result", result)
         if message:
             record_property("message", message)
@@ -301,11 +302,10 @@ def profile_page(page):
 def user_management(page):
     from pages.user_management import UserManagementPage
 
-<<<<<<< HEAD
     usermanagement = UserManagementPage(page)
     usermanagement.go_to_user(USER_MANAGEMENT_URL)
     return usermanagement
-=======
+
 @pytest.fixture
 def customer_master(page):
     from pages.customer_master_page import CustomerMasterPage
@@ -324,4 +324,3 @@ def customer_master(page):
 
 
 
->>>>>>> JDK_User
