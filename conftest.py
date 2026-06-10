@@ -135,7 +135,8 @@ def report_case(record_property):
         # Always record properties, even if empty, to ensure they're in the report
         record_property("expected", str(expected) if expected != "" else "")
         record_property("actual", str(actual) if actual != "" else "")
-        if result:
+
+        if message:
             record_property("result", result)
         if message:
             record_property("message", message)
