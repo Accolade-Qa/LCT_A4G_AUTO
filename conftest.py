@@ -6,32 +6,6 @@ from pathlib import Path
 
 import pytest
 from playwright.sync_api import sync_playwright
-<<<<<<< HEAD
-from config.config import (
-    BASE_URL,
-    DISPATCHED_DEVICE_URL,
-    IMEI,
-    BROWSER,
-    DASHBOARD_URL,
-    PROFILE_URL,
-    ROLE_GROUP_URL,
-    ROLE_MANAGEMENT_URL,
-    GOVERNMENT_SERVERS_URL,
-    SIM_DATA_DETAILS_URL,
-    OTA_URL,
-    HEADLESS,
-    USERNAME,
-    PASSWORD,
-    USER_MANAGEMENT_URL,
-    CUSTOMER_MASTER_URL,
-)
-from config.global_var import SCREENSHOT_PATH
-from pages.base_page import BasePage
-from pages.dashboard_page import DashboardPage
-from pages.device_details_page import DeviceDetailsPage
-from pages.login_page import LoginPage
-=======
->>>>>>> 416c5a5 (Update : major update in the project to have to run multiple projects at with the different configurations)
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -398,14 +372,6 @@ def user_management(page, project_config):
 
 
 @pytest.fixture
-<<<<<<< HEAD
-def customer_master(page):
-    from pages.customer_master_page import CustomerMasterPage
-
-    customermaster = CustomerMasterPage(page)
-    customermaster.go_to_customer(CUSTOMER_MASTER_URL)
-    return customermaster
-=======
 def model_page(page, project_config):
     from pages.model_page import DeviceModel
 
@@ -470,4 +436,3 @@ def govt_server_api(page, api_context):
     from pages.api.government_server_api import GovtServerAPI
 
     return GovtServerAPI
->>>>>>> 416c5a5 (Update : major update in the project to have to run multiple projects at with the different configurations)
