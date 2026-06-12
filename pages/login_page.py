@@ -1,12 +1,7 @@
 import logging
 import re
 
-from pytest_playwright.pytest_playwright import page
-
-from utils.excel_report import write_result  # ✅ ADD THIS
-from utils.logger import get_logger  # (if using custom logger)
-from playwright.async_api import expect
-from streamlit import text, title
+from playwright.sync_api import expect
 from pages.base_page import BasePage
 from datetime import datetime
 from config.config import (
@@ -100,7 +95,6 @@ class LoginPage(BasePage):
             self.login_btn.click()
             # Wait for error message
             self.emptyusername.first.wait_for(state="visible", timeout=5000)
-            self.page.wait_for_timeout(300)  # 🔥 stability
             error_text = self.emptyusername.first.inner_text().strip()
             print(f"Captured Error: [{error_text}]")  # 🔥 print output
             self.logger.info(f"Captured Error: {error_text}")

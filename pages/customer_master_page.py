@@ -80,7 +80,7 @@ class CustomerMasterPage(BasePage):
         self.highlight(self.add_customer_locator)
         self.add_customer_locator.click()
         logger.debug("Clicked on Add Customer button")
-        self.page.wait_for_timeout(3000)
+        self.customer_name_locator.wait_for(state="visible", timeout=5000)
 
     def get_visible_error(self):
 
@@ -151,7 +151,7 @@ class CustomerMasterPage(BasePage):
 
         self.customer_name_locator.fill("Test Customer")
         self.submit_btn_locator.click()
-        self.page.wait_for_timeout(3000)
+        self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("New Customer added successfully")
 
     def search_and_update_customer(self):
@@ -159,12 +159,12 @@ class CustomerMasterPage(BasePage):
         logger.info("Searching and updating customer")
         self.search_field_locator.fill("Test Customer")
         self.search_icon_locator.click()
-        self.page.wait_for_timeout(2000)
+        self.view_icon.wait_for(state="visible", timeout=5000)
         self.view_icon.click()
-        self.page.wait_for_timeout(3000)
+        self.customer_name_locator.wait_for(state="visible", timeout=5000)
         self.customer_name_locator.fill("Update Customer")
         self.submit_btn_locator.click()
-        self.page.wait_for_timeout(2000)
+        self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("Customer updated successfully")
 
     def search_and_delete_customer(self):
@@ -172,8 +172,8 @@ class CustomerMasterPage(BasePage):
         logger.info("Searching and deleting customer")
         self.search_field_locator.fill("Update Customer")
         self.search_icon_locator.click()
-        self.page.wait_for_timeout(2000)
+        self.delete_icon.wait_for(state="visible", timeout=5000)
         self.page.on("dialog", lambda dialog: dialog.accept())
         self.delete_icon.click()
-        self.page.wait_for_timeout(2000)
+        self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("Customer deleted successfully")

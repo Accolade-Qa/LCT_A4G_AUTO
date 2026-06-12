@@ -1,5 +1,3 @@
-from pytest_playwright.pytest_playwright import page
-
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -112,13 +110,19 @@ class RoleManagementPage:
             logger.error("Invalid permission type: %s", permission_type)
             raise ValueError(f"Invalid permission type: {permission_type}")
 
-        logger.debug("Building checkbox locator for page '%s' and permission type '%s'", page_name, permission_type)
+        logger.debug(
+            "Building checkbox locator for page '%s' and permission type '%s'",
+            page_name,
+            permission_type,
+        )
         checkbox = self.page.locator(
             f"//tr[td//strong[text()='{page_name}']]/td[{col_index + 1}]//input[@type='checkbox']"
         )
         logger.debug("Checking checkbox for permission")
         checkbox.check()
-        logger.info("Permission '%s' for '%s' checked successfully", permission_type, page_name)
+        logger.info(
+            "Permission '%s' for '%s' checked successfully", permission_type, page_name
+        )
 
     def select_all_permissions(self):
         logger.info("Selecting all permissions via select_all checkbox")
@@ -150,7 +154,11 @@ class RoleManagementPage:
             pass  # ignore if already gone
 
     def is_sub_permission_disabled(self, sub_name, permission_type):
-        logger.debug("Checking if sub-permission is disabled for '%s' - '%s'", sub_name, permission_type)
+        logger.debug(
+            "Checking if sub-permission is disabled for '%s' - '%s'",
+            sub_name,
+            permission_type,
+        )
         permission_map = {
             "view": 2,
             "create": 3,
@@ -164,7 +172,12 @@ class RoleManagementPage:
             f"//tr[td[contains(text(),'{sub_name}')]]/td[{col_index + 1}]//input"
         )
         is_disabled = checkbox.is_disabled()
-        logger.debug("Sub-permission '%s' for '%s' disabled status: %s", permission_type, sub_name, is_disabled)
+        logger.debug(
+            "Sub-permission '%s' for '%s' disabled status: %s",
+            permission_type,
+            sub_name,
+            is_disabled,
+        )
         return is_disabled
 
     def select_sub_permission(self, sub_name, permission_type):
@@ -237,8 +250,7 @@ class RoleManagementPage:
     def is_role_in_table(self, role_name):
         logger.info("Checking if role '%s' is in the table", role_name)
         logger.debug("Waiting for potential search results to load")
-        # Wait for potential search results to load
-        self.page.wait_for_timeout(1000)
+        self.page.wait_for_load_state("networkidle", timeout=5000)
         logger.debug("Building locator to check for role in table")
         role_locator = self.page.locator(f"//td[contains(text(), '{role_name}')]")
         is_visible = role_locator.is_visible()

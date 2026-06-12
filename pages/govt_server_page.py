@@ -289,7 +289,6 @@ class GovtServerPage(BasePage):
 
         submit_button.click(force=True)
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)
 
         logger.info("Clicked Submit button and waited for page activity to settle")
 
@@ -331,23 +330,6 @@ class GovtServerPage(BasePage):
 
         return success_message
 
-    def get_page_title_on_view_page(self):
-
-        search_helper = SearchHelper(self.page)
-
-        response = search_helper.run_search("Shital")
-
-        logger.info(
-            "Result of searched row is -> %s",
-            response["results"],
-        )
-
-        view_button = self.page.get_by_text("visibility").first
-        view_button.click()
-
-        page_title = self.page.locator("span.page-title")
-        return page_title.inner_text()
-
     def search_server(self, server_name):
         """Search for a specific server"""
 
@@ -382,8 +364,9 @@ class GovtServerPage(BasePage):
         """Get page title on view page"""
 
         page_title = self.page.locator("span.page-title")
+        page_title.wait_for(state="visible", timeout=5000)
 
-        return page_title.inner_text()
+        return page_title.inner_text().strip()
 
     def is_firmware_master_button_visible_and_enabled(self):
         """Check if the 'Firmware Master' button is visible and enabled"""
@@ -421,7 +404,9 @@ class GovtServerPage(BasePage):
         self.page.get_by_text("Add Open CPU Firmware").click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+        self.page.locator("//h6[normalize-space()='Firmware Master List']").wait_for(
+            state="visible", timeout=10000
+        )
 
         firmware_cells = self.page.locator(
             "//h6[normalize-space()='Firmware Master List']"
@@ -451,7 +436,9 @@ class GovtServerPage(BasePage):
         logger.info("Clicking on the add open cpu firmware button")
         self.page.get_by_text("Add Open CPU Firmware").click()
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)
+        self.page.locator("//h6[normalize-space()='Firmware Master List']").wait_for(
+            state="visible", timeout=10000
+        )
 
     def search_respective_server(self):
         """Search for a specific server"""
@@ -476,7 +463,9 @@ class GovtServerPage(BasePage):
         self.page.get_by_text("Add Open CPU Firmware").click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+        self.page.locator("//h6[normalize-space()='Firmware Master List']").wait_for(
+            state="visible", timeout=10000
+        )
 
         firmware_master_list = []
 
@@ -519,7 +508,9 @@ class GovtServerPage(BasePage):
         self.page.get_by_text("Add Open CPU Firmware").click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+        self.page.locator("//h6[normalize-space()='Firmware Master List']").wait_for(
+            state="visible", timeout=10000
+        )
 
         firmware_rows = self.page.locator(
             "//h6[normalize-space()='Firmware Master List']"
@@ -755,7 +746,9 @@ class GovtServerPage(BasePage):
         self.page.get_by_text("Add Device Firmware").click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+        self.page.locator(
+            "//h6[normalize-space()='Device Firmware Master List']"
+        ).wait_for(state="visible", timeout=10000)
 
         firmware_master_list = []
 
@@ -798,7 +791,9 @@ class GovtServerPage(BasePage):
         self.page.get_by_text("Add Device Firmware").click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+        self.page.locator("input[type='checkbox']").first.wait_for(
+            state="visible", timeout=10000
+        )
 
         checkboxes = self.page.locator("input[type='checkbox']")
 

@@ -108,21 +108,18 @@ class ProductionDevices(BasePage):
         self.uid_locator.wait_for(state="visible")
         self.highlight(self.uid_locator)
         self.uid_locator.fill("ACONSBA102500012345")
-        self.page.wait_for_timeout(5000)
 
     def _new_imei(self):
 
         self.imei_locator.wait_for(state="visible")
         self.highlight(self.imei_locator)
         self.imei_locator.fill("866677075612345")
-        self.page.wait_for_timeout(5000)
 
     def _new_iccid(self):
 
         self.iccid_locator.wait_for(state="visible")
         self.highlight(self.iccid_locator)
         self.iccid_locator.fill("89916450244842412345")
-        self.page.wait_for_timeout(5000)
 
     def _new_model_name(self, value):
         self.dropdown = self.page.get_by_role("combobox")
@@ -138,42 +135,36 @@ class ProductionDevices(BasePage):
 
         # Click the option
         self.page.get_by_text("Model Name", exact=True).click()
-        self.page.wait_for_timeout(5000)
 
     def _new_mobile_no(self):
 
         self.mobile_locator.wait_for(state="visible")
         self.highlight(self.mobile_locator)
         self.mobile_locator.fill("918273645512345")
-        self.page.wait_for_timeout(5000)
 
     def _new_service_provider(self):
 
         self.ser_pro_locator.wait_for(state="visible")
         self.highlight(self.ser_pro_locator)
         self.ser_pro_locator.fill("Airtel")
-        self.page.wait_for_timeout(5000)
 
     def _new_alt_mob_no(self):
 
         self.alt_mob_locator.wait_for(state="visible")
         self.highlight(self.alt_mob_locator)
         self.alt_mob_locator.fill("9182736455")
-        
 
     def _new_alt_ser_pro(self):
 
         self.alt_ser_pro_locator.wait_for(state="visible")
         self.highlight(self.alt_ser_pro_locator)
         self.alt_ser_pro_locator.fill("BSNL")
-        self.page.wait_for_timeout(5000)
 
     def _new_firmware(self):
 
         self.firmware_locator.wait_for(state="visible")
         self.highlight(self.firmware_locator)
         self.firmware_locator.fill("1.0.0")
-        self.page.wait_for_timeout(5000)
 
     def _new_sim_vendor(self):
 
@@ -184,7 +175,6 @@ class ProductionDevices(BasePage):
         self.sim_vendor_locator.wait_for(state="visible")
         self.highlight(self.sim_vendor_locator)
         self.sim_vendor_locator.fill("Sensorise")
-        
 
     def _new_boot_exp_date(self):
 
@@ -199,7 +189,6 @@ class ProductionDevices(BasePage):
 
         date.wait_for(state="visible")
         date.click()
-
 
     def _submit_button(self):
 
@@ -226,7 +215,6 @@ class ProductionDevices(BasePage):
         self.dropdown.wait_for(state="visible")
         self.highlight(self.dropdown)
 
-
         self.mobile_locator.fill("918273645512345")
 
         self.ser_pro_locator.fill("Airtel")
@@ -249,7 +237,6 @@ class ProductionDevices(BasePage):
         date.wait_for(state="visible")
         date.click()
         self.highlight(self.boot_exp_locator)
-        
 
         self.submit_button_locator.click()
 
@@ -272,7 +259,6 @@ class ProductionDevices(BasePage):
         self.page.get_by_text("Update Model", exact=True).click()
         self.dropdown.wait_for(state="visible")
         self.highlight(self.dropdown)
-        
 
         self.mobile_locator.fill("918273645554321")
 
@@ -295,10 +281,8 @@ class ProductionDevices(BasePage):
         date.wait_for(state="visible")
         date.click()
         self.highlight(self.boot_exp_locator)
-        
 
         self.update_button_locator.click()
-
 
     def _search_device_2(self):
 
@@ -328,7 +312,6 @@ class ProductionDevices(BasePage):
         self.highlight(self.bulk_btn_locator)
         self.bulk_btn_locator.click()
 
-
     def _btn_enability(self):
 
         self.sam_btn_locator.wait_for(state="visible")
@@ -337,7 +320,6 @@ class ProductionDevices(BasePage):
         assert self.sam_btn_locator.is_enabled()
         assert self.up_btn_locator.is_enabled()
         assert not self.add_submit_btn_locator.is_enabled()
-        
 
     def click_sample_btn(self):
         self.sam_btn_locator.wait_for(state="visible")
@@ -399,7 +381,6 @@ class ProductionDevices(BasePage):
         self.duplicate_title_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"
         )
-        
 
         self.invalid_title_locator.evaluate(
             "element => element.scrollIntoView({block: 'center'})"

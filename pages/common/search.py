@@ -71,7 +71,14 @@ class SearchHelper:
 
             search_input.press("Enter")
 
-            self.page.wait_for_timeout(1000)
+            # Wait for the rows to appear instead of using a fixed timeout
+            try:
+                self.page.wait_for_selector(self.row_selector, timeout=5000)
+            except Exception:
+                # If selector did not appear, continue to collect rows (may be zero)
+                logger.debug(
+                    "No rows appeared within timeout for selector %s", self.row_selector
+                )
 
             rows = self.page.locator(self.row_selector)
 

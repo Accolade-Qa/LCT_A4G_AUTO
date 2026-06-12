@@ -544,8 +544,6 @@ class TestGovtServerPage:
                 # Trigger validation
                 govt_server_page.click_submit_button()
 
-                govt_server_page.page.wait_for_timeout(1000)
-
                 actual_error_message = govt_server_page.get_error_message_from_field(
                     field_name
                 )
@@ -808,9 +806,7 @@ class TestGovtServerPage:
             message="Validate firmware API count consistency",
         )
 
-        assert (
-            total_firmware_count == calculated_total
-        ), "Total count is mismatched"
+        assert total_firmware_count == calculated_total, "Total count is mismatched"
 
         # ---------------- OC Firmware Validation ---------------- #
 
@@ -1987,7 +1983,6 @@ class TestGovtServerPage:
         govt_server_page.click_submit_button()
 
         govt_server_page.page.wait_for_load_state("networkidle")
-        govt_server_page.page.wait_for_timeout(3000)
 
         logger.info("Submit action completed")
 
@@ -2430,7 +2425,9 @@ class TestGovtServerPage:
     def test_govt_server_page_validate_search_functionality_of_firmware_master_table_with_added_firmware(
         self, govt_server_page, report_case
     ):
-        logger.info("Pending implementation for Firmware Master table search validation")
+        logger.info(
+            "Pending implementation for Firmware Master table search validation"
+        )
         report_case(
             expected="Firmware Master table search should find added firmware",
             actual="Pending implementation",

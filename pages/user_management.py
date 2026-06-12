@@ -322,8 +322,7 @@ class UserManagementPage(BasePage):
         self.search_icon_locator.click()
         logger.info("searching for user Dhananjay")
 
-        self.page.wait_for_timeout(200)
-
+        self.view_icon.wait_for(state="visible", timeout=5000)
         self.view_icon.click()
 
         self.first_name_locator.clear()
@@ -337,7 +336,7 @@ class UserManagementPage(BasePage):
         self.highlight(self.mob_no_locator)
         logger.info("Before clicking update name is dhananjay")
 
-        self.page.wait_for_timeout(5000)
+        self.update.wait_for(state="visible", timeout=5000)
 
         self.update.click()
 
