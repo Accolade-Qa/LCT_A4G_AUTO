@@ -48,3 +48,7 @@ CLAUDE.local.md
 .claude/settings.local.json
 
 # test_data/
+test_data/
+
+
+graphify-out/
