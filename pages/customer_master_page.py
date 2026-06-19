@@ -27,10 +27,10 @@ class CustomerMasterPage(BasePage):
         self.refresh_btn_locator = page.get_by_text("refresh", exact=True)
         self.view_icon = page.locator(
             "//button[@class='primary-button view-button ng-star-inserted']"
-        )
+        ).first
         self.delete_icon = page.locator(
             "//button[@class='primary-button delete-button ng-star-inserted']"
-        )
+        ).first
 
     def go_to_customer(self, url):
         self.page.goto(url)

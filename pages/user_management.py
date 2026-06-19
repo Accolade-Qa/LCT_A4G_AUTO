@@ -1,7 +1,7 @@
 from config.config import USER_MANAGEMENT_URL
 from .base_page import BasePage
 from utils.logger import get_logger
-from .common.table_section import TableSection
+# from .common.table_section import TableSection
 
 logger = get_logger(__name__)
 
@@ -18,7 +18,7 @@ class UserManagementPage(BasePage):
         self.search_field_locator = page.get_by_placeholder(
             "Search and Press Enter", exact=True
         )
-        self.view_icon = page.locator("//button[@class='primary-button view-button']")
+        self.view_icon = page.locator("//button[@class='primary-button view-button']").first
         self.search_icon_locator = page.get_by_text("search", exact=True)
         self._user_drop_locator = page.locator("#mat-select-value-1:visible")
         self.first_name_locator = page.get_by_label("First Name", exact=True)
@@ -98,7 +98,6 @@ class UserManagementPage(BasePage):
         # Select a few roles to exercise the dropdown (use explicit waits)
         roles = [
             "super role",
-            "Software Manager",
             "Admin",
             "VnV Manager",
             "PAE Manager",
@@ -296,7 +295,7 @@ class UserManagementPage(BasePage):
 
         self._user_drop_locator.click()
         soft_loc = self.page.locator(
-            "//span[@class='mdc-list-item__primary-text'][normalize-space()='Software Manager']"
+            "//span[@class='mdc-list-item__primary-text'][normalize-space()='super role']"
         )
         soft_loc.click()
         self.first_name_locator.fill("Dhananjay")
@@ -319,6 +318,7 @@ class UserManagementPage(BasePage):
     def update_flow(self):
         self.search_field_locator.wait_for(state="visible")
         self.search_field_locator.fill("dhananjaydemo")
+        logger.info("Clicking on search icon")
         self.search_icon_locator.click()
         logger.info("searching for user Dhananjay")
 
