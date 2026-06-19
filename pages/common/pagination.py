@@ -41,6 +41,13 @@ class PaginationHelper:
                 return int(digits)
         return 1
 
+    def get_pagination_count(self) -> int:
+        input_locator = self.page.locator(self.page_input)
+        input_locator.wait_for(state="visible")
+        current_page = self._get_current_page(input_locator)
+        total_pages = self._detect_total_pages(current_page)
+        return total_pages
+
     def _wait_for_value_change(self, previous_value: str):
         script = (
             "({prev, selector}) => {"

@@ -113,58 +113,25 @@ def pytest_addoption(parser):
 # Authenticated Page Fixture
 @pytest.fixture(scope="function")
 def page(browser):
-    # Reuse an authenticated storage state if available to speed up tests.
-    storage_path = os.path.abspath(STORAGE_STATE_PATH)
+    context = _new_context_with_zoom(
+        browser,
+        accept_downloads=True,
+    )
 
-    if os.path.exists(storage_path):
-        # Create context from existing authenticated storage state
-        context = browser.new_context(storage_state=storage_path, viewport=None)
-        context.add_init_script(ZOOM_SCRIPT)
-        page = context.new_page()
-        logger.info("Opened new page from cached storage_state: %s", storage_path)
+    page = context.new_page()
+    logger.info("New page opened")
 
-        # Ensure page has finished any background loads
-        try:
-            page.wait_for_load_state("networkidle", timeout=10000)
-        except Exception:
-            # Non-fatal: continue with the page even if networkidle wasn't reached
-            logger.debug(
-                "networkidle not reached after creating page from storage_state"
-            )
+    login = LoginPage(page)
+    login.load(BASE_URL)
+    login.login(USERNAME, PASSWORD)
 
-    else:
-        # First run: create context and perform UI login, then persist storage state
-        context = _new_context_with_zoom(
-            browser,
-            accept_downloads=True,
-        )
-
-        page = context.new_page()
-        logger.info("New page opened for first-time authentication")
-
-        login = LoginPage(page)
-        login.load(BASE_URL)
-        login.login(USERNAME, PASSWORD)
-
-        page.wait_for_load_state("networkidle")
-        logger.info("Authenticated context ready: %s", page.url)
-
-        try:
-            context.storage_state(path=storage_path)
-            logger.info("Saved authenticated storage_state to: %s", storage_path)
-        except Exception as e:
-            logger.warning("Failed to save storage_state: %s", e)
+    page.wait_for_load_state("networkidle")
+    logger.info("Authenticated context ready: %s", page.url)
 
     yield page
 
-    try:
-        page.close()
-    except Exception:
-        logger.debug("Error closing page")
-    try:
-        context.close()
-    except Exception:
-        logger.debug("Error closing context")
+    page.close()
+    context.close()
 
 
 @pytest.fixture

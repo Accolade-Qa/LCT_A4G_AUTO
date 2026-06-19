@@ -25,12 +25,20 @@ class CustomerMasterPage(BasePage):
         )
         self.submit_btn_locator = page.get_by_role("button")
         self.refresh_btn_locator = page.get_by_text("refresh", exact=True)
-        self.view_icon = page.locator(
-            "//button[@class='primary-button view-button ng-star-inserted']"
-        ).first
-        self.delete_icon = page.locator(
-            "//button[@class='primary-button delete-button ng-star-inserted']"
-        ).first
+        # self.view_icon = page.locator(
+        #     "//button[@class='primary-button view-button ng-star-inserted']"
+        # ).first
+        # self.delete_icon = page.locator(
+        #     "//button[@class='primary-button delete-button ng-star-inserted']"
+        # ).first
+        # View/Delete buttons are scoped to the table tbody to avoid matching multiple elements
+        # and hitting strict mode violations
+        self.view_button_selector = (
+            "//table//tbody//tr[1]//button[contains(@class, 'view-button')]"
+        )
+        self.delete_button_selector = (
+            "//table//tbody//tr[1]//button[contains(@class, 'delete-button')]"
+        )
 
     def go_to_customer(self, url):
         self.page.goto(url)
@@ -159,8 +167,12 @@ class CustomerMasterPage(BasePage):
         logger.info("Searching and updating customer")
         self.search_field_locator.fill("Test Customer")
         self.search_icon_locator.click()
-        self.view_icon.wait_for(state="visible", timeout=5000)
-        self.view_icon.click()
+
+        # Wait for search results to appear, then click view button on first row
+        view_button = self.page.locator(self.view_button_selector)
+        view_button.wait_for(state="visible", timeout=5000)
+        view_button.click()
+
         self.customer_name_locator.wait_for(state="visible", timeout=5000)
         self.customer_name_locator.fill("Update Customer")
         self.submit_btn_locator.click()
@@ -172,8 +184,13 @@ class CustomerMasterPage(BasePage):
         logger.info("Searching and deleting customer")
         self.search_field_locator.fill("Update Customer")
         self.search_icon_locator.click()
-        self.delete_icon.wait_for(state="visible", timeout=5000)
+
+        # Wait for search results to appear, then click delete button on first row
+        delete_button = self.page.locator(self.delete_button_selector)
+        delete_button.wait_for(state="visible", timeout=5000)
+
         self.page.on("dialog", lambda dialog: dialog.accept())
-        self.delete_icon.click()
+        delete_button.click()
+
         self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("Customer deleted successfully")

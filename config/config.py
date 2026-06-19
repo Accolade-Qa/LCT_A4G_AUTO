@@ -50,7 +50,9 @@ USER_MANAGEMENT_URL = os.getenv(
     "USER_MANAGEMENT_URL", "http://lct-a4g-qa.accoladeelectronics.com/user-tab"
 )
 
-CUSTOMER_MASTER_URL = os.getenv("CUSTOMER_MASTER_URL", "http://lct-a4g-qa.accoladeelectronics.com/customer-master")
+CUSTOMER_MASTER_URL = os.getenv(
+    "CUSTOMER_MASTER_URL", "http://lct-a4g-qa.accoladeelectronics.com/customer-master"
+)
 
 
 USERNAME = os.getenv("APP_USERNAME")
@@ -64,7 +66,7 @@ INVALID_USERNAME = os.getenv("INVALID_USERNAME", "ABCD")
 INVALID_PASSWORD = os.getenv("INVALID_PASSWORD", "12345")
 API_USERNAME = os.getenv("API_USERNAME", USERNAME)
 API_PASSWORD = os.getenv("API_PASSWORD", PASSWORD)
-PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
+PAGE_TITLE = os.getenv("PAGE_TITLE", "AEPL LCT A4G - Tarang QA Diagnostic Cloud")
 IMEI = "866677075606341"
 
 
