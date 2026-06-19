@@ -1,3 +1,10 @@
+"""
+Author: Suraj Bhalerao
+Date Created: 2026-06-19
+Date Last Updated: 2026-06-19
+Description: Page Object Model for Model page - handles device model management operations.
+"""
+
 from config.config import MODEL_URL
 from playwright.sync_api import expect
 from .base_page import BasePage
@@ -281,7 +288,9 @@ class DeviceModel(BasePage):
             up_model_sequence_locator.is_visible()
             and up_model_sequence_locator.is_enabled()
         ):
-            logger.debug("Field is visible and enabled, filling with: %s", Updatesequence)
+            logger.debug(
+                "Field is visible and enabled, filling with: %s", Updatesequence
+            )
             up_model_sequence_locator.fill(Updatesequence)
             logger.info("Model serial sequence updated successfully")
         else:
@@ -302,7 +311,9 @@ class DeviceModel(BasePage):
             up_hardware_version_locator.is_visible()
             and up_hardware_version_locator.is_enabled()
         ):
-            logger.debug("Field is visible and enabled, filling with: %s", Updateversion)
+            logger.debug(
+                "Field is visible and enabled, filling with: %s", Updateversion
+            )
             up_hardware_version_locator.fill(Updateversion)
             logger.info("Hardware version updated successfully")
         else:

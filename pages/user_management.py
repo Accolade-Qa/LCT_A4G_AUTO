@@ -1,3 +1,10 @@
+"""
+Author: Dhananjay Jagtap
+Date Created: 2026-06-19
+Date Last Updated: 2026-06-19
+Description: Page Object Model for User Management page - handles user creation and management operations.
+"""
+
 from config.config import USER_MANAGEMENT_URL
 from .base_page import BasePage
 from utils.logger import get_logger

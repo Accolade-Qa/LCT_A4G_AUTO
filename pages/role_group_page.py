@@ -1,3 +1,10 @@
+"""
+Author: Suraj Bhalerao
+Date Created: 2026-06-19
+Date Last Updated: 2026-06-19
+Description: Page Object Model for Role Group page - handles role group management operations.
+"""
+
 from utils.logger import get_logger
 
 logger = get_logger(__name__)

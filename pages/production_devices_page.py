@@ -1,3 +1,10 @@
+"""
+Author: Dhananjay Jagtap
+Date Created: 2026-06-19
+Date Last Updated: 2026-06-19
+Description: Page Object Model for Production Devices page - handles production device listings and operations.
+"""
+
 from config.config import PRODUCTION_PAGE_URL
 from playwright.sync_api import expect
 from .base_page import BasePage

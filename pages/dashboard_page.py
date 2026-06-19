@@ -1,3 +1,10 @@
+"""
+Author: Suraj Bhalerao
+Date Created: 2026-06-19
+Date Last Updated: 2026-06-19
+Description: Page Object Model for Dashboard page - handles dashboard navigation and operations.
+"""
+
 from playwright.sync_api import expect
 
 from pages.common import PaginationHelper, SearchHelper, TableSection
