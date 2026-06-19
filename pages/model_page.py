@@ -1,10 +1,3 @@
-"""
-Author: Suraj Bhalerao
-Date Created: 2026-06-19
-Date Last Updated: 2026-06-19
-Description: Page Object Model for Model page - handles device model management operations.
-"""
-
 from config.config import MODEL_URL
 from playwright.sync_api import expect
 from .base_page import BasePage
@@ -56,7 +49,7 @@ class DeviceModel(BasePage):
         return is_enabled
 
     def _is_PageTitle_Visible(self):
-        
+
         logger.debug("Checking if page title is visible")
         page_title_locator = self.page.locator("span:has-text('Device Models')")
         logger.debug("Waiting for page title to be visible")
@@ -114,12 +107,12 @@ class DeviceModel(BasePage):
         return title_text
 
     def _submit_button(self):
-        
+
         model_button_locator = self.page.get_by_text(
             "Add Device Model open_in_new", exact=True
         )
         model_button_locator.click()
-        
+
         logger.debug("Checking submit button status")
         submit_button_locator = self.page.locator(".submit-button.ng-star-inserted")
         logger.debug("Waiting for submit button to be visible")
@@ -211,7 +204,7 @@ class DeviceModel(BasePage):
             raise AssertionError("Hardware Version not found")
 
     def _submit_button_click(self):
-        
+
         model_button_locator = self.page.get_by_text(
             "Add Device Model open_in_new", exact=True
         )

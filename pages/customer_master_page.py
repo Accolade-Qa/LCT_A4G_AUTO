@@ -1,10 +1,3 @@
-"""
-Author: Dhananjay Jagtap
-Date Created: 2026-06-19
-Date Last Updated: 2026-06-19
-Description: Page Object Model for Customer Master page - handles customer management operations.
-"""
-
 from config.config import CUSTOMER_MASTER_URL
 from .base_page import BasePage
 from utils.logger import get_logger

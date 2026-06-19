@@ -1,10 +1,3 @@
-"""
-Author: Suraj Bhalerao
-Date Created: 2026-06-19
-Date Last Updated: 2026-06-19
-Description: Page Object Model for Government Server page - handles government server operations.
-"""
-
 from faker.generator import random
 
 from pages.common.table_section import TableSection

@@ -1,10 +1,3 @@
-"""
-Author: Suraj Bhalerao
-Date Created: 2026-06-19
-Date Last Updated: 2026-06-19
-Description: Page Object Model for Profile page - handles user profile operations.
-"""
-
 from .base_page import BasePage
 from .api.login_api import LoginAPI
 from utils.logger import get_logger
