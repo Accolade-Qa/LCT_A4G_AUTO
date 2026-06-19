@@ -100,7 +100,8 @@ class OtaPage(BasePage):
     def search_in_batch_page(self, query: str) -> dict:
         logger.debug("Searching for OTA batch: %s", query)
         search = SearchHelper(self.page)
-        return search.run_search(query)
+        result = search.run_search(query)
+        return result
 
     def search_in_master_page(self, query: str) -> dict:
         logger.debug("Searching for OTA master: %s", query)

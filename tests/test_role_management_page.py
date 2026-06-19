@@ -3,6 +3,8 @@ import time
 import pytest
 
 from config.config import ROLE_MANAGEMENT_URL
+from pages.api.api_client import APIClient
+from pages.api.api_client import APIClient
 from pages.common import TableSection, PaginationHelper
 from utils.helpers import Helpers
 from utils.logger import get_logger
@@ -33,6 +35,59 @@ class TestRoleManagementPage:
             )
         elif report.skipped:
             logger.warning("Role Management test skipped: %s", test_name)
+
+    """" Test for deleting roles from the role management page. """
+
+    def test_delete_role_management_roles(self, role_management_page):
+        """Test deleting a role permission."""
+
+        logger.info("Testing delete role permission functionality")
+
+        # first call get all item i.e. roles by get all roles count from the role management page
+        response = APIClient.send_request(
+            role_management_page.page,
+            "GET",
+            "/roleGroup/getRolesGroup?page=0&size=1000&search=",
+        )
+        total_roles = response.get("totalItems", 0)
+
+        for i in range(1, total_roles + 1):
+
+            try:
+                response = APIClient.send_request(
+                    role_management_page.page,
+                    "DELETE",
+                    f"/roles/deleteRole?roleId={i}",
+                )
+
+                assert (
+                    response.get("message") == "Success"
+                ), f"Failed to delete permission for role group {i}"
+
+                logger.info("Deleted role group %s successfully", i)
+
+            except Exception as e:
+
+                error_message = str(e)
+
+                if (
+                    "Cannot delete role: Role is assigned to one or more users."
+                    in error_message
+                ):
+                    logger.warning(
+                        "Cannot delete role group %s: Role is assigned to users",
+                        i,
+                    )
+                    continue
+
+                logger.error(
+                    "Unexpected error while deleting role group %s: %s",
+                    i,
+                    error_message,
+                )
+                raise
+
+        logger.info("Delete role management test completed")
 
     @pytest.mark.smoke
     @pytest.mark.regression
@@ -115,14 +170,6 @@ class TestRoleManagementPage:
 
         role_management_page.click_save()
         logger.info("Submitted Administrator role creation form: %s", role_name)
-
-        # ✅ Wait + fetch message properly
-        # message = role_management_page.get_success_message()
-
-        # assert message == "Success", "Administrator role creation failed"
-
-        # # ✅ Optional stability step
-        # role_management_page.wait_for_snackbar_to_disappear()
 
     @pytest.mark.regression
     def test_role_management_page_form_creates_manager_role_with_group(
@@ -280,9 +327,6 @@ class TestRoleManagementPage:
         success_message = role_management_page.get_success_message()
         logger.debug("Role creation success message: %s", success_message)
         assert "Success" in success_message, "Role creation failed for search test"
-
-        # Wait for the new role to appear in the table
-        time.sleep(1)
 
         assert (
             role_management_page.is_search_box_visible()

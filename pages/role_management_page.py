@@ -1,5 +1,7 @@
 from utils.logger import get_logger
 
+from pages.common.pagination import PaginationHelper
+
 logger = get_logger(__name__)
 
 
@@ -248,14 +250,33 @@ class RoleManagementPage:
         logger.info("Search for role '%s' executed", role_name)
 
     def is_role_in_table(self, role_name):
-        logger.info("Checking if role '%s' is in the table", role_name)
-        logger.debug("Waiting for potential search results to load")
-        self.page.wait_for_load_state("networkidle", timeout=5000)
-        logger.debug("Building locator to check for role in table")
-        role_locator = self.page.locator(f"//td[contains(text(), '{role_name}')]")
-        is_visible = role_locator.is_visible()
-        logger.info("Role '%s' visibility in table: %s", role_name, is_visible)
-        return is_visible
+        logger.info("Checking if role '%s' is present in the table", role_name)
+
+        try:
+            # Wait for table rows to appear
+            self.page.wait_for_selector(
+                "div.component-body table tbody tr", timeout=5000
+            )
+
+            # Find role cell
+            # Use the table locator and get_by_text to reliably find the role
+            table = self.page.locator("div.component-body table")
+            try:
+                table.wait_for(state="visible", timeout=5000)
+            except Exception:
+                # Table may be present but empty; continue to attempt text lookup
+                pass
+
+            role_locator = table.get_by_text(role_name)
+            count = role_locator.count()
+
+            logger.info("Role '%s' found %s time(s) in table", role_name, count)
+
+            return count > 0
+
+        except Exception as e:
+            logger.error("Error while checking role '%s': %s", role_name, str(e))
+            return False
 
     def get_table_row_data(self, index: int) -> str:
         logger.debug("Retrieving table row data for index %s", index)
@@ -265,3 +286,10 @@ class RoleManagementPage:
         row_data = row.inner_text().strip()
         logger.info("Row %s data retrieved: %s", index, row_data)
         return row_data
+
+    def get_pagination_count(self):
+        logger.debug("Getting pagination count from Role Management page")
+        pagination_helper = PaginationHelper(self.page)
+        count = pagination_helper.get_pagination_count()
+        logger.info("Pagination count retrieved: %s", count)
+        return count
