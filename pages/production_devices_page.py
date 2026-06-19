@@ -255,7 +255,9 @@ class ProductionDevices(BasePage):
         self.search_locator.wait_for(state="visible")
         self.highlight(self.search_locator)
         self.search_locator.fill("ACON4IA123455432100")
-        self.search_locator.press("Enter")
+        logger.info("clicking on search icon")
+        self.page.locator("button[class='search-btn'] mat-icon[role='img']").click()
+        # self.search_locator.press(Enter)
         self.view_icon = self.page.locator(
             "//tbody/tr[1]/td[5]/div[1]/button[1]/mat-icon[1]"
         ).click()
@@ -263,7 +265,7 @@ class ProductionDevices(BasePage):
         self.dropdown = self.page.get_by_role("combobox")
         self.page.get_by_role("combobox").click()
         self.page.locator("mat-option").first.wait_for()
-        self.page.get_by_text("Update Model", exact=True).click()
+        self.page.get_by_text("Software Testing").click()
         self.dropdown.wait_for(state="visible")
         self.highlight(self.dropdown)
 
@@ -303,10 +305,11 @@ class ProductionDevices(BasePage):
         self.dlt_icon = self.page.locator(
             "tbody tr:nth-child(1) td:nth-child(5) div:nth-child(1) button:nth-child(2) mat-icon:nth-child(1)"
         ).click()
-
+        logger.info("Deleting device")
         self.page.on("dialog", lambda dialog: dialog.accept())
 
         self.page.get_by_text("delete", exact=True).click()
+        logger.info("Device Deleted")
 
     def _bulk_upload_btn_enability(self):
         bulk_btn_locator = self.page.get_by_text("Bulk Upload open_in_new", exact=True)

@@ -93,7 +93,7 @@ CREATE_PRODUCTION_URL = (
     "http://lct-a4g-qa.accoladeelectronics.com/production-device-add-page"
 )
 
-ADD_PRODUCTION_URL = "http://lct-a4g-qa.accoladeelectronics.com/add-production-device"
+ADD_PRODUCTION_URL = "http://lct-a4g-qa.accoladeelectronics.com/production-device"
 
 USER_MANAGEMENT_URL = "http://lct-a4g-qa.accoladeelectronics.com/user-tab"
 

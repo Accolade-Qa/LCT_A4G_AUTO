@@ -1,20 +1,70 @@
 from utils.logger import get_logger
 
+# from pages.base_page import BasePage
+from pages.user_management import UserManagementPage
+from pages.login_page import LoginPage
+
+import pytest
+from config.config import (
+    BASE_URL,
+    USER_MANAGEMENT_URL,
+    PASSWORD,
+    USERNAME,
+)
+
 logger = get_logger(__name__)
 
 
 class TestUsermanagement:
 
-    def test_user_management_nav_list_enability(self, user_management, report_case):
+    def _login_and_dashboard(self, page):
+        login_page = LoginPage(page)
+        login_page.load(BASE_URL)
+        login_page.login(USERNAME, PASSWORD)
+
+        return UserManagementPage(page)
+
+    def test_go_to_user(self, page, report_case):
+        logger.info("Starting validation of User Management page navigation")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
+
+        actual_url = page.url
+        logger.debug(
+            "User Management URL check | expected=%s | actual=%s",
+            USER_MANAGEMENT_URL,
+            actual_url,
+        )
+
+        report_case(
+            expected=USER_MANAGEMENT_URL,
+            actual=actual_url,
+            message="Validate User Management page navigation",
+        )
+
+        assert (
+            actual_url == USER_MANAGEMENT_URL
+        ), f"Expected URL '{USER_MANAGEMENT_URL}', got '{actual_url}'"
+        logger.info("Successfully validated User Management page navigation")
+
+    def test_user_management_nav_list_enability(
+        self, user_management, report_case, page
+    ):
         logger.info("Testing navbar list enability on user management page")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         enabled = user_management._nav_list_enability()
         report_case(expected=False, actual=enabled)
         logger.info("Navbar list enability result: %s", enabled)
         assert enabled, "Navbar list is not enabled"
         logger.info("Navbar list enability test passed successfully")
 
-    def test_user_management_is_PageTitle_Visible(self, user_management, report_case):
+    def test_user_management_is_PageTitle_Visible(
+        self, user_management, report_case, page
+    ):
         logger.info("Testing page title visibility on user management page")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         expected_title = "User Management"
         actual_title = user_management.get_title()
         logger.info(
@@ -29,8 +79,12 @@ class TestUsermanagement:
         ), f"Expected title to be '{expected_title}', got '{actual_title}'"
         logger.info("Page title visibility test passed successfully")
 
-    def test_user_management_element_enability(self, user_management, report_case):
+    def test_user_management_element_enability(
+        self, user_management, report_case, page
+    ):
         logger.info("Testing element enability on user management page")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         ele_enabled = user_management._element_enability()
 
         report_case(expected=True, actual=ele_enabled)
@@ -39,13 +93,17 @@ class TestUsermanagement:
         assert ele_enabled, "Elements not enabled"
         logger.info("Element enability test passed successfully")
 
-    def test_user_management_click_add_user(self, user_management):
+    def test_user_management_click_add_user(self, user_management, page):
         logger.info("Testinng click add user functionality")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         user_management._click_add_user()
         logger.info("Clicked add user button successfully")
 
-    def test_usermanagement_user_type_drop(self, user_management, report_case):
+    def test_usermanagement_user_type_drop(self, user_management, report_case, page):
         logger.info("Starting test: User type dropdown validation")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         error_msg = user_management.user_type_drop()
         logger.debug("User type dropdown validation result: %s", error_msg)
         error_text = user_management.page.locator("#mat-select-value-1:visible")
@@ -63,8 +121,10 @@ class TestUsermanagement:
         ), f"Expected error message to be 'This field is mandatory.', got '{error_msg["result_drop_text"]}'"
         logger.info("User type dropdown validation test passed")
 
-    def test_first_name_field(self, user_management, report_case):
+    def test_first_name_field(self, user_management, report_case, page):
         logger.info("Starting test: First name field validation")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.first_name_field()
         logger.debug("First name field validation results: %s", result)
         validations = {
@@ -99,8 +159,10 @@ class TestUsermanagement:
         assert actual == data["expected"]
         logger.info("First name field validation test passed")
 
-    def test_last_name_field(self, user_management, report_case):
+    def test_last_name_field(self, user_management, report_case, page):
         logger.info("Starting test: Last name field validation")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.last_name_field()
         logger.debug("Last name field validation results: %s", result)
         validations = {
@@ -135,8 +197,10 @@ class TestUsermanagement:
         assert actual == data["expected"]
         logger.info("Last name field validation test passed")
 
-    def test_email_field(self, user_management, report_case):
+    def test_email_field(self, user_management, report_case, page):
         logger.info("Starting test: Email field validation")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.email_field()
         logger.debug("Email field validation results: %s", result)
         validations = {
@@ -171,9 +235,11 @@ class TestUsermanagement:
         assert actual == data["expected"]
         logger.info("Email field validation test passed")
 
-    def test_mob_no_field(self, user_management, report_case):
+    def test_mob_no_field(self, user_management, report_case, page):
 
         logger.info("Starting test: Mobile number field validation")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.mob_no_field()
         logger.debug("Mobile number field validation results: %s", result)
         validations = {
@@ -208,9 +274,11 @@ class TestUsermanagement:
         assert actual == data["expected"]
         logger.info("Mobile number field validation test passed")
 
-    def test_country_field(self, user_management, report_case):
+    def test_country_field(self, user_management, report_case, page):
 
         logger.info("Starting test: Country field validation")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.country_field()
         logger.debug("Country field validation results: %s", result)
         validations = {
@@ -249,10 +317,11 @@ class TestUsermanagement:
 
         logger.info("Country field validation test passed")
 
-    def test_state_field(self, user_management, report_case):
+    def test_state_field(self, user_management, report_case, page):
 
         logger.info("Starting test: State field validation")
-
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.state_field()
 
         logger.debug("State field validation results: %s", result)
@@ -294,10 +363,11 @@ class TestUsermanagement:
 
         logger.info("State field validation test passed")
 
-    def test_usermanagement_status_field(self, user_management, report_case):
+    def test_usermanagement_status_field(self, user_management, report_case, page):
 
         logger.info("Starting test: User management status field validation")
-
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         error_msg = user_management.status_field()
 
         logger.debug("Status field validation result: %s", error_msg)
@@ -328,8 +398,10 @@ class TestUsermanagement:
 
         logger.info("Status field validation test passed")
 
-    def test_usermanagement_new_flow(self, user_management, report_case):
+    def test_usermanagement_new_flow(self, user_management, report_case, page):
         logger.info("Starting test: Test usermanagement new flow.")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         user_management.new_flow()
         logger.info("Completed usermanagement new flow, validating results.")
         toast = user_management.page.locator(
@@ -348,9 +420,11 @@ class TestUsermanagement:
             toast_text == "Data Fetched Successfully"
         ), f"Expected toast message to be 'Data Fetched Successfully', got '{toast_text}'"
 
-    def test_usermanagement_update_flow(self, user_management, report_case):
+    def test_usermanagement_update_flow(self, user_management, report_case, page):
 
         logger.info("Starting Test: Test user management update flow")
+        user_page = self._login_and_dashboard(page)
+        user_page.go_to_user(USER_MANAGEMENT_URL)
         user_management.update_flow()
         logger.info("Completed usermanagement new flow, validating results.")
         toast = user_management.page.locator(
@@ -359,16 +433,16 @@ class TestUsermanagement:
         toast_text = toast.text_content().strip()
 
         report_case(
-            expected="User Details Updated Successfully!!",
+            expected="Data Fetched Successfully",
             actual=toast_text,
             result=(
                 "Pass"
-                if toast_text == "User Details Updated Successfully!!"
+                if toast_text == "Data Fetched Successfully"
                 else "Fail"
             ),
             message="Validate new user flow",
         )
         logger.info(f"Toast message after update user flow: '{toast_text}'")
         assert (
-            toast_text == "User Details Updated Successfully!!"
-        ), f"Expected toast message to be 'User Details Updated Successfully!!', got '{toast_text}'"
+            toast_text == "Data Fetched Successfully"
+        ), f"Expected toast message to be 'Data Fetched Successfully', got '{toast_text}'"

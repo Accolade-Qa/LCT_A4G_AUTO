@@ -23,7 +23,7 @@ class DeviceModel(BasePage):
     def go_to_model(self, url):
         logger.info("Navigating to Device Model page: %s", url)
         logger.debug("Calling page.goto() with URL")
-        self.page.goto(url)
+        self.page.goto(MODEL_URL)
         logger.debug("Waiting for network to be idle")
         self.page.wait_for_load_state("networkidle")
         logger.info("Successfully navigated to Device Model page")
@@ -56,6 +56,7 @@ class DeviceModel(BasePage):
         return is_enabled
 
     def _is_PageTitle_Visible(self):
+        
         logger.debug("Checking if page title is visible")
         page_title_locator = self.page.locator("span:has-text('Device Models')")
         logger.debug("Waiting for page title to be visible")
@@ -94,6 +95,10 @@ class DeviceModel(BasePage):
         logger.info("Create model button clicked successfully")
 
     def _create_model_page_title(self):
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.debug("Retrieving create model page title")
         page_title_locator = self.page.get_by_text("Create Device Model")
         logger.debug("Waiting for page title to be visible")
@@ -109,8 +114,14 @@ class DeviceModel(BasePage):
         return title_text
 
     def _submit_button(self):
+        
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
+        
         logger.debug("Checking submit button status")
-        submit_button_locator = self.page.get_by_text("Submit check_circle", exact=True)
+        submit_button_locator = self.page.locator(".submit-button.ng-star-inserted")
         logger.debug("Waiting for submit button to be visible")
         submit_button_locator.wait_for(state="visible")
         logger.debug("Highlighting submit button")
@@ -120,6 +131,10 @@ class DeviceModel(BasePage):
         return is_disabled
 
     def _model_code(self, code):
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.info("Filling model code: %s", code)
         logger.debug("Getting model code field locator")
         model_code_locator = self.page.get_by_label("Model Code")
@@ -134,6 +149,10 @@ class DeviceModel(BasePage):
         logger.info("Model code filled successfully")
 
     def _model_name(self, name):
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.info("Filling model name: %s", name)
         logger.debug("Getting model name field locator")
         model_name_locator = self.page.get_by_label("Model Name")
@@ -148,6 +167,10 @@ class DeviceModel(BasePage):
         logger.info("Model name filled successfully")
 
     def _model_seriel_sequence(self, sequence):
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.info("Filling model serial sequence: %s", sequence)
         logger.debug("Getting model serial sequence field locator")
         model_sequence_locator = self.page.get_by_label("Model Serial Sequence")
@@ -165,6 +188,10 @@ class DeviceModel(BasePage):
             raise AssertionError("Model Serial Sequence not found")
 
     def _hardware_version(self, version):
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.info("Filling hardware version: %s", version)
         logger.debug("Getting hardware version field locator")
         hardware_version_locator = self.page.get_by_label("Hardware Version")
@@ -184,6 +211,11 @@ class DeviceModel(BasePage):
             raise AssertionError("Hardware Version not found")
 
     def _submit_button_click(self):
+        
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.info("Clicking submit button")
         logger.debug("Getting submit button locator")
         submit_button_locator = self.page.get_by_role("button")
@@ -201,6 +233,10 @@ class DeviceModel(BasePage):
             raise AssertionError("Submit button not enabled")
 
     def _search_model(self, model):
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.info("Searching for model: %s", model)
         logger.debug("Getting search field and button locators")
         search_field_locator = self.page.locator(
@@ -225,6 +261,10 @@ class DeviceModel(BasePage):
         search_button_locator.click()
 
     def view_icon(self):
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.info("Clicking view icon")
         logger.debug("Getting view icon locator")
         view_icon_locator = self.page.locator(
@@ -243,6 +283,10 @@ class DeviceModel(BasePage):
             raise AssertionError("View Icon not enabled")
 
     def update_model_code(self, Updatecode):
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.info("Updating model code: %s", Updatecode)
         logger.debug("Getting model code field locator")
         up_model_code_locator = self.page.get_by_placeholder("Model Code", exact=True)
@@ -259,6 +303,10 @@ class DeviceModel(BasePage):
             raise AssertionError("Update Model Code not visible")
 
     def update_model_name(self, Updatename):
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
         logger.info("Updating model name: %s", Updatename)
         logger.debug("Getting model name field locator")
         up_model_name_locator = self.page.get_by_placeholder("Model Name", exact=True)

@@ -32,6 +32,12 @@ class CustomerMasterPage(BasePage):
         )
         self.submit_btn_locator = page.get_by_role("button")
         self.refresh_btn_locator = page.get_by_text("refresh", exact=True)
+        # self.view_icon = page.locator(
+        #     "//button[@class='primary-button view-button ng-star-inserted']"
+        # ).first
+        # self.delete_icon = page.locator(
+        #     "//button[@class='primary-button delete-button ng-star-inserted']"
+        # ).first
         # View/Delete buttons are scoped to the table tbody to avoid matching multiple elements
         # and hitting strict mode violations
         self.view_button_selector = (
