@@ -20,7 +20,7 @@ class UserManagementPage(BasePage):
         self.nav_bar_locator = page.locator("ul.nav-list")
         self.refresh_btn_locator = page.get_by_text("refresh", exact=True)
         self.page_title_locator = page.get_by_text("User Management", exact=True)
-        self.add_user_locator = page.get_by_text("Add User open_in_new")
+        self.add_user_locator = page.get_by_text("Add User open_in_new", exact=True)
         self.select_role_drop_locator = page.get_by_text("Select Role", exact=True)
         self.search_field_locator = page.get_by_placeholder(
             "Search and Press Enter", exact=True
