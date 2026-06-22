@@ -239,3 +239,51 @@ If you're new to this repo:
    ```bash
    pytest -m smoke -v
    ```
+
+
+## Running All Projects
+
+   PowerShell — run sequentially (sets `PROJECT` per run):
+   ```powershell
+   $projects = 'lct','sampark','swaraj','trio'
+   foreach ($p in $projects) {
+      $env:PROJECT = $p
+      python -m pytest tests -q --project $p
+   }
+   ```
+
+   PowerShell — run in parallel using background jobs:
+   ```powershell
+   $projects = 'lct','sampark','swaraj','trio'
+   $jobs = @()
+   foreach ($p in $projects) {
+      $jobs += Start-Job -ScriptBlock { param($proj) python -m pytest tests -q --project $proj } -ArgumentList $p
+   }
+   Wait-Job -Job $jobs
+   $jobs | Receive-Job
+   ```
+
+   PowerShell — run with CPU affinity (use the provided runner):
+   ```powershell
+   # Launch one pytest process per project and bind to cores
+   PowerShell -ExecutionPolicy Bypass -File run-parallel-projects.ps1
+   ```
+
+   Bash (Linux / WSL) — sequential:
+   ```bash
+   for p in lct sampark swaraj trio; do
+      PROJECT=$p python -m pytest tests -q --project $p || exit 1
+   done
+   ```
+
+   Bash — parallel with background processes (logs per project):
+   ```bash
+   for p in lct sampark swaraj trio; do
+      PROJECT=$p python -m pytest tests -q --project $p > tests_$p.log 2>&1 &
+   done
+   wait
+   ```
+
+   Notes:
+   - The `run-parallel-projects.ps1` script uses `start /affinity` to set CPU affinity per process. If you prefer `taskset` on Linux/WSL, I can add a bash runner.
+   - Tune project list and pytest options (`-n auto`, markers, verbosity) to your CI needs.

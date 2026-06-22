@@ -30,3 +30,4 @@ invalid_username: ABCD
 invalid_password: "12345"
 imei: "866677075606341"
 expected_permission_count: 19
+customer_master_url: "https://sampark-qa.accoladeelectronics.com/customer-master"

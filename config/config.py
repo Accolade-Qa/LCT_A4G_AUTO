@@ -113,6 +113,10 @@ PROFILE_URL = _get(
     "PROFILE_URL",
     "http://lct-a4g-qa.accoladeelectronics.com/profile",
 )
+CUSTOMER_MASTER_URL = _get(
+    "CUSTOMER_MASTER_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/customer-master",
+)
 MODEL_URL = _get(
     "MODEL_URL",
     "http://lct-a4g-qa.accoladeelectronics.com/model",
