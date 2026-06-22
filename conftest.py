@@ -3,6 +3,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from config.config import CUSTOMER_MASTER_URL
 
 import pytest
 from playwright.sync_api import sync_playwright
@@ -365,6 +366,15 @@ def profile_page(page, project_config):
 
     logger.info("Profile page fixture ready")
     return profile
+
+
+@pytest.fixture
+def customer_master(page):
+    from pages.customer_master_page import CustomerMasterPage
+
+    customermaster = CustomerMasterPage(page)
+    customermaster.go_to_customer(CUSTOMER_MASTER_URL)
+    return customermaster
 
 
 @pytest.fixture

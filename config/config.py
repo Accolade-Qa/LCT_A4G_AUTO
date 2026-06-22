@@ -50,7 +50,17 @@ INVALID_USERNAME = _get("INVALID_USERNAME", "ABCD")
 INVALID_PASSWORD = _get("INVALID_PASSWORD", "12345")
 API_USERNAME = _get("API_USERNAME", _get("APP_USERNAME", USERNAME))
 API_PASSWORD = _get("API_PASSWORD", _get("APP_PASSWORD", PASSWORD))
-PAGE_TITLE = _get("PAGE_TITLE", "AEPL LCT-A4G QA Diagnostic Cloud")
+# Compute a sensible default page title per-project when not provided in YAML or env
+_project_page_title = _PROJECT_CONFIG.get("page_title")
+if _project_page_title:
+    PAGE_TITLE = _get("PAGE_TITLE", _project_page_title)
+else:
+    # Use a project-specific display name: keep legacy 'LCT-A4G' for 'lct',
+    # otherwise capitalize the project key (e.g., 'sampark' -> 'Sampark').
+    display_name = (
+        PROJECT.upper() + " a4g - tarang" if PROJECT == "lct" else PROJECT.capitalize()
+    )
+    PAGE_TITLE = _get("PAGE_TITLE", f"AEPL {display_name} QA Diagnostic Cloud")
 IMEI = _get("IMEI", "866677075606341")
 
 
