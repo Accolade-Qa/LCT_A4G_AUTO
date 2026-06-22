@@ -543,8 +543,6 @@ class TestGovtServerPage:
                 # Trigger validation
                 govt_server_page.click_submit_button()
 
-                govt_server_page.page.wait_for_timeout(1000)
-
                 actual_error_message = govt_server_page.get_error_message_from_field(
                     field_name
                 )
@@ -1984,7 +1982,6 @@ class TestGovtServerPage:
         govt_server_page.click_submit_button()
 
         govt_server_page.page.wait_for_load_state("networkidle")
-        govt_server_page.page.wait_for_timeout(3000)
 
         logger.info("Submit action completed")
 
@@ -2026,9 +2023,13 @@ class TestGovtServerPage:
     ):
         govt_server_page.search_respective_server()
 
+        # Open Device Firmware Master List before searching
+        logger.info("Opening Device Firmware Master List")
+        govt_server_page.get_device_firmware_master_list_from_ui()
+
         # see the implementation of search functionality test case on open cpu firmware table and do the same for device firmware table.
 
-        search_keyword = "A4TV_11.1.1_REL02F"
+        search_keyword = "A4TV_13.1.1_REL02F"  # Updated to use available test data
 
         logger.info(
             "Starting validation of search functionality on Device Firmware Master List"

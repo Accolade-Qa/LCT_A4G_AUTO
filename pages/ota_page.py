@@ -100,7 +100,8 @@ class OtaPage(BasePage):
     def search_in_batch_page(self, query: str) -> dict:
         logger.debug("Searching for OTA batch: %s", query)
         search = SearchHelper(self.page)
-        return search.run_search(query)
+        result = search.run_search(query)
+        return result
 
     def search_in_master_page(self, query: str) -> dict:
         logger.debug("Searching for OTA master: %s", query)
@@ -227,7 +228,6 @@ class OtaPage(BasePage):
         ota_type_dropdown = self.page.locator(self.OTA_TYPE_DROPDOWN)
         ota_type_dropdown.wait_for(state="visible")
         ota_type_dropdown.click()
-        self.page.wait_for_timeout(500)
         # Select the option from dropdown using mat-option selector
         option_locator = self.page.locator(f"{self.MAT_OPTION}:has-text('{ota_type}')")
         option_locator.wait_for(state="visible")
@@ -244,7 +244,6 @@ class OtaPage(BasePage):
         input_required_dropdown = self.page.locator(self.INPUT_FIELD_REQUIRED_DROPDOWN)
         input_required_dropdown.wait_for(state="visible")
         input_required_dropdown.click()
-        self.page.wait_for_timeout(500)
         # Select the option from dropdown using mat-option selector
         option_locator = self.page.locator(f"{self.MAT_OPTION}:has-text('{option}')")
         option_locator.wait_for(state="visible")
@@ -480,8 +479,6 @@ class OtaPage(BasePage):
         dropdown = self.page.locator(self.SELECT_OTA_TYPE_DROPDOWN)
         dropdown.wait_for(state="visible")
         dropdown.click()
-
-        self.page.wait_for_timeout(500)
 
         option_locator = self.page.locator("li:has-text('{}')".format(ota_type))
         option_locator.wait_for(state="visible")

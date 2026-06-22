@@ -287,9 +287,7 @@ class TestSimBatchDataDetails:
             "89916450244842405755"
         )  # Example valid ICCID
         sim_data_details_page.click_submit_button()
-        sim_data_details_page.page.wait_for_timeout(
-            2000
-        )  # Wait for table to load before checking pagination
+        sim_data_details_page.table_section.wait_for_table()
         result = sim_data_details_page.pagination_helper.verify(include_backward=True)
         logger.debug("SIM results pagination result: %s", result)
         report_case(

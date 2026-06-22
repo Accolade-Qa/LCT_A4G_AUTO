@@ -81,7 +81,6 @@ class LoginPage(BasePage):
             self.login_btn.click()
             # Wait for error message
             self.emptyusername.first.wait_for(state="visible", timeout=5000)
-            self.page.wait_for_timeout(300)  # 🔥 stability
             error_text = self.emptyusername.first.inner_text().strip()
             print(f"Captured Error: [{error_text}]")  # 🔥 print output
             self.logger.info(f"Captured Error: {error_text}")

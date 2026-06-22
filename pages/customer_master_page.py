@@ -25,11 +25,19 @@ class CustomerMasterPage(BasePage):
         )
         self.submit_btn_locator = page.get_by_role("button")
         self.refresh_btn_locator = page.get_by_text("refresh", exact=True)
-        self.view_icon = page.locator(
-            "//button[@class='primary-button view-button ng-star-inserted']"
+        # self.view_icon = page.locator(
+        #     "//button[@class='primary-button view-button ng-star-inserted']"
+        # ).first
+        # self.delete_icon = page.locator(
+        #     "//button[@class='primary-button delete-button ng-star-inserted']"
+        # ).first
+        # View/Delete buttons are scoped to the table tbody to avoid matching multiple elements
+        # and hitting strict mode violations
+        self.view_button_selector = (
+            "//table//tbody//tr[1]//button[contains(@class, 'view-button')]"
         )
-        self.delete_icon = page.locator(
-            "//button[@class='primary-button delete-button ng-star-inserted']"
+        self.delete_button_selector = (
+            "//table//tbody//tr[1]//button[contains(@class, 'delete-button')]"
         )
 
     def go_to_customer(self, url):
@@ -80,7 +88,7 @@ class CustomerMasterPage(BasePage):
         self.highlight(self.add_customer_locator)
         self.add_customer_locator.click()
         logger.debug("Clicked on Add Customer button")
-        self.page.wait_for_timeout(3000)
+        self.customer_name_locator.wait_for(state="visible", timeout=5000)
 
     def get_visible_error(self):
 
@@ -151,7 +159,7 @@ class CustomerMasterPage(BasePage):
 
         self.customer_name_locator.fill("Test Customer")
         self.submit_btn_locator.click()
-        self.page.wait_for_timeout(3000)
+        self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("New Customer added successfully")
 
     def search_and_update_customer(self):
@@ -159,12 +167,16 @@ class CustomerMasterPage(BasePage):
         logger.info("Searching and updating customer")
         self.search_field_locator.fill("Test Customer")
         self.search_icon_locator.click()
-        self.page.wait_for_timeout(2000)
-        self.view_icon.click()
-        self.page.wait_for_timeout(3000)
+
+        # Wait for search results to appear, then click view button on first row
+        view_button = self.page.locator(self.view_button_selector)
+        view_button.wait_for(state="visible", timeout=5000)
+        view_button.click()
+
+        self.customer_name_locator.wait_for(state="visible", timeout=5000)
         self.customer_name_locator.fill("Update Customer")
         self.submit_btn_locator.click()
-        self.page.wait_for_timeout(2000)
+        self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("Customer updated successfully")
 
     def search_and_delete_customer(self):
@@ -172,8 +184,13 @@ class CustomerMasterPage(BasePage):
         logger.info("Searching and deleting customer")
         self.search_field_locator.fill("Update Customer")
         self.search_icon_locator.click()
-        self.page.wait_for_timeout(2000)
+
+        # Wait for search results to appear, then click delete button on first row
+        delete_button = self.page.locator(self.delete_button_selector)
+        delete_button.wait_for(state="visible", timeout=5000)
+
         self.page.on("dialog", lambda dialog: dialog.accept())
-        self.delete_icon.click()
-        self.page.wait_for_timeout(2000)
+        delete_button.click()
+
+        self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("Customer deleted successfully")

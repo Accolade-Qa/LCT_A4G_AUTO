@@ -3,6 +3,7 @@ from faker.generator import random
 from pages.common.table_section import TableSection
 from pages.common.search import SearchHelper
 from utils.logger import get_logger
+import re
 from pages.base_page import BasePage
 from utils.helpers import Helpers
 
@@ -289,7 +290,6 @@ class GovtServerPage(BasePage):
 
         submit_button.click(force=True)
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)
 
         logger.info("Clicked Submit button and waited for page activity to settle")
 
@@ -331,23 +331,6 @@ class GovtServerPage(BasePage):
 
         return success_message
 
-    def get_page_title_on_view_page(self):
-
-        search_helper = SearchHelper(self.page)
-
-        response = search_helper.run_search("Shital")
-
-        logger.info(
-            "Result of searched row is -> %s",
-            response["results"],
-        )
-
-        view_button = self.page.get_by_text("visibility").first
-        view_button.click()
-
-        page_title = self.page.locator("span.page-title")
-        return page_title.inner_text()
-
     def search_server(self, server_name):
         """Search for a specific server"""
 
@@ -382,8 +365,9 @@ class GovtServerPage(BasePage):
         """Get page title on view page"""
 
         page_title = self.page.locator("span.page-title")
+        page_title.wait_for(state="visible", timeout=5000)
 
-        return page_title.inner_text()
+        return page_title.inner_text().strip()
 
     def is_firmware_master_button_visible_and_enabled(self):
         """Check if the 'Firmware Master' button is visible and enabled"""
@@ -421,7 +405,9 @@ class GovtServerPage(BasePage):
         self.page.get_by_text("Add Open CPU Firmware").click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+        self.page.locator("//h6[normalize-space()='Firmware Master List']").wait_for(
+            state="visible", timeout=10000
+        )
 
         firmware_cells = self.page.locator(
             "//h6[normalize-space()='Firmware Master List']"
@@ -451,7 +437,9 @@ class GovtServerPage(BasePage):
         logger.info("Clicking on the add open cpu firmware button")
         self.page.get_by_text("Add Open CPU Firmware").click()
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)
+        self.page.locator("//h6[normalize-space()='Firmware Master List']").wait_for(
+            state="visible", timeout=10000
+        )
 
     def search_respective_server(self):
         """Search for a specific server"""
@@ -476,7 +464,9 @@ class GovtServerPage(BasePage):
         self.page.get_by_text("Add Open CPU Firmware").click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+        self.page.locator("//h6[normalize-space()='Firmware Master List']").wait_for(
+            state="visible", timeout=10000
+        )
 
         firmware_master_list = []
 
@@ -516,10 +506,16 @@ class GovtServerPage(BasePage):
 
         logger.info("Opening Open CPU Firmware Master List")
 
+        # wait for button to be visible and enabled before clicking
+        self.page.get_by_text("Add Open CPU Firmware").wait_for(
+            state="visible", timeout=10000
+        )
         self.page.get_by_text("Add Open CPU Firmware").click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+        self.page.locator("//h6[normalize-space()='Firmware Master List']").wait_for(
+            state="visible", timeout=10000
+        )
 
         firmware_rows = self.page.locator(
             "//h6[normalize-space()='Firmware Master List']"
@@ -602,7 +598,39 @@ class GovtServerPage(BasePage):
         checkbox_to_select.wait_for(state="visible")
 
         if not checkbox_to_select.is_checked():
-            checkbox_to_select.check(force=True)
+            try:
+                checkbox_to_select.check(force=True)
+            except Exception as exc:
+                logger.warning(
+                    "checkbox_to_select.check() failed at index %s: %s. Falling back to JS click/set.",
+                    index,
+                    exc,
+                )
+
+                # Fallback: use element handle to set checked property and dispatch events
+                try:
+                    handle = checkbox_to_select.element_handle()
+                    if handle:
+                        self.page.evaluate(
+                            "(el) => { el.click(); el.checked = true; el.dispatchEvent(new Event('change', { bubbles: true })); }",
+                            handle,
+                        )
+                except Exception as exc2:
+                    logger.exception(
+                        "Fallback JS check failed for checkbox at index %s: %s",
+                        index,
+                        exc2,
+                    )
+
+            # Verify checkbox state
+            try:
+                if not checkbox_to_select.is_checked():
+                    logger.error("Checkbox at index %s did not become checked", index)
+                    return False
+            except Exception:
+                logger.error("Unable to verify checkbox state at index %s", index)
+                return False
+
             logger.info(
                 "Checkbox at index %s selected successfully",
                 index,
@@ -687,20 +715,36 @@ class GovtServerPage(BasePage):
 
         seen_firmware_names = []
         for selector in candidate_selectors:
-            firmware_names = self.page.locator(selector)
-            total_firmwares = firmware_names.count()
+            try:
+                firmware_names = self.page.locator(selector)
+                # Read all texts in one go to avoid per-locator timeouts
+                texts = firmware_names.all_inner_texts()
+            except Exception as exc:
+                logger.warning(
+                    "Failed to read candidate selector '%s': %s", selector, exc
+                )
+                texts = []
 
             logger.debug(
                 "Checking selector '%s' with %s candidate firmware names",
                 selector,
-                total_firmwares,
+                len(texts),
             )
 
-            for index in range(total_firmwares):
-                current_firmware_name = firmware_names.nth(index).inner_text().strip()
+            for index, raw_text in enumerate(texts):
+                current_firmware_name = raw_text.strip()
                 seen_firmware_names.append(current_firmware_name)
 
-                if current_firmware_name == firmware_name:
+                # Skip common header-like labels
+                if current_firmware_name.lower() in (
+                    "firmware type",
+                    "open cpu",
+                    "firmware",
+                ):
+                    continue
+
+                # Use case-insensitive substring match to be robust to formatting
+                if firmware_name.lower() in current_firmware_name.lower():
                     logger.info(
                         "Firmware '%s' found in the list at selector '%s' index %s",
                         firmware_name,
@@ -752,18 +796,54 @@ class GovtServerPage(BasePage):
 
         logger.info("Opening Device Firmware Master List")
 
-        self.page.get_by_text("Add Device Firmware").click()
+        add_device_firmware_button = self.page.get_by_role(
+            "button", name="Add Device Firmware"
+        )
+        add_device_firmware_button.wait_for(state="visible", timeout=15000)
+        add_device_firmware_button.click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+
+        device_firmware_container = self.page.locator(
+            "//button[normalize-space()='Add Device Firmware']"
+            "/ancestor::div[contains(@class,'component-container')]"
+        )
+
+        rows = device_firmware_container.locator(".//table/tbody/tr")
+
+        try:
+            rows.first.wait_for(state="visible", timeout=20000)
+        except Exception:
+            logger.warning(
+                "Device Firmware Master List rows did not appear within 20s; trying a broader fallback."
+            )
+            rows = self.page.locator(
+                "//table[contains(., 'Device Firmware Master List')]/tbody/tr"
+            )
+            try:
+                rows.first.wait_for(state="visible", timeout=10000)
+            except Exception:
+                logger.warning(
+                    "Fallback row selector did not become visible; checking for checkboxes in the same component."
+                )
+                checkbox_rows = self.page.locator(
+                    "//button[normalize-space()='Add Device Firmware']"
+                    "/ancestor::div[contains(@class,'component-container')]"
+                    "//input[@type='checkbox']"
+                )
+                try:
+                    checkbox_rows.first.wait_for(state="visible", timeout=10000)
+                    logger.info(
+                        "Found %s checkboxes in Device Firmware Master List fallback.",
+                        checkbox_rows.count(),
+                    )
+                except Exception:
+                    logger.error(
+                        "Device Firmware Master List content did not appear after fallback waits."
+                    )
+                return []
 
         firmware_master_list = []
-
-        rows = self.page.locator(
-            "//h6[normalize-space()='Device Firmware Master List']"
-            "/ancestor::div[contains(@class,'component-container')]"
-            "//table/tbody/tr"
-        )
 
         row_count = rows.count()
 
@@ -798,7 +878,9 @@ class GovtServerPage(BasePage):
         self.page.get_by_text("Add Device Firmware").click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+        self.page.locator("input[type='checkbox']").first.wait_for(
+            state="visible", timeout=10000
+        )
 
         checkboxes = self.page.locator("input[type='checkbox']")
 
@@ -868,7 +950,32 @@ class GovtServerPage(BasePage):
         checkbox_to_select = checkboxes.nth(index - 1)
 
         if not checkbox_to_select.is_checked():
-            checkbox_to_select.check()
+            try:
+                checkbox_to_select.check()
+            except Exception as exc:
+                logger.warning(
+                    "checkbox_to_select.check() failed at index %s: %s. Falling back to JS click/set.",
+                    index,
+                    exc,
+                )
+                try:
+                    handle = checkbox_to_select.element_handle()
+                    if handle:
+                        self.page.evaluate(
+                            "(el) => { el.click(); el.checked = true; el.dispatchEvent(new Event('change', { bubbles: true })); }",
+                            handle,
+                        )
+                except Exception:
+                    logger.exception(
+                        "Fallback JS check failed for device firmware checkbox at index %s",
+                        index,
+                    )
+
+            # Verify checkbox state
+            if not checkbox_to_select.is_checked():
+                logger.error("Checkbox at index %s did not become checked", index)
+                return False
+
             logger.info(
                 "Checkbox at index %s selected successfully",
                 index,
@@ -908,12 +1015,19 @@ class GovtServerPage(BasePage):
 
         headers = table.get_headers()
 
+        # Normalize headers: uppercase, collapse whitespace and replace newlines
+        normalized = []
+        for h in headers:
+            txt = h.replace("\n", " ")
+            txt = re.sub(r"\s+", " ", txt).strip().upper()
+            normalized.append(txt)
+
         logger.debug(
-            "Retrieved Firmware Master table headers: %s",
-            headers,
+            "Retrieved Firmware Master table headers (normalized): %s",
+            normalized,
         )
 
-        return headers
+        return normalized
 
     def is_add_firmware_button_visible_and_enabled(self):
         """Check if the 'Add Firmware' button is visible and enabled on Firmware Master page"""

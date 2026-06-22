@@ -107,21 +107,18 @@ class ProductionDevices(BasePage):
         self.uid_locator.wait_for(state="visible")
         self.highlight(self.uid_locator)
         self.uid_locator.fill("ACONSBA102500012345")
-        self.page.wait_for_timeout(5000)
 
     def _new_imei(self):
 
         self.imei_locator.wait_for(state="visible")
         self.highlight(self.imei_locator)
         self.imei_locator.fill("866677075612345")
-        self.page.wait_for_timeout(5000)
 
     def _new_iccid(self):
 
         self.iccid_locator.wait_for(state="visible")
         self.highlight(self.iccid_locator)
         self.iccid_locator.fill("89916450244842412345")
-        self.page.wait_for_timeout(5000)
 
     def _new_model_name(self, value):
         self.dropdown = self.page.get_by_role("combobox")
@@ -137,21 +134,18 @@ class ProductionDevices(BasePage):
 
         # Click the option
         self.page.get_by_text("Model Name", exact=True).click()
-        self.page.wait_for_timeout(5000)
 
     def _new_mobile_no(self):
 
         self.mobile_locator.wait_for(state="visible")
         self.highlight(self.mobile_locator)
         self.mobile_locator.fill("918273645512345")
-        self.page.wait_for_timeout(5000)
 
     def _new_service_provider(self):
 
         self.ser_pro_locator.wait_for(state="visible")
         self.highlight(self.ser_pro_locator)
         self.ser_pro_locator.fill("Airtel")
-        self.page.wait_for_timeout(5000)
 
     def _new_alt_mob_no(self):
 
@@ -164,14 +158,12 @@ class ProductionDevices(BasePage):
         self.alt_ser_pro_locator.wait_for(state="visible")
         self.highlight(self.alt_ser_pro_locator)
         self.alt_ser_pro_locator.fill("BSNL")
-        self.page.wait_for_timeout(5000)
 
     def _new_firmware(self):
 
         self.firmware_locator.wait_for(state="visible")
         self.highlight(self.firmware_locator)
         self.firmware_locator.fill("1.0.0")
-        self.page.wait_for_timeout(5000)
 
     def _new_sim_vendor(self):
 

@@ -15,6 +15,11 @@ from pages.base_page import BasePage
 
 os.makedirs(SCREENSHOT_PATH, exist_ok=True)
 
+# Path to cached authenticated storage state to avoid UI login every test
+STORAGE_STATE_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "storage_state.json"
+)
+
 from utils.logger import get_logger
 
 logger = get_logger(__name__)

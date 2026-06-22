@@ -38,49 +38,58 @@ class TestRoleGroupPage:
         elif report.skipped:
             logger.warning("Role Group test skipped: %s", test_name)
 
-    """" Test for deleting roles from the role management page. """
-    # def test_delete_role_permission(self, role_group_page):
-    #     """Test deleting a role permission."""
+    """" Test for deleting role group from the role group page. """
 
-    #     logger.info("Testing delete role permission functionality")
+    def test_delete_role_management_roles(self, role_group_page):
+        """Test deleting a role permission."""
 
-    #     for i in range(1, 201):
+        logger.info("Testing delete role permission functionality")
 
-    #         try:
-    #             response = APIClient.send_request(
-    #                 role_group_page.page,
-    #                 "DELETE",
-    #                 f"/roles/deleteRole?roleId={i}",
-    #             )
+        # first call get all item i.e. roles by get all roles count from the role management page
+        response = APIClient.send_request(
+            role_group_page.page,
+            "GET",
+            "/roleGroup/getRolesGroup?page=0&size=1000&search=",
+        )
+        total_roles = response.get("totalItems", 0)
 
-    #             assert (
-    #                 response.get("message") == "Success"
-    #             ), f"Failed to delete permission for role group {i}"
+        for i in range(1, total_roles + 1):
 
-    #             logger.info("Deleted role group %s successfully", i)
+            try:
+                response = APIClient.send_request(
+                    role_group_page.page,
+                    "DELETE",
+                    f"/roleGroup/deleteRoleGroup?id={i}",
+                )
 
-    #         except Exception as e:
+                assert (
+                    response.get("message") == "Success"
+                ), f"Failed to delete permission for role group {i}"
 
-    #             error_message = str(e)
+                logger.info("Deleted role group %s successfully", i)
 
-    #             if (
-    #                 "Cannot delete role: Role is assigned to one or more users."
-    #                 in error_message
-    #             ):
-    #                 logger.warning(
-    #                     "Cannot delete role group %s: Role is assigned to users",
-    #                     i,
-    #                 )
-    #                 continue
+            except Exception as e:
 
-    #             logger.error(
-    #                 "Unexpected error while deleting role group %s: %s",
-    #                 i,
-    #                 error_message,
-    #             )
-    #             raise
+                error_message = str(e)
 
-    #     logger.info("Delete role permission test completed")
+                if (
+                    "Cannot delete group: Group is assigned to one or more roles."
+                    in error_message
+                ):
+                    logger.warning(
+                        "Cannot delete role group %s: Role is assigned to users",
+                        i,
+                    )
+                    continue
+
+                logger.error(
+                    "Unexpected error while deleting role group %s: %s",
+                    i,
+                    error_message,
+                )
+                raise
+
+        logger.info("Delete role management test completed")
 
     @pytest.mark.smoke
     @pytest.mark.regression

@@ -165,7 +165,7 @@ class DashboardPage:
             logger.debug("Export button is enabled, clicking it")
             export_btn.click()
             logger.debug("Export button clicked, waiting for processing")
-            self.page.wait_for_timeout(2000)
+            self.page.wait_for_load_state("networkidle", timeout=10000)
             logger.info("Export button verification completed successfully")
 
         except Exception as e:

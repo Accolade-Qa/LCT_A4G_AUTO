@@ -3,7 +3,6 @@ import random
 import string
 import time
 from datetime import datetime
-import random
 from faker import Faker
 
 from utils.logger import get_logger
@@ -71,11 +70,11 @@ class Helpers:
 
     @staticmethod
     def maximize_browser(page):
-        """Maximize the browser window in Playwright."""
+        """Maximize the browser viewport in a stable, predictable way."""
         if page is None:
             raise ValueError("page cannot be None")
         logger.debug("Maximizing browser viewport")
-        page.set_viewport_size({"width": None, "height": None})
+        page.set_viewport_size({"width": 1920, "height": 1080})
 
     @staticmethod
     def generate_random_state_name():
