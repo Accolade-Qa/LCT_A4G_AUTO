@@ -24,7 +24,11 @@ class LoginAPI(APIClient):
         Returns:
             dict: Login data from API response.
         """
-        login_endpoint = "/users/login"
+        # add check to ensure if project is sampark then user other endpoint for login
+        if "sampark-qa" in api_base_url:
+            login_endpoint = "/api/users/login"
+        else:
+            login_endpoint = "/users/login"
 
         logger.info("Attempting to log in user %s", username)
 
@@ -34,17 +38,24 @@ class LoginAPI(APIClient):
         }
 
         try:
-            login_data = APIClient.send_request(
-                page,
-                api_base_url,
-                api_username,
-                api_password,
-                "POST",
-                login_endpoint,
+            # Perform login without using APIClient.send_request to avoid
+            # invoking token lookup which would itself attempt a login
+            # against the wrong endpoint (circular call). Use direct
+            # request so the sampark `/api/users/login` path is honored.
+            login_url = f"{api_base_url}{login_endpoint}"
+            response = page.request.post(
+                login_url,
                 data=json.dumps(login_payload),
+                headers={"Content-Type": "application/json"},
             )
+
+            if not response.ok:
+                raise Exception(
+                    f"API login failed: {response.status} {response.text()}"
+                )
+
             logger.info("Login successful for user %s", username)
-            login_data = login_data.get("data")
+            login_data = response.json().get("data")
             logger.debug("Received login data: %s", login_data)
             return login_data
         except Exception as e:

@@ -44,7 +44,16 @@ class APIClient:
         """
         APIClient.validate_credentials(api_username, api_password)
 
-        login_url = f"{api_base_url}/users/login"
+        # Some projects (e.g., sampark) expose the login endpoint under
+        # `/api/users/login` while others use `/users/login`. Choose the
+        # correct path based on the api_base_url so token retrieval works
+        # consistently across projects.
+        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
+            "sampark-qa.accoladeelectronics.com"
+        ):
+            login_url = f"{api_base_url}/api/users/login"
+        else:
+            login_url = f"{api_base_url}/users/login"
         login_payload = {
             "userEmail": api_username,
             "password": api_password,

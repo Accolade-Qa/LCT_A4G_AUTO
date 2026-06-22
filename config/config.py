@@ -125,3 +125,6 @@ UPDATE_MODEL = _get(
     "UPDATE_MODEL",
     "http://lct-a4g-qa.accoladeelectronics.com/model-firmware/11",
 )
+
+# Expected permission counts per project (can be overridden in project YAML)
+EXPECTED_PERMISSION_COUNT = int(_get("EXPECTED_PERMISSION_COUNT", 16))

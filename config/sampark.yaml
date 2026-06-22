@@ -16,7 +16,7 @@ profile_url: "https://sampark-qa.accoladeelectronics.com/profile"
 model_url: "https://sampark-qa.accoladeelectronics.com/model"
 create_new_model: "https://sampark-qa.accoladeelectronics.com/model-firmware"
 update_model: "https://sampark-qa.accoladeelectronics.com/model-firmware/11"
-api_base_url: "https://sampark-qa.accoladeelectronics.com:9090"
+api_base_url: "https://sampark-qa.accoladeelectronics.com"
 username: "super.admin@accoladeelectronics.com"
 password: "LWj09BEg"
 api_username: "super.admin@accoladeelectronics.com"
@@ -29,3 +29,4 @@ video_recording: false
 invalid_username: ABCD
 invalid_password: "12345"
 imei: "866677075606341"
+expected_permission_count: 19

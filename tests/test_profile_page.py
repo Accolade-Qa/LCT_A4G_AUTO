@@ -3,6 +3,7 @@ import pytest
 from pages.api.api_client import APIClient
 from pages.api.login_api import LoginAPI
 from pages.api.user_api import UserAPI
+from config.config import EXPECTED_PERMISSION_COUNT
 
 logger = get_logger(__name__)
 
@@ -76,15 +77,17 @@ class TestProfilePage:
                 "userPermission" in login_data
             ), "Login data should contain 'permissions'"
 
-            ## assert on permission obj count should be 16
+            ## assert on permission obj count should match project config
             assert (
-                len(login_data["userPermission"]) == 16
-            ), "Permissions should contain 16 items"
+                len(login_data["userPermission"]) == EXPECTED_PERMISSION_COUNT
+            ), f"Permissions should contain {EXPECTED_PERMISSION_COUNT} items"
 
             # assert on if roletyp is super admin then user have all permission with view, create, update, delete and count should be 16
             if login_data.get("roleType") == "SUPER_ADMIN":
                 permissions = login_data.get("userPermission", [])
-                assert len(permissions) == 16, "SUPER_ADMIN should have 16 permissions"
+                assert (
+                    len(permissions) == EXPECTED_PERMISSION_COUNT
+                ), f"SUPER_ADMIN should have {EXPECTED_PERMISSION_COUNT} permissions"
                 for perm in permissions:
                     assert (
                         perm.get("view") is True
