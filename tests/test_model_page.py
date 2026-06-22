@@ -181,7 +181,7 @@ class TestModel:
         logger.info("Starting validation of Create Model page title")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
-        model_page.go_to_model(CREATE_NEW_MODEL)
+        model_page.go_to_create_model(CREATE_NEW_MODEL)
 
         expected_title = "Create Device Model"
         actual_title = model_page._create_model_page_title()
@@ -224,7 +224,11 @@ class TestModel:
         logger.info("Starting validation of Model Code input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
-        model_page.go_to_model(CREATE_NEW_MODEL)
+        # model_page.go_to_model(MODEL_URL)
+
+        model_page.go_to_create_model(CREATE_NEW_MODEL)
+
+        # model # create
 
         model_code_locator = page.get_by_label("Model Code")
         expect(model_code_locator).to_be_visible()
@@ -248,7 +252,7 @@ class TestModel:
         logger.info("Starting validation of Model Name input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
-        model_page.go_to_model(CREATE_NEW_MODEL)
+        model_page.go_to_create_model(CREATE_NEW_MODEL)
         model_page._model_name("NewName")
 
         logger.debug("Entered Model Name value: %s", "NewName")
@@ -265,7 +269,7 @@ class TestModel:
         logger.info("Starting validation of Model Serial Sequence input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
-        model_page.go_to_model(CREATE_NEW_MODEL)
+        model_page.go_to_create_model(CREATE_NEW_MODEL)
         model_page._model_seriel_sequence("NewSequence")
 
         logger.debug("Entered Model Serial Sequence value: %s", "NewSequence")
@@ -282,7 +286,7 @@ class TestModel:
         logger.info("Starting validation of Hardware Version input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
-        model_page.go_to_model(CREATE_NEW_MODEL)
+        model_page.go_to_create_model(CREATE_NEW_MODEL)
         model_page._hardware_version("NewVersion")
 
         logger.debug("Entered Hardware Version value: %s", "NewVersion")
@@ -299,9 +303,9 @@ class TestModel:
         logger.info("Starting validation of disabled Submit button state")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
-        model_page.go_to_model(CREATE_NEW_MODEL)
+        model_page.go_to_create_model(CREATE_NEW_MODEL)
 
-        submit_button_locator = page.get_by_role("button", name="Submit check_circle")
+        submit_button_locator = page.get_by_text("Submit check_circle", exact=True)
         is_enabled = submit_button_locator.is_enabled()
         logger.debug("Submit button enabled state: %s", is_enabled)
 

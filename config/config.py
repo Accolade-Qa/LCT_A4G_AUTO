@@ -109,4 +109,4 @@ MODEL_URL = "http://lct-a4g-qa.accoladeelectronics.com/model"
 
 CREATE_NEW_MODEL = "http://lct-a4g-qa.accoladeelectronics.com/model-firmware"
 
-UPDATE_MODEL = "http://lct-a4g-qa.accoladeelectronics.com/model-firmware/11"
+UPDATE_MODEL = "http://lct-a4g-qa.accoladeelectronics.com/model-firmware/1"
