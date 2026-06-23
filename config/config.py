@@ -50,6 +50,7 @@ INVALID_USERNAME = _get("INVALID_USERNAME", "ABCD")
 INVALID_PASSWORD = _get("INVALID_PASSWORD", "12345")
 API_USERNAME = _get("API_USERNAME", _get("APP_USERNAME", USERNAME))
 API_PASSWORD = _get("API_PASSWORD", _get("APP_PASSWORD", PASSWORD))
+CUSTOMER = _get("CUSTOMER", "Accolade")
 # Compute a sensible default page title per-project when not provided in YAML or env
 _project_page_title = _PROJECT_CONFIG.get("page_title")
 if _project_page_title:

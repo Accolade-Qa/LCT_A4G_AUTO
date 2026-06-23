@@ -1,5 +1,7 @@
 {
     "expected_dashboard_title": "Sampark Dashboard",
-    "valid_imei": "860738079275586",
+    "valid_imei": "867950076682085",
+    "valid_uid": "ACON4SA212240002085",
+    "customer": "Testing",
     "login_user": "super.admin@accoladeelectronics.com"
 }

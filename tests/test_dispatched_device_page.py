@@ -8,6 +8,9 @@ from test_data.device_data import DeviceData
 from utils.logger import get_logger
 from pages.base_page import BasePage
 from pages.api.customer_api import CustomerAPI
+from config.config import (
+    DISPATCHED_DEVICE_URL,
+)
 
 logger = get_logger(__name__)
 
@@ -559,13 +562,13 @@ class TestDispatchedDevicePage:
     # Test the search functionality by entering a value in search box and validating the table data with that value if no data then with no data found message
     @pytest.mark.regression
     def test_dispatched_device_page_search_finds_devices_by_imei(
-        self, dispatched_device_page, report_case
+        self, project_config, test_data, dispatched_device_page, report_case
     ):
         logger.info(
             "Starting validation of Search functionality on Dispatched Device page"
         )
 
-        search_value = IMEI
+        search_value = test_data.get("valid_imei") or project_config.get("imei")
 
         logger.debug("Entering search value '%s' in Search box", search_value)
 
@@ -1031,18 +1034,20 @@ class TestDispatchedDevicePage:
 
     @pytest.mark.regression
     def test_manual_upload_form_submit_button_is_enabled_when_all_fields_valid(
-        self, dispatched_device_page, report_case
+        self, test_data, dispatched_device_page, report_case
     ):
         logger.info(
             "Starting validation of Submit button enabled state when required fields have valid input "
             "in Manual Upload form on Dispatched Device page"
         )
 
+        valid_uid = test_data.get("valid_uid") or "abc123def456ghi7890"
+        customer = test_data.get("customer") or "DEMO SURAJ"
+
         dispatched_device_page.click_manual_upload_button()
-        valid_uid = "ACONSBA102500006341"
         dispatched_device_page.fill_uid_input(valid_uid)
         dispatched_device_page.fill_customer_part_number_input("PART343")
-        dispatched_device_page.select_customer("DEMO SURAJ")
+        dispatched_device_page.select_customer(customer)
         dispatched_device_page.click_on_outside()
         dispatched_device_page.click_save_button_on_manual_upload_form()
 
@@ -1069,7 +1074,7 @@ class TestDispatchedDevicePage:
 
     @pytest.mark.regression
     def test_manual_upload_form_submission_succeeds_with_valid_device_uid(
-        self, dispatched_device_page, report_case
+        self, test_data, project_config, dispatched_device_page, report_case
     ):
         device_data = DeviceData()
         device_valid_uin_list = device_data.device_valid_uin
@@ -1087,10 +1092,13 @@ class TestDispatchedDevicePage:
         dispatched_device_page.click_manual_upload_button()
 
         valid_uid = device_valid_uin_list[randint(0, len(device_valid_uin_list) - 1)]
+        customer = (
+            test_data.get("customer") or project_config.get("customer") or "Testing"
+        )
 
         dispatched_device_page.fill_uid_input(valid_uid)
         dispatched_device_page.fill_customer_part_number_input("PART343")
-        dispatched_device_page.select_customer("DEMO SURAJ")
+        dispatched_device_page.select_customer(customer)
         dispatched_device_page.click_on_outside()
         dispatched_device_page.click_save_button_on_manual_upload_form()
 

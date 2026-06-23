@@ -94,6 +94,9 @@ class DispatchedDevicePage:
         logger.debug("Selecting customer '%s' from dropdown", customer_name)
         dropdown = self.page.locator("mat-select[role='combobox']")
         dropdown.click()
+
+        self.page.wait_for_selector("mat-option span", state="visible")
+
         option = self.page.locator(f"mat-option span:has-text('{customer_name}')")
         option.click()
         logger.info("Customer '%s' selected from dropdown", customer_name)

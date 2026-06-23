@@ -143,6 +143,7 @@ def project_config():
         "log_level": config_module.LOG_LEVEL,
         "api_username": config_module.API_USERNAME,
         "api_password": config_module.API_PASSWORD,
+        "customer": config_module.CUSTOMER,
     }
 
 
