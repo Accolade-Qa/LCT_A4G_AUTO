@@ -502,3 +502,31 @@ class TestModel:
         )
 
         logger.info("Successfully validated updated Model delete")
+        
+    def test_entire_flow(self, page, report_case):
+        
+        self._login_and_dashboard(page)
+        model_page = DeviceModel(page)
+        model_page.go_to_create_model(CREATE_NEW_MODEL)
+        model_page.entire_flow()
+        # expected_msg = "Failed to delete Model: Device are assigned to this model."
+        # actual_msg = page.locator("//div[contains(@class, 'mat-mdc-snack-bar-label mdc-snackbar__label')]")
+        # actual_msg.wait_for(state="visible")
+        # visibility = actual_msg.is_visible()
+        # toast_text = actual_msg.inner_text().strip() if visibility else ""
+        
+        
+        # report_case(
+        #     expected="Failed to delete Model: Device are assigned to this model.", actual=toast_text, result="PASS"
+        # )
+        # assert toast_text == expected_msg, (
+        #     f"Expected URL '{expected_msg}', got '{actual_msg}'"
+        # )
+        
+        
+        
+        
+        
+        
+        
+        

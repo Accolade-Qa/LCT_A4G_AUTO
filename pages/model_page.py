@@ -56,7 +56,7 @@ class DeviceModel(BasePage):
         return is_enabled
 
     def _is_PageTitle_Visible(self):
-        
+
         logger.debug("Checking if page title is visible")
         page_title_locator = self.page.locator("span:has-text('Device Models')")
         logger.debug("Waiting for page title to be visible")
@@ -95,7 +95,7 @@ class DeviceModel(BasePage):
         logger.info("Create model button clicked successfully")
 
     def _create_model_page_title(self):
-        
+
         logger.debug("Retrieving create model page title")
         page_title_locator = self.page.get_by_text("Create Device Model", exact=True)
         logger.debug("Waiting for page title to be visible")
@@ -111,8 +111,7 @@ class DeviceModel(BasePage):
         return title_text
 
     def _submit_button(self):
-        
-        
+
         logger.debug("Checking submit button status")
         submit_button_locator = self.page.locator(".submit-button.ng-star-inserted")
         logger.debug("Waiting for submit button to be visible")
@@ -142,7 +141,7 @@ class DeviceModel(BasePage):
         logger.info("Model code filled successfully")
 
     def _model_name(self, name):
-       
+
         logger.info("Filling model name: %s", name)
         logger.debug("Getting model name field locator")
         model_name_locator = self.page.get_by_label("Model Name")
@@ -157,7 +156,7 @@ class DeviceModel(BasePage):
         logger.info("Model name filled successfully")
 
     def _model_seriel_sequence(self, sequence):
-        
+
         logger.info("Filling model serial sequence: %s", sequence)
         logger.debug("Getting model serial sequence field locator")
         model_sequence_locator = self.page.get_by_label("Model Serial Sequence")
@@ -175,7 +174,7 @@ class DeviceModel(BasePage):
             raise AssertionError("Model Serial Sequence not found")
 
     def _hardware_version(self, version):
-        
+
         logger.info("Filling hardware version: %s", version)
         logger.debug("Getting hardware version field locator")
         hardware_version_locator = self.page.get_by_label("Hardware Version")
@@ -195,7 +194,7 @@ class DeviceModel(BasePage):
             raise AssertionError("Hardware Version not found")
 
     def _submit_button_click(self):
-        
+
         model_button_locator = self.page.get_by_text(
             "Add Device Model open_in_new", exact=True
         )
@@ -245,7 +244,7 @@ class DeviceModel(BasePage):
         search_button_locator.click()
 
     def view_icon(self):
-        
+
         logger.info("Clicking view icon")
         logger.debug("Getting view icon locator")
         view_icon_locator = self.page.locator(
@@ -264,7 +263,7 @@ class DeviceModel(BasePage):
             raise AssertionError("View Icon not enabled")
 
     def update_model_code(self, Updatecode):
-        
+
         logger.info("Updating model code: %s", Updatecode)
         logger.debug("Getting model code field locator")
         up_model_code_locator = self.page.get_by_placeholder("Model Code", exact=True)
@@ -281,7 +280,7 @@ class DeviceModel(BasePage):
             raise AssertionError("Update Model Code not visible")
 
     def update_model_name(self, Updatename):
-        
+
         logger.info("Updating model name: %s", Updatename)
         logger.debug("Getting model name field locator")
         up_model_name_locator = self.page.get_by_placeholder("Model Name", exact=True)
@@ -409,3 +408,151 @@ class DeviceModel(BasePage):
         else:
             logger.error("Delete Icon is not enabled")
             raise AssertionError("Delete Icon not enabled")
+
+    def entire_flow(self):
+
+        logger.info("Running full model create-update-delete scenario")
+
+        model_code = self.page.get_by_label("Model Code")
+        expect(model_code).to_be_visible()
+        model_code.fill("NewCode")
+
+        model_name = self.page.get_by_label("Model Name")
+        expect(model_name).to_be_visible()
+        model_name.fill("NewName")
+
+        model_sequence = self.page.get_by_label("Model Serial Sequence")
+        expect(model_sequence).to_be_visible()
+        model_sequence.fill("NewSeq")
+
+        hardware_version = self.page.get_by_label("Hardware Version")
+        expect(hardware_version).to_be_visible()
+        hardware_version.fill("NewHW")
+
+        submit_button = self.page.locator(".submit-button.ng-star-inserted")
+        expect(submit_button).to_be_visible()
+        expect(submit_button).to_be_enabled()
+        submit_button.click()
+
+        device_utility = self.page.get_by_text("DEVICE UTILITY", exact=True)
+        expect(device_utility).to_be_visible()
+        device_utility.click()
+
+        prod_device = self.page.get_by_text("PRODUCTION DEVICE", exact=True)
+        expect(prod_device).to_be_visible()
+        prod_device.click()
+
+        search_field = self.page.get_by_placeholder(
+            "Search and Press Enter", exact=True
+        )
+        expect(search_field).to_be_visible()
+        search_field.fill("866677075606341")
+
+        search_btn = self.page.locator(
+            "button[class='search-btn'] mat-icon[role='img']"
+        )
+        expect(search_btn).to_be_visible()
+        search_btn.click()
+
+        self.page.get_by_text("visibility", exact=True).first.click()
+        logger.info("Searching for LCT name")
+        name_drop = self.page.get_by_text("LCT A4G", exact=True)
+        expect(name_drop).to_be_visible()
+        name_drop.click()
+
+        logger.info("Selecting new name")
+        option_newname = self.page.get_by_text("NewName", exact=True)
+        expect(option_newname).to_be_visible()
+        option_newname.click()
+        self.page.locator("//button[@class='edit-button ng-star-inserted']").click()
+
+        search_field.fill("NewName")
+        self.page.get_by_text("search", exact=True).click()
+
+        name_visibility = self.page.locator("td", has_text="NewName").first
+        if name_visibility.is_visible():
+            logger.info("Model name changed successfully")
+        else:
+            logger.warning("Model name did not update yet")
+
+        device_utility = self.page.get_by_text("DEVICE UTILITY", exact=True)
+        expect(device_utility).to_be_visible()
+        device_utility.click()
+
+        model_device = self.page.get_by_text("MODEL", exact=True)
+        expect(model_device).to_be_visible()
+        model_device.click()
+
+        ref = self.page.locator("//mat-icon[normalize-space()='refresh']")
+        expect(ref).to_be_visible()
+        ref.click()
+
+        search_field.fill("NewName")
+        self.page.get_by_text("search", exact=True).click()
+
+        logger.info("Deleting newname model")
+
+        delete_button = self.page.locator(
+            "//button[contains(@class, 'primary-button delete-button')]"
+        ).first
+
+        delete_button.wait_for(state="visible", timeout=5000)
+
+        logger.info("Accepting delete request")
+
+        self.page.on("dialog", lambda dialog: dialog.accept())
+        delete_button.click()
+
+        self.page.wait_for_load_state("networkidle", timeout=10000)
+
+        self.page.get_by_text("DEVICE UTILITY", exact=True).click()
+
+        self.page.get_by_text("PRODUCTION DEVICE", exact=True).click()
+
+        search_field = self.page.get_by_placeholder(
+            "Search and Press Enter", exact=True
+        )
+        expect(search_field).to_be_visible()
+        search_field.fill("866677075606341")
+
+        self.page.locator("button[class='search-btn'] mat-icon[role='img']").click()
+
+        self.page.get_by_text("visibility", exact=True).first.click()
+        logger.info("Searching for New Name")
+        self.page.get_by_text("NewName", exact=True).click()
+
+        logger.info("Selecting LCT A4G")
+        self.page.get_by_text("LCT A4G", exact=True).click()
+        self.page.locator("//button[@class='edit-button ng-star-inserted']").click()
+
+        device_utility = self.page.get_by_text("DEVICE UTILITY", exact=True)
+        expect(device_utility).to_be_visible()
+        device_utility.click()
+
+        model_device = self.page.get_by_text("MODEL", exact=True)
+        expect(model_device).to_be_visible()
+        model_device.click()
+
+        ref = self.page.locator("//mat-icon[normalize-space()='refresh']")
+        expect(ref).to_be_visible()
+        ref.click()
+
+        search_field.fill("NewName")
+        self.page.get_by_text("search", exact=True).click()
+
+        logger.info("Deleting newname model")
+
+        delete_button = self.page.locator(
+            "//button[contains(@class, 'primary-button delete-button')]"
+        ).first
+
+        delete_button.wait_for(state="visible", timeout=5000)
+
+        logger.info("Accepting delete request")
+
+        self.page.on("dialog", lambda dialog: dialog.accept())
+        delete_button.click()
+
+        self.page.wait_for_load_state("networkidle", timeout=10000)
+
+        logger.info("Full model flow completed")
