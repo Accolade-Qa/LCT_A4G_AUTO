@@ -1,4 +1,3 @@
-from conftest import page
 from pages.api import DeviceDashboardAPI
 from pages.base_page import BasePage
 import pytest
@@ -10,7 +9,13 @@ logger = get_logger(__name__)
 
 @pytest.mark.dashboard
 @pytest.mark.regression
+@pytest.mark.usefixtures("project_config")
 class TestDashboardPage:
+    @pytest.fixture(autouse=True)
+    def _inject_project_config(self, request, project_config):
+        # Make `project_config` accessible as `self.project_config` inside test methods
+        request.cls.project_config = project_config
+
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
         test_name = request.node.name
@@ -235,10 +240,13 @@ class TestDashboardPage:
 
     @pytest.mark.regression
     def test_dashboard_page_search_filters_table_data(
-        self, dashboard_page, report_case
+        self, dashboard_page, project_config, test_data, report_case
     ):
         logger.info("Running search functionality test with query")
-        search_query = "866677075606341"
+        # Prefer project-specific IMEI from test_data; fall back to configured IMEI
+        search_query = test_data.get("valid_imei") or project_config.get(
+            "imei", "866677075606341"
+        )
         result = dashboard_page.search_helper.run_search(search_query)
         logger.debug("Dashboard search result for query %s: %s", search_query, result)
         report_case(

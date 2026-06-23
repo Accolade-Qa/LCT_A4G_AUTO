@@ -999,12 +999,14 @@ class TestOtaPage:
         logger.info("IMEI input fields error messages validated successfully")
 
     @pytest.mark.regression
-    def test_enter_valid_imei_and_search(self, ota_page, report_case):
+    def test_enter_valid_imei_and_search(
+        self, ota_page, project_config, test_data, report_case
+    ):
         """Verify entering valid IMEI and clicking search on Manual OTA page."""
         logger.info("Testing search with valid IMEI")
         ota_page.go_to_manual_ota_page()
 
-        valid_imei = IMEI
+        valid_imei = test_data.get("valid_imei") or project_config.get("imei")
         ota_page.fill_imei_input(valid_imei)
 
         search_enabled = not ota_page.is_search_button_disabled()
@@ -1037,13 +1039,13 @@ class TestOtaPage:
     @pytest.mark.regression
     @pytest.mark.ui
     def test_validate_device_details_displayed_after_search(
-        self, ota_page, report_case
+        self, ota_page, test_data, report_case
     ):
         """Verify device details are displayed after searching with valid IMEI on Manual OTA page."""
         logger.info("Testing device details display after search")
 
         device_data = {
-            "imei": "866677075606341",
+            "imei": test_data.get("valid_imei", "866677075606341"),
             "UIN": "ACONSBA102500006341",
             "VIN": "SCVBASE1225014403",
             "ICCID": "89916450244842405755",
@@ -1101,12 +1103,14 @@ class TestOtaPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_ota_button_visible_after_valid_search(self, ota_page, report_case):
+    def test_new_ota_button_visible_after_valid_search(
+        self, project_config, test_data, ota_page, report_case
+    ):
         """Verify New OTA Command button is visible after searching with valid IMEI on Manual OTA page."""
         logger.info("Testing New OTA button visibility after valid search")
         ota_page.go_to_manual_ota_page()
 
-        valid_imei = IMEI
+        valid_imei = test_data.get("valid_imei") or project_config.get("imei")
         ota_page.fill_imei_input(valid_imei)
         ota_page.click_manual_ota_imei_search_button()
 
@@ -1125,12 +1129,14 @@ class TestOtaPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_click_on_new_ota_button_after_valid_search(self, ota_page, report_case):
+    def test_click_on_new_ota_button_after_valid_search(
+        self, project_config, test_data, ota_page, report_case
+    ):
         """Verify clicking New OTA Command button after valid search navigates to Add OTA Command page."""
         logger.info("Testing New OTA Command button click navigation")
         ota_page.go_to_manual_ota_page()
 
-        valid_imei = IMEI
+        valid_imei = test_data.get("valid_imei") or project_config.get("imei")
         ota_page.fill_imei_input(valid_imei)
         ota_page.click_manual_ota_imei_search_button()
 
@@ -1168,12 +1174,14 @@ class TestOtaPage:
             )
 
     @pytest.mark.regression
-    def test_select_ota_type_dropdown(self, ota_page, report_case):
+    def test_select_ota_type_dropdown(
+        self, project_config, test_data, ota_page, report_case
+    ):
         """Verify OTA Type dropdown can be selected on Add OTA Command page."""
         logger.info("Testing OTA Type dropdown selection on Manual OTA page")
         ota_page.go_to_manual_ota_page()
 
-        valid_imei = IMEI
+        valid_imei = test_data.get("valid_imei") or project_config.get("imei")
         ota_page.fill_imei_input(valid_imei)
         ota_page.click_manual_ota_imei_search_button()
 
@@ -1211,13 +1219,13 @@ class TestOtaPage:
 
     @pytest.mark.regression
     def test_all_checkboxes_visible_and_unchecked_on_manual_ota_page(
-        self, ota_page, report_case
+        self, project_config, test_data, ota_page, report_case
     ):
         """Verify all checkboxes are visible and unchecked on Manual OTA page after valid search."""
         logger.info("Testing checkboxes visibility and state")
         ota_page.go_to_manual_ota_page()
 
-        valid_imei = IMEI
+        valid_imei = test_data.get("valid_imei") or project_config.get("imei")
         ota_page.fill_imei_input(valid_imei)
         ota_page.click_manual_ota_imei_search_button()
 
@@ -1257,13 +1265,13 @@ class TestOtaPage:
 
     @pytest.mark.regression
     def test_select_one_checkbox_by_searching_command_on_manual_ota_page(
-        self, ota_page, report_case
+        self, project_config, test_data, ota_page, report_case
     ):
         """Verify selecting one checkbox by searching command on Manual OTA page after valid search."""
         logger.info("Testing checkbox selection by searching command")
         ota_page.go_to_manual_ota_page()
 
-        valid_imei = IMEI
+        valid_imei = test_data.get("valid_imei") or project_config.get("imei")
         ota_page.fill_imei_input(valid_imei)
         ota_page.click_manual_ota_imei_search_button()
 
@@ -1316,7 +1324,7 @@ class TestOtaPage:
 
     @pytest.mark.regression
     def test_select_checkbox_and_validate_set_batch_button_enabled_on_manual_ota_page(
-        self, ota_page, report_case
+        self, project_config, test_data, ota_page, report_case
     ):
         """Verify selecting a checkbox enables the Set Batch button on Manual OTA page after valid search."""
         logger.info(
@@ -1324,7 +1332,7 @@ class TestOtaPage:
         )
         ota_page.go_to_manual_ota_page()
 
-        valid_imei = IMEI
+        valid_imei = test_data.get("valid_imei") or project_config.get("imei")
         ota_page.fill_imei_input(valid_imei)
         ota_page.click_manual_ota_imei_search_button()
 
@@ -1414,7 +1422,7 @@ class TestOtaPage:
 
     @pytest.mark.regression
     def test_click_on_set_batch_button_and_validate_the_set_configuration_component_visible(
-        self, ota_page, report_case
+        self, project_config, test_data, ota_page, report_case
     ):
         """Verify Set Configuration component is visible after clicking Set Batch button."""
         logger.info(
@@ -1423,7 +1431,8 @@ class TestOtaPage:
 
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
-            valid_imei=IMEI, command_to_search="GET IMEI"
+            valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
+            command_to_search="GET IMEI",
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1505,7 +1514,9 @@ class TestOtaPage:
     #         raise
 
     @pytest.mark.regression
-    def test_submit_button_visible_and_click(self, ota_page, report_case):
+    def test_submit_button_visible_and_click(
+        self, project_config, test_data, ota_page, report_case
+    ):
         """Verify Submit button is visible and clickable on Set Configuration component."""
         logger.info(
             "Testing Submit button visibility and clickability on Set Configuration component"
@@ -1513,7 +1524,8 @@ class TestOtaPage:
 
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
-            valid_imei=IMEI, command_to_search="GET IMEI"
+            valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
+            command_to_search="GET IMEI",
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1570,7 +1582,9 @@ class TestOtaPage:
             raise
 
     @pytest.mark.regression
-    def test_OTA_history_component_visible_after_submit(self, ota_page, report_case):
+    def test_OTA_history_component_visible_after_submit(
+        self, project_config, test_data, ota_page, report_case
+    ):
         """Verify OTA History component is visible after submitting configuration."""
         logger.info(
             "Testing OTA History component visibility after submitting configuration"
@@ -1578,7 +1592,8 @@ class TestOtaPage:
 
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
-            valid_imei=IMEI, command_to_search="GET IMEI"
+            valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
+            command_to_search="GET IMEI",
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1630,13 +1645,16 @@ class TestOtaPage:
             raise
 
     @pytest.mark.regression
-    def test_ota_history_table_headers_validation(self, ota_page, report_case):
+    def test_ota_history_table_headers_validation(
+        self, project_config, test_data, ota_page, report_case
+    ):
         """Verify that the table headers on OTA History component are correct."""
         logger.info("Testing table headers validation on OTA History component")
 
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
-            valid_imei=IMEI, command_to_search="GET IMEI"
+            valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
+            command_to_search="GET IMEI",
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1708,13 +1726,16 @@ class TestOtaPage:
             raise
 
     @pytest.mark.regression
-    def test_ota_history_table_data_validation(self, ota_page, report_case):
+    def test_ota_history_table_data_validation(
+        self, project_config, test_data, ota_page, report_case
+    ):
         """Verify that the data displayed in OTA History table is correct after submitting configuration."""
         logger.info("Testing data validation in OTA History table")
-
+        valid_imei = test_data.get("valid_imei") or project_config.get("imei")
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
-            valid_imei=IMEI, command_to_search="GET IMEI"
+            valid_imei=valid_imei,
+            command_to_search="GET IMEI",
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1736,18 +1757,18 @@ class TestOtaPage:
 
                     actual_imei = first_row_data.get("IMEI", "")
                     logger.debug(
-                        "Expected IMEI: %s, Actual IMEI: %s", IMEI, actual_imei
+                        "Expected IMEI: %s, Actual IMEI: %s", valid_imei, actual_imei
                     )
 
                     report_case(
-                        expected=f"IMEI in first row should be '{IMEI}'",
+                        expected=f"IMEI in first row should be '{valid_imei}'",
                         actual=f"IMEI found: '{actual_imei}'",
                         message="Validate IMEI in OTA History table first row",
                     )
 
                     assert (
-                        actual_imei == IMEI
-                    ), f"Expected IMEI '{IMEI}' in first row, but got '{actual_imei}'"
+                        actual_imei == valid_imei
+                    ), f"Expected IMEI '{valid_imei}' in first row, but got '{actual_imei}'"
 
                     logger.info("Data in OTA History table is correct after submission")
                 else:
@@ -1780,7 +1801,7 @@ class TestOtaPage:
 
     @pytest.mark.regression
     def test_ota_history_component_have_export_button_and_clickable(
-        self, ota_page, report_case
+        self, ota_page, project_config, test_data, report_case
     ):
         """Verify OTA History component has Export button and it is clickable."""
         logger.info(
@@ -1789,7 +1810,8 @@ class TestOtaPage:
 
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
-            valid_imei=IMEI, command_to_search="GET IMEI"
+            valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
+            command_to_search="GET IMEI",
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1861,14 +1883,17 @@ class TestOtaPage:
             raise
 
     @pytest.mark.regression
-    def test_pagination_on_manual_ota_page(self, ota_page, report_case):
+    def test_pagination_on_manual_ota_page(
+        self, ota_page, project_config, test_data, report_case
+    ):
         # Pagination class is defined.
         # get all prev steps and use the pagination class
         logger.info("Testing pagination on Manual OTA page")
 
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
-            valid_imei=IMEI, command_to_search="GET IMEI"
+            valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
+            command_to_search="GET IMEI",
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 

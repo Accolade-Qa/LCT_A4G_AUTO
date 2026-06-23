@@ -292,8 +292,11 @@ def role_group_page(page, project_config):
 
 
 @pytest.fixture
-def device_details_page(page, project_config):
-    device = project_config.get("imei", "866677075606341")
+def device_details_page(page, project_config, test_data):
+    # Prefer IMEI defined in project-specific test_data, otherwise fall back to project config
+    device = test_data.get("valid_imei") or project_config.get(
+        "imei", "866677075606341"
+    )
 
     from pages.dashboard_page import DashboardPage
     from pages.device_details_page import DeviceDetailsPage
