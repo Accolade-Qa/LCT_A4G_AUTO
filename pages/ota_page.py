@@ -546,8 +546,8 @@ class OtaPage(BasePage):
         logger.debug("Selecting checkbox for command")
         checkbox = self.page.locator("input[type='checkbox']")
 
-        if checkbox.size() >= 1:
-            checkbox = self.page.locator("input[type='checkbox']").first()
+        if checkbox.count() >= 1:
+            checkbox = self.page.locator("input[type='checkbox']").first
 
         checkbox.wait_for(state="visible")
         checkbox.check()

@@ -207,7 +207,7 @@ class DispatchedDevicePage:
 
     def get_manual_upload_success_message(self):
         logger.debug("Retrieving success message after manual upload")
-        success_message_element = self.page.locator("//simple-snack-bar")
+        success_message_element = self.page.locator("//simple-snack-bar").first
         success_message = (
             success_message_element.text_content().strip()
             if success_message_element.is_visible()
@@ -281,7 +281,7 @@ class DispatchedDevicePage:
 
         snackbar_message = self.page.locator(
             "simple-snack-bar .mat-mdc-snack-bar-label"
-        )
+        ).first
 
         snackbar_message.wait_for(state="visible")
 
