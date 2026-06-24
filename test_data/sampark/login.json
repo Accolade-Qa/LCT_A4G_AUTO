@@ -3,5 +3,9 @@
     "valid_imei": "867950076682085",
     "valid_uid": "ACON4SA212240002085",
     "customer": "Testing",
-    "login_user": "super.admin@accoladeelectronics.com"
+    "login_user": "super.admin@accoladeelectronics.com",
+    "uin": "ACON4SA212240002085",
+    "vin": "AAAAAAAAAAAAAAAA",
+    "iccid": "89916431144821180136",
+    "command_to_search": "GET IMEI"
 }

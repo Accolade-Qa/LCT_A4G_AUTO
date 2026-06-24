@@ -3,5 +3,9 @@
     "valid_imei": "866677075606341",
     "valid_uid": "ACONSBA102500006341",
     "customer": "DEMO SURAJ",
-    "login_user": "suraj.bhalerao@accoladeelectronics.com"
+    "login_user": "suraj.bhalerao@accoladeelectronics.com",
+    "uin": "ACONSBA102500006341",
+    "vin": "SCVBASE1225014403",
+    "iccid": "89916450244842405755",
+    "command_to_search": "GET IMEI"
 }

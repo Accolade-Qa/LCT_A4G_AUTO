@@ -1039,16 +1039,19 @@ class TestOtaPage:
     @pytest.mark.regression
     @pytest.mark.ui
     def test_validate_device_details_displayed_after_search(
-        self, ota_page, test_data, report_case
+        self, ota_page, project_config, test_data, report_case
     ):
         """Verify device details are displayed after searching with valid IMEI on Manual OTA page."""
         logger.info("Testing device details display after search")
 
+        # Prefer values from project-specific test_data, then project_config, then sensible defaults
         device_data = {
-            "imei": test_data.get("valid_imei", "866677075606341"),
-            "UIN": "ACONSBA102500006341",
-            "VIN": "SCVBASE1225014403",
-            "ICCID": "89916450244842405755",
+            "imei": test_data.get("valid_imei") or project_config.get("imei"),
+            "UIN": test_data.get("valid_uid")
+            or test_data.get("valid_uin")
+            or project_config.get("uin", ""),
+            "VIN": test_data.get("vin") or project_config.get("vin", ""),
+            "ICCID": test_data.get("iccid") or project_config.get("iccid", ""),
         }
 
         ota_page.go_to_manual_ota_page()
@@ -1277,7 +1280,11 @@ class TestOtaPage:
 
         if ota_page.is_new_ota_button_enabled():
             # Search for a specific command and select its checkbox
-            command_to_search = "GET IMEI"
+            command_to_search = (
+                test_data.get("command_to_search")
+                or project_config.get("command_to_search")
+                or "GET IMEI"
+            )
             try:
                 ota_page.search_command_in_manual_ota(command_to_search)
 
@@ -1347,7 +1354,11 @@ class TestOtaPage:
             ota_page.click_new_ota_button()
 
             # Select a checkbox for a command
-            command_to_select = "GET IMEI"
+            command_to_select = (
+                test_data.get("command_to_search")
+                or project_config.get("command_to_search")
+                or "GET IMEI"
+            )
             try:
                 ota_page.search_command_in_manual_ota(command_to_select)
 
@@ -1432,7 +1443,11 @@ class TestOtaPage:
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
             valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
-            command_to_search="GET IMEI",
+            command_to_search=(
+                test_data.get("command_to_search")
+                or project_config.get("command_to_search")
+                or "GET IMEI"
+            ),
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1525,7 +1540,11 @@ class TestOtaPage:
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
             valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
-            command_to_search="GET IMEI",
+            command_to_search=(
+                test_data.get("command_to_search")
+                or project_config.get("command_to_search")
+                or "GET IMEI"
+            ),
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1593,7 +1612,11 @@ class TestOtaPage:
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
             valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
-            command_to_search="GET IMEI",
+            command_to_search=(
+                test_data.get("command_to_search")
+                or project_config.get("command_to_search")
+                or "GET IMEI"
+            ),
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1654,7 +1677,11 @@ class TestOtaPage:
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
             valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
-            command_to_search="GET IMEI",
+            command_to_search=(
+                test_data.get("command_to_search")
+                or project_config.get("command_to_search")
+                or "GET IMEI"
+            ),
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1735,7 +1762,11 @@ class TestOtaPage:
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
             valid_imei=valid_imei,
-            command_to_search="GET IMEI",
+            command_to_search=(
+                test_data.get("command_to_search")
+                or project_config.get("command_to_search")
+                or "GET IMEI"
+            ),
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1811,7 +1842,11 @@ class TestOtaPage:
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
             valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
-            command_to_search="GET IMEI",
+            command_to_search=(
+                test_data.get("command_to_search")
+                or project_config.get("command_to_search")
+                or "GET IMEI"
+            ),
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
@@ -1893,7 +1928,11 @@ class TestOtaPage:
         # Use helper method to set up manual OTA and enable Set Batch button
         ota_page.setup_manual_ota_and_enable_set_batch(
             valid_imei=test_data.get("valid_imei") or project_config.get("imei"),
-            command_to_search="GET IMEI",
+            command_to_search=(
+                test_data.get("command_to_search")
+                or project_config.get("command_to_search")
+                or "GET IMEI"
+            ),
         )
         logger.info("Manual OTA setup and Set Batch button enabled successfully")
 
