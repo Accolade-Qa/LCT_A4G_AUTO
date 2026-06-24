@@ -12,8 +12,8 @@ class LoginPage(BasePage):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # ✅ Enable locators
-        self.username = page.get_by_placeholder("Your Email Address")
-        self.password = page.get_by_placeholder("Password")
+        self.username = page.locator("input[placeholder*='Your Email Address']")
+        self.password = page.locator("input[placeholder*='Password']")
         self.login_btn = page.get_by_role(
             "button", name=re.compile(r"Sign in", re.IGNORECASE)
         )

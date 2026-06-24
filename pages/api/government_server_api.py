@@ -1,6 +1,12 @@
 from pages.api.api_client import APIClient
 from pages.api.login_api import LoginAPI
 from utils.logger import get_logger
+from config.config import (
+    GOVERNMENT_SERVERS_URL,
+    API_BASE_URL,
+    API_USERNAME,
+    API_PASSWORD,
+)
 
 logger = get_logger(__name__)
 
@@ -9,10 +15,24 @@ class GovtServerAPI(APIClient):
     """API client for government server operations."""
 
     @staticmethod
-    def _get_user_id(page, api_base_url, api_username, api_password):
+    def _get_user_id(
+        page,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
+    ):
         """
         Fetch logged-in user ID.
         """
+
+        # Some projects expose user API under /api prefix (sampark).
+        # if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
+        #     "sampark-qa.accoladeelectronics.com"
+        # ):
+        #     login_endpoint = f"/api/users/getUserdetails?id={id}"
+        # else:
+        #     login_endpoint = f"/users/getUserdetails?id={id}"
+        """ add this above logic here in the future if needed, for now we are using the login API to get the user id"""
 
         login = LoginAPI.login(
             page, api_username, api_password, api_base_url, api_username, api_password
@@ -60,7 +80,12 @@ class GovtServerAPI(APIClient):
             raise
 
     @staticmethod
-    def _get_all_servers_list(page, api_base_url, api_username, api_password):
+    def _get_all_servers_list(
+        page,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
+    ):
         """
         Fetch all servers from government server list.
 
@@ -72,10 +97,18 @@ class GovtServerAPI(APIClient):
             page, api_base_url, api_username, api_password
         )
 
-        endpoint = (
-            "/stateServers/getAllStateServerList?"
-            f"page=0&size=1000&search=&userId={user_id}"
-        )
+        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
+            "sampark-qa.accoladeelectronics.com"
+        ):
+            endpoint = (
+                "/api/stateServers/getAllStateServerList?"
+                f"page=0&size=1000&search=&userId={user_id}"
+            )
+        else:
+            endpoint = (
+                "/stateServers/getAllStateServerList?"
+                f"page=0&size=1000&search=&userId={user_id}"
+            )
 
         servers = GovtServerAPI._send_get_request(
             page,
@@ -122,15 +155,27 @@ class GovtServerAPI(APIClient):
         return matching_server.get("id")
 
     @staticmethod
-    def get_all_firmware(page, api_base_url, api_username, api_password):
+    def get_all_firmware(
+        page,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
+    ):
         """
         Fetch all firmware versions.
         """
-
-        endpoint = (
-            "/firmwareMaster/getAllFirmwareList?"
-            "page=0&size=1000&search=&firmwareType="
-        )
+        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
+            "sampark-qa.accoladeelectronics.com"
+        ):
+            endpoint = (
+                "/api/firmwareMaster/getAllFirmwareList?"
+                "page=0&size=1000&search=&firmwareType="
+            )
+        else:
+            endpoint = (
+                "/firmwareMaster/getAllFirmwareList?"
+                "page=0&size=1000&search=&firmwareType="
+            )
 
         firmware_versions = GovtServerAPI._send_get_request(
             page,
@@ -156,10 +201,10 @@ class GovtServerAPI(APIClient):
     @staticmethod
     def _get_firmwares_by_type(
         page,
-        api_base_url,
-        api_username,
-        api_password,
-        firmware_type,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
+        firmware_type=None,
         added_in_state=False,
         state_server_id=None,
     ):
@@ -185,13 +230,27 @@ class GovtServerAPI(APIClient):
             )
 
         if added_in_state:
-            endpoint = f"/firmwareMaster/getStateFirmwares?page=0&size=1000&search=&firmwareType={firmware_type}&userId={user_id}&stateServerId={state_server_id}"
+            if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
+                "sampark-qa.accoladeelectronics.com"
+            ):
+                endpoint = f"/api/firmwareMaster/getStateFirmwares?page=0&size=1000&search=&firmwareType={firmware_type}&userId={user_id}&stateServerId={state_server_id}"
+            else:
+                endpoint = f"/firmwareMaster/getStateFirmwares?page=0&size=1000&search=&firmwareType={firmware_type}&userId={user_id}&stateServerId={state_server_id}"
         else:
-            endpoint = (
-                "/firmwareMaster/getFirmwaresListNotAddedInState?"
-                f"page=0&size=1000&search=&firmwareType={firmware_type}"
-                f"&stateServerId={state_server_id}"
-            )
+            if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
+                "sampark-qa.accoladeelectronics.com"
+            ):
+                endpoint = (
+                    "/api/firmwareMaster/getFirmwaresListNotAddedInState?"
+                    f"page=0&size=1000&search=&firmwareType={firmware_type}"
+                    f"&stateServerId={state_server_id}"
+                )
+            else:
+                endpoint = (
+                    "/firmwareMaster/getFirmwaresListNotAddedInState?"
+                    f"page=0&size=1000&search=&firmwareType={firmware_type}"
+                    f"&stateServerId={state_server_id}"
+                )
 
         firmware_versions = GovtServerAPI._send_get_request(
             page,
@@ -211,7 +270,12 @@ class GovtServerAPI(APIClient):
         return firmware_versions
 
     @staticmethod
-    def get_oc_firmwares_not_added(page, api_base_url, api_username, api_password):
+    def get_oc_firmwares_not_added(
+        page,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
+    ):
         """
         Fetch OC firmware list.
         """
@@ -223,9 +287,9 @@ class GovtServerAPI(APIClient):
     @staticmethod
     def get_oc_firmwares_added_in_state(
         page,
-        api_base_url,
-        api_username,
-        api_password,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
         state_name=None,
         state_server_id=None,
     ):
@@ -261,7 +325,12 @@ class GovtServerAPI(APIClient):
         )
 
     @staticmethod
-    def get_d_firmwares_not_added(page, api_base_url, api_username, api_password):
+    def get_d_firmwares_not_added(
+        page,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
+    ):
         """
         Fetch D firmware list.
         """
@@ -271,7 +340,12 @@ class GovtServerAPI(APIClient):
         )
 
     @staticmethod
-    def get_d_firmwares_added_in_state(page, api_base_url, api_username, api_password):
+    def get_d_firmwares_added_in_state(
+        page,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
+    ):
         """
         Fetch D firmware list.
         """
@@ -281,7 +355,12 @@ class GovtServerAPI(APIClient):
         )
 
     @staticmethod
-    def get_state_server_details_by_id(page, api_base_url, api_username, api_password):
+    def get_state_server_details_by_id(
+        page,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
+    ):
         """
         Fetch state server details by ID.
         """
@@ -290,7 +369,12 @@ class GovtServerAPI(APIClient):
             page, api_base_url, api_username, api_password
         )
 
-        endpoint = f"/stateServers/getStateServerDetails?id={server_id}"
+        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
+            "sampark-qa.accoladeelectronics.com"
+        ):
+            endpoint = f"/api/stateServers/getStateServerDetails?id={server_id}"
+        else:
+            endpoint = f"/stateServers/getStateServerDetails?id={server_id}"
 
         response = GovtServerAPI._send_get_request(
             page,
@@ -318,7 +402,11 @@ class GovtServerAPI(APIClient):
 
     @staticmethod
     def get_state_server_details_by_name(
-        page, api_base_url, api_username, api_password, state_name
+        page,
+        state_name,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
     ):
         """
         Fetch state server details by state name.
@@ -337,7 +425,12 @@ class GovtServerAPI(APIClient):
 
         server_id = matched_server.get("id")
 
-        endpoint = f"/stateServers/getStateServerDetails?id={server_id}"
+        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
+            "sampark-qa.accoladeelectronics.com"
+        ):
+            endpoint = f"/api/stateServers/getStateServerDetails?id={server_id}"
+        else:
+            endpoint = f"/stateServers/getStateServerDetails?id={server_id}"
 
         response = GovtServerAPI._send_get_request(
             page,

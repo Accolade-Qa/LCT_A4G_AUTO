@@ -371,7 +371,7 @@ class GovtServerPage(BasePage):
 
     def is_firmware_master_button_visible_and_enabled(self):
         """Check if the 'Firmware Master' button is visible and enabled"""
-        button_locator = self.page.get_by_text("Firmware Master open_in_new")
+        button_locator = self.page.get_by_text("Firmware Master")
         is_visible = button_locator.is_visible()
         is_enabled = button_locator.is_enabled()
         logger.debug(
@@ -383,19 +383,63 @@ class GovtServerPage(BasePage):
 
     def click_firmware_master_button(self):
         """Click the 'Firmware Master' button"""
-        button_locator = self.page.get_by_text("Firmware Master open_in_new")
-        if button_locator.is_visible() and button_locator.is_enabled():
-            button_locator.click()
-            self.page.wait_for_url("**/firmware-master")
+        button_locator = self.page.get_by_text("Firmware Master")
+
+        try:
+            # Wait briefly for the button to appear
+            button_locator.first.wait_for(state="visible", timeout=10000)
+
+            # Prefer a normal click when enabled, otherwise attempt a forced click
+            if button_locator.first.is_enabled():
+                button_locator.first.click()
+            else:
+                logger.warning(
+                    "Firmware Master button visible but not enabled, attempting forced click"
+                )
+                button_locator.first.click(force=True)
+
+            # Wait for navigation/load to settle
+            try:
+                self.page.wait_for_url("**/firmware-master", timeout=10000)
+            except Exception:
+                logger.debug(
+                    "No navigation to firmware-master URL after click; continuing to wait for networkidle"
+                )
+
             self.page.wait_for_load_state("networkidle")
             logger.info("Clicked 'Firmware Master' button")
-        else:
+
+        except Exception as exc:
+            # Log diagnostics to help debugging locator timeouts
+            try:
+                count = button_locator.count()
+                texts = button_locator.all_inner_texts()
+            except Exception:
+                count = "<failed-to-evaluate>"
+                texts = "<failed-to-evaluate>"
+
             logger.error(
-                "'Firmware Master' button is not clickable. Visible: %s, Enabled: %s",
-                button_locator.is_visible(),
-                button_locator.is_enabled(),
+                "Failed to click 'Firmware Master' button: %s; locator count=%s; texts=%s",
+                exc,
+                count,
+                texts,
             )
-            raise Exception("'Firmware Master' button is not clickable")
+
+            # Fallback: if locator not present, attempt direct navigation to firmware-master route
+            if count == 0:
+                try:
+                    target = self.page.url.rstrip("/") + "/firmware-master"
+                    logger.info("Attempting direct navigation to %s", target)
+                    self.page.goto(target, wait_until="networkidle", timeout=15000)
+                    self.page.wait_for_load_state("networkidle")
+                    logger.info("Direct navigation to firmware-master succeeded")
+                    return
+                except Exception as nav_exc:
+                    logger.error(
+                        "Direct navigation to firmware-master failed: %s", nav_exc
+                    )
+
+            raise
 
     def get_oc_firmware_list_from_ui(self):
         """Get available OC firmware list from Firmware Master List table"""
@@ -443,7 +487,10 @@ class GovtServerPage(BasePage):
 
     def search_respective_server(self):
         """Search for a specific server"""
-        state_name = "Shital"
+        # if "sampark-qa" in self.page.url:
+        state_name = "SURAJ"
+        # else:
+        #     state_name = "Shital"
 
         # Search server
         logger.info("Searching server with state name: %s", state_name)

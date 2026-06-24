@@ -9,6 +9,7 @@ from pages.common.search import SearchHelper
 from utils.logger import get_logger
 from pages.common.table_section import TableSection
 from pages.api.government_server_api import GovtServerAPI
+from config.config import GOVERNMENT_SERVERS_URL
 
 logger = get_logger(__name__)
 
@@ -973,7 +974,7 @@ class TestGovtServerPage:
 
         logger.info("Validating UI input field data with API response")
 
-        state_name = "Shital"
+        state_name = "SURAJ"
 
         response, _, _ = GovtServerAPI.get_state_server_details_by_name(
             govt_server_page.page,
