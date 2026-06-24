@@ -11,8 +11,18 @@ logger = get_logger(__name__)
 
 @pytest.mark.device
 @pytest.mark.regression
-class TestModel:
-    def _login_and_dashboard(self, page, project_config):
+class TestModelPage:
+    def _login_and_dashboard(self, page, project_config=None):
+        # Allow callers to omit project_config; fall back to config module values
+        if project_config is None:
+            from config import config as config_module
+
+            project_config = {
+                "base_url": config_module.BASE_URL,
+                "username": config_module.USERNAME,
+                "password": config_module.PASSWORD,
+            }
+
         login_page = LoginPage(page)
         login_page.load(project_config["base_url"])
         login_page.login(project_config["username"], project_config["password"])

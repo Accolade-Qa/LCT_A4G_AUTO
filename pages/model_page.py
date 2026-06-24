@@ -15,7 +15,8 @@ class DeviceModel(BasePage):
     def go_to_model(self, url):
         logger.info("Navigating to Device Model page: %s", url)
         logger.debug("Calling page.goto() with URL")
-        self.page.goto(MODEL_URL)
+        # Use the passed-in URL (avoid relying on module globals)
+        self.page.goto(url)
         logger.debug("Waiting for network to be idle")
         self.page.wait_for_load_state("networkidle")
         logger.info("Successfully navigated to Device Model page")
