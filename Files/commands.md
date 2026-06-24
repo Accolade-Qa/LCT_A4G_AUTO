@@ -287,3 +287,9 @@ If you're new to this repo:
    Notes:
    - The `run-parallel-projects.ps1` script uses `start /affinity` to set CPU affinity per process. If you prefer `taskset` on Linux/WSL, I can add a bash runner.
    - Tune project list and pytest options (`-n auto`, markers, verbosity) to your CI needs.
+
+
+## setting the virtual enviroment by command 
+```bash
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& d:\AEPL_AUTOMATION\LCT_A4G_AUTO\.venv\Scripts\Activate.ps1)
+```
