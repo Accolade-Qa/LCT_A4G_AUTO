@@ -42,6 +42,11 @@ class TestRoleManagementPage:
 
         logger.info("Testing delete role permission functionality")
 
+        if "sampark-qa" in API_BASE_URL:
+            endpoint = "/api/roles/getRoles?page=0&size=1000&search=&userRole="
+        else:
+            endpoint = "/roles/getRoles?page=0&size=1000&search=&userRole="
+
         # first call get all item i.e. roles by get all roles count from the role management page
         response = APIClient.send_request(
             role_management_page.page,
@@ -49,11 +54,15 @@ class TestRoleManagementPage:
             API_USERNAME,
             API_PASSWORD,
             "GET",
-            "/roleGroup/getRolesGroup?page=0&size=1000&search=",
+            endpoint,
         )
         total_roles = response.get("totalItems", 0)
 
         for i in range(1, total_roles + 1):
+            if "sampark-qa" in API_BASE_URL:
+                endpoint = f"/api/roles/deleteRole?roleId={i}"
+            else:
+                endpoint = f"/roles/deleteRole?roleId={i}"
 
             try:
                 response = APIClient.send_request(
@@ -62,7 +71,7 @@ class TestRoleManagementPage:
                     API_USERNAME,
                     API_PASSWORD,
                     "DELETE",
-                    f"/roles/deleteRole?roleId={i}",
+                    endpoint,
                 )
 
                 assert (

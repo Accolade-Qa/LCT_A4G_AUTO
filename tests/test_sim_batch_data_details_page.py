@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from pages.api.sim_batch_api import SIMBatchAPI
+from config.config import SIM_DATA_DETAILS_URL, API_BASE_URL, API_USERNAME, API_PASSWORD
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -12,7 +12,7 @@ TEST_DATA_DIR = Path(__file__).resolve().parents[1] / "test_data"
 
 @pytest.mark.device
 @pytest.mark.regression
-class TestSimBatchDataDetails:
+class TestSimBatchDataDetailsPage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
         test_name = request.node.name
