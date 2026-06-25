@@ -1,7 +1,7 @@
 from utils.logger import get_logger
 
 # from pages.base_page import BasePage
-from pages.user_management import UserManagementPage
+from pages.user_management_page import UserManagementPage
 from pages.login_page import LoginPage
 
 import pytest
@@ -15,7 +15,7 @@ from config.config import (
 logger = get_logger(__name__)
 
 
-class TestUsermanagement:
+class TestUserManagementPage:
 
     def _login_and_dashboard(self, page):
         login_page = LoginPage(page)
@@ -435,11 +435,7 @@ class TestUsermanagement:
         report_case(
             expected="Data Fetched Successfully",
             actual=toast_text,
-            result=(
-                "Pass"
-                if toast_text == "Data Fetched Successfully"
-                else "Fail"
-            ),
+            result=("Pass" if toast_text == "Data Fetched Successfully" else "Fail"),
             message="Validate new user flow",
         )
         logger.info(f"Toast message after update user flow: '{toast_text}'")

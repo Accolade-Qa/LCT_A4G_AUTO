@@ -383,7 +383,7 @@ def customer_master(page):
 
 @pytest.fixture
 def user_management(page, project_config):
-    from pages.user_management import UserManagementPage
+    from pages.user_management_page import UserManagementPage
 
     usermanagement = UserManagementPage(page)
     usermanagement.go_to_user(project_config["user_management_url"])
