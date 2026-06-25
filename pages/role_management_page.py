@@ -1,10 +1,3 @@
-"""
-Author: Suraj Bhalerao
-Date Created: 2026-06-19
-Date Last Updated: 2026-06-19
-Description: Page Object Model for Role Management page - handles role management operations.
-"""
-
 from utils.logger import get_logger
 
 from pages.common.pagination import PaginationHelper

@@ -1,10 +1,3 @@
-"""
-Author: Suraj Bhalerao
-Date Created: 2026-06-19
-Date Last Updated: 2026-06-19
-Description: Page Object Model for Device Details page - handles device details view and operations.
-"""
-
 import os
 import re
 

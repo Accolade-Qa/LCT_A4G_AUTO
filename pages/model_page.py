@@ -1,11 +1,4 @@
-"""
-Author: Suraj Bhalerao
-Date Created: 2026-06-19
-Date Last Updated: 2026-06-19
-Description: Page Object Model for Model page - handles device model management operations.
-"""
-
-from config.config import MODEL_URL, CREATE_NEW_MODEL
+from config.config import MODEL_URL
 from playwright.sync_api import expect
 from .base_page import BasePage
 from utils.logger import get_logger
@@ -111,6 +104,11 @@ class DeviceModel(BasePage):
         return title_text
 
     def _submit_button(self):
+
+        model_button_locator = self.page.get_by_text(
+            "Add Device Model open_in_new", exact=True
+        )
+        model_button_locator.click()
 
         logger.debug("Checking submit button status")
         submit_button_locator = self.page.locator(".submit-button.ng-star-inserted")

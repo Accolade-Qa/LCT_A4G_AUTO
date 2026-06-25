@@ -1,13 +1,7 @@
-"""
-Author: Dhananjay Jagtap
-Date Created: 2026-06-19
-Date Last Updated: 2026-06-19
-Description: Page Object Model for User Management page - handles user creation and management operations.
-"""
-
 from config.config import USER_MANAGEMENT_URL
 from .base_page import BasePage
 from utils.logger import get_logger
+
 # from .common.table_section import TableSection
 
 logger = get_logger(__name__)
@@ -25,7 +19,9 @@ class UserManagementPage(BasePage):
         self.search_field_locator = page.get_by_placeholder(
             "Search and Press Enter", exact=True
         )
-        self.view_icon = page.locator("//button[@class='primary-button view-button']").first
+        self.view_icon = page.locator(
+            "//button[@class='primary-button view-button']"
+        ).first
         self.search_icon_locator = page.get_by_text("search", exact=True)
         self._user_drop_locator = page.locator("#mat-select-value-1:visible")
         self.first_name_locator = page.get_by_label("First Name", exact=True)

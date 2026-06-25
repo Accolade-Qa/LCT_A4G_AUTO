@@ -1,10 +1,3 @@
-"""
-Author: Suraj Bhalerao
-Date Created: 2026-06-19
-Date Last Updated: 2026-06-19
-Description: Base Page Object Model class - provides common functionality for all page objects.
-"""
-
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
