@@ -1,5 +1,6 @@
 import logging
 import re
+import time
 from datetime import datetime
 
 from pages.base_page import BasePage
@@ -43,15 +44,20 @@ class LoginPage(BasePage):
         self.logger.info(f"Opening URL: {url}")
         self.page.goto(url, wait_until="domcontentloaded", timeout=60000)
 
-    def login(self, username, password):
+    def login(self, username, password, wait_for_networkidle=True):
         self.logger.info("Entering username")
         self.username.fill(username)
         self.logger.info("Entering password")
         self.password.fill(password)
         self.logger.info("Clicking login button")
         self.login_btn.click()
-        self.page.wait_for_load_state("networkidle")
+        if wait_for_networkidle:
+            self.page.wait_for_load_state("networkidle")
         self.logger.info("Login action completed")
+
+    def set_network_offline(self, offline: bool):
+        self.logger.info("Setting network offline=%s", offline)
+        self.page.context.set_offline(offline)
 
     # 🔹 New Method 2: Invalid Login Method
     def login_with_invalid_credentials(self, username, password):

@@ -250,9 +250,21 @@ class TestProfilePage:
             input_fields = profile_page.get_input_fields()
 
             # Log field values before assertions
+            role_type = (user_data.get("roleType") or "").upper()
+            user_role = (user_data.get("userRole") or "").upper()
+            admin_name_value = user_data.get("adminName")
+            expected_admin_name = (
+                "--"
+                if (
+                    role_type in {"SUPER_ADMIN", "ADMIN"}
+                    or user_role in {"ADMIN", "SUPER_ADMIN"}
+                    or not admin_name_value
+                )
+                else admin_name_value
+            )
             field_values_comparison = {
                 "admin": {
-                    "expected": user_data.get("adminName"),
+                    "expected": expected_admin_name,
                     "actual": input_fields["admin"].input_value(),
                 },
                 "name": {
@@ -272,9 +284,20 @@ class TestProfilePage:
             report_case(expected=str(user_data), actual=str(field_values_comparison))
 
             # Validate each input field value against API data
-            assert input_fields["admin"].input_value() == user_data.get(
-                "adminName"
-            ), f"Expected admin name to be '{user_data.get('adminName')}' but got '{input_fields['admin'].input_value()}'"
+            admin_name_value = user_data.get("adminName")
+            expected_admin_name = (
+                "--"
+                if (
+                    role_type in {"SUPER_ADMIN", "ADMIN"}
+                    or user_role in {"ADMIN", "SUPER_ADMIN"}
+                    or not admin_name_value
+                )
+                else admin_name_value
+            )
+
+            assert (
+                input_fields["admin"].input_value() == expected_admin_name
+            ), f"Expected admin name to be '{expected_admin_name}' but got '{input_fields['admin'].input_value()}'"
 
             assert input_fields["name"].input_value() == user_data.get(
                 "firstName"

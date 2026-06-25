@@ -284,6 +284,135 @@ class TestLoginPage:
         logger.info("Page title validation completed successfully")
 
     @pytest.mark.regression
+    def test_network_loss_during_login_shows_login_page(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
+        """Simulate network loss while login form is open and verify the app remains on login page."""
+        logger.info("Starting network loss during login test")
+
+        login_page.load(project_config["base_url"])
+        login_page.set_network_offline(True)
+
+        try:
+            login_page.login(
+                project_config["username"],
+                project_config["password"],
+                wait_for_networkidle=False,
+            )
+        except Exception as e:
+            logger.warning("Login attempt during offline state raised: %s", e)
+
+        assert (
+            login_page.username.is_visible()
+        ), "Login form should still be visible when offline"
+        assert project_config["dashboard_url"] not in login_page.page.url
+
+        report_case(
+            expected="Login form remains visible when network is offline",
+            actual=f"URL after login attempt: {login_page.page.url}",
+            message="Validate offline login behavior",
+        )
+
+        login_page.set_network_offline(False)
+        logger.info("Network offline simulation completed")
+
+    @pytest.mark.regression
+    @pytest.mark.slow
+    def test_login_with_high_latency_still_completes(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
+        """Simulate a high-latency login request and verify login eventually succeeds."""
+        logger.info("Starting high latency login test")
+
+        login_page.load(project_config["base_url"])
+
+        def delay_login(route, request):
+            url = request.url.lower()
+            if request.method == "POST" and (
+                "/users/login" in url or "/api/users/login" in url
+            ):
+                logger.info("Delaying login request by 4 seconds: %s", request.url)
+                time.sleep(4)
+            route.continue_()
+
+        login_page.page.route("**/*users/login*", delay_login)
+
+        start_time = time.time()
+        with login_page.page.expect_response(
+            lambda response: response.request.method == "POST"
+            and (
+                "/users/login" in response.url.lower()
+                or "/api/users/login" in response.url.lower()
+            ),
+            timeout=90000,
+        ) as login_response_info:
+            login_page.login(
+                project_config["username"],
+                project_config["password"],
+                wait_for_networkidle=False,
+            )
+        login_response = login_response_info.value
+        assert (
+            login_response.ok
+        ), f"Login request failed under latency: {login_response.status} {login_response.url}"
+
+        login_page.page.wait_for_url("**/device-dashboard-page", timeout=90000)
+        duration = time.time() - start_time
+
+        actual_url = login_page.page.url
+        report_case(
+            expected=project_config["dashboard_url"],
+            actual=actual_url,
+            message=f"Validate login with high latency completes in {duration:.1f}s",
+        )
+
+        assert (
+            project_config["dashboard_url"] in actual_url
+        ), f"Expected to navigate to dashboard even under high latency, got {actual_url}"
+        assert duration >= 4, "High latency should delay the login request"
+
+        logger.info("High latency login test completed in %.1f seconds", duration)
+
+    @pytest.mark.regression
+    def test_recover_after_network_restore_and_login(
+        self,
+        login_page,
+        project_config,
+        report_case,
+    ):
+        """Simulate the network going down while the app is open, then restore it and verify login succeeds."""
+        logger.info("Starting network restore recovery test")
+
+        login_page.load(project_config["base_url"])
+        login_page.set_network_offline(True)
+
+        assert (
+            login_page.username.is_visible()
+        ), "Username field should remain visible when offline"
+
+        login_page.set_network_offline(False)
+        login_page.login(project_config["username"], project_config["password"])
+
+        actual_url = login_page.page.url
+        report_case(
+            expected=project_config["dashboard_url"],
+            actual=actual_url,
+            message="Validate login after network restoration",
+        )
+
+        assert (
+            project_config["dashboard_url"] in actual_url
+        ), f"Expected dashboard after network restoration, got {actual_url}"
+
+        logger.info("Network restore recovery test completed successfully")
+
+    @pytest.mark.regression
     def test_login_with_long_username_and_short_password(
         self,
         login_page,
