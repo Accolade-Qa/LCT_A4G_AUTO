@@ -2,8 +2,7 @@ import time
 
 import pytest
 
-from config.config import ROLE_MANAGEMENT_URL
-from pages.api.api_client import APIClient
+from config.config import API_BASE_URL, ROLE_MANAGEMENT_URL, API_PASSWORD, API_USERNAME
 from pages.api.api_client import APIClient
 from pages.common import TableSection, PaginationHelper
 from utils.helpers import Helpers
@@ -46,6 +45,9 @@ class TestRoleManagementPage:
         # first call get all item i.e. roles by get all roles count from the role management page
         response = APIClient.send_request(
             role_management_page.page,
+            API_BASE_URL,
+            API_USERNAME,
+            API_PASSWORD,
             "GET",
             "/roleGroup/getRolesGroup?page=0&size=1000&search=",
         )
@@ -56,6 +58,9 @@ class TestRoleManagementPage:
             try:
                 response = APIClient.send_request(
                     role_management_page.page,
+                    API_BASE_URL,
+                    API_USERNAME,
+                    API_PASSWORD,
                     "DELETE",
                     f"/roles/deleteRole?roleId={i}",
                 )

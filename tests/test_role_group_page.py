@@ -3,9 +3,10 @@ import re
 
 import pytest
 
+from config.config import API_BASE_URL, API_USERNAME, API_PASSWORD
 from pages.api.api_client import APIClient
 from utils.helpers import Helpers
-from pages.common import TableSection, PaginationHelper, SearchHelper
+from pages.common import TableSection, SearchHelper
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -44,22 +45,34 @@ class TestRoleGroupPage:
         """Test deleting a role permission."""
 
         logger.info("Testing delete role permission functionality")
-
+        if "sampark-qa" in API_BASE_URL:
+            endpoint = "/api/roleGroup/getRolesGroup?page=0&size=1000&search="
+        else:
+            endpoint = "/roleGroup/getRolesGroup?page=0&size=1000&search="
         # first call get all item i.e. roles by get all roles count from the role management page
         response = APIClient.send_request(
             role_group_page.page,
+            API_BASE_URL,
+            API_USERNAME,
+            API_PASSWORD,
             "GET",
-            "/roleGroup/getRolesGroup?page=0&size=1000&search=",
+            endpoint,
         )
         total_roles = response.get("totalItems", 0)
 
         for i in range(1, total_roles + 1):
-
+            if "sampark-qa" in API_BASE_URL:
+                endpoint = f"/api/roleGroup/deleteRoleGroup?id={i}"
+            else:
+                endpoint = f"/roleGroup/deleteRoleGroup?id={i}"
             try:
                 response = APIClient.send_request(
                     role_group_page.page,
+                    API_BASE_URL,
+                    API_USERNAME,
+                    API_PASSWORD,
                     "DELETE",
-                    f"/roleGroup/deleteRoleGroup?id={i}",
+                    endpoint,
                 )
 
                 assert (

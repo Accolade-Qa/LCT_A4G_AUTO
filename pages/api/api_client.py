@@ -171,14 +171,28 @@ class APIClient:
             logger.info("API request succeeded with status %s", response.status)
             if response.status == 204:  # No Content
                 return {}
-            return response.json()
+            try:
+                return response.json()
+            except json.JSONDecodeError as decode_err:
+                response_text = response.text()
+                if not response_text or response_text.isspace():
+                    return {}
+                logger.error(
+                    "Failed to parse JSON response from %s: %s",
+                    endpoint,
+                    response_text,
+                )
+                raise Exception(
+                    f"API request to {endpoint} returned invalid JSON: {decode_err}. Response body: {response_text}"
+                ) from decode_err
         else:
+            response_text = response.text()
             logger.warning(
                 "API request to %s failed with status %s: %s",
                 endpoint,
                 response.status,
-                response.text(),
+                response_text,
             )
             raise Exception(
-                f"API request to {endpoint} failed: {response.status} {response.text()}"
+                f"API request to {endpoint} failed: {response.status} {response_text}"
             )
