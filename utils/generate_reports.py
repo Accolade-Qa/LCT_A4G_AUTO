@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import re
@@ -14,36 +15,59 @@ from openpyxl.styles import Font, PatternFill
 # ================= CONFIG =================
 ROOT = Path.cwd()
 
-_reports_upper = ROOT / "Reports"
-_reports_lower = ROOT / "reports"
 
-REPORT_DIR = _reports_upper if _reports_upper.exists() else _reports_lower
-REPORT_DIR.mkdir(parents=True, exist_ok=True)
+def _detect_base_report_dir():
+    upper = ROOT / "Reports"
+    lower = ROOT / "reports"
+    if upper.exists():
+        return upper
+    if lower.exists():
+        return lower
+    return upper
 
-_json_upper = _reports_upper / "json" / "report.json"
-_json_lower = _reports_lower / "report.json"
-_manual_upper = _reports_upper / "test_report.xlsx"
-_manual_lower = _reports_lower / "test_report.xlsx"
 
-JSON_PATH = None
-for path in [_json_upper, _json_lower]:
-    if path.exists():
-        JSON_PATH = path
-        break
+def _resolve_report_paths(project_name=None, base_report_dir=None):
+    base_dir = Path(base_report_dir) if base_report_dir else _detect_base_report_dir()
+    report_dir = base_dir if project_name is None else base_dir / project_name
+    report_dir.mkdir(parents=True, exist_ok=True)
 
-if JSON_PATH is None:
-    JSON_PATH = REPORT_DIR / "report.json"
+    json_path = report_dir / "report.json"
+    html_path = report_dir / "report.html"
+    excel_path = report_dir / "report.xlsx"
+    manual_excel_path = report_dir / "test_report.xlsx"
 
-HTML_PATH = REPORT_DIR / "report.html"
-EXCEL_PATH = REPORT_DIR / "report.xlsx"
-MANUAL_EXCEL_PATH = None
-for path in [_manual_upper, _manual_lower]:
-    if path.exists():
-        MANUAL_EXCEL_PATH = path
-        break
+    return {
+        "report_dir": report_dir,
+        "json_path": json_path,
+        "html_path": html_path,
+        "excel_path": excel_path,
+        "manual_excel_path": manual_excel_path,
+    }
 
-if MANUAL_EXCEL_PATH is None:
-    MANUAL_EXCEL_PATH = REPORT_DIR / "test_report.xlsx"
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Generate test reports for one or more projects."
+    )
+    parser.add_argument(
+        "--project",
+        "-p",
+        help="Project name to generate reports for (same as pytest --project).",
+    )
+    parser.add_argument(
+        "--projects",
+        help="Comma-separated list of project names to generate reports for.",
+    )
+    parser.add_argument(
+        "--report-dir",
+        help="Optional base report directory. Defaults to Reports/ or reports/.",
+    )
+    parser.add_argument(
+        "--skip-pytest",
+        action="store_true",
+        help="Skip running pytest and only generate reports from existing JSON.",
+    )
+    return parser.parse_args()
 
 
 # ================= HTML TEMPLATE =================
@@ -185,7 +209,9 @@ def _duration_seconds(test_result):
 
 def _property_map(test_result):
     properties = {}
-    raw_properties = test_result.get("user_properties") or test_result.get("properties") or []
+    raw_properties = (
+        test_result.get("user_properties") or test_result.get("properties") or []
+    )
 
     if isinstance(raw_properties, dict):
         return {str(key).lower(): value for key, value in raw_properties.items()}
@@ -205,15 +231,16 @@ def _property_map(test_result):
     return properties
 
 
-def _load_manual_results():
+def _load_manual_results(manual_excel_path):
     """Read richer expected/actual rows written by utils.excel_report.write_result."""
-    if not MANUAL_EXCEL_PATH.exists():
+    manual_path = Path(manual_excel_path)
+    if not manual_path.exists():
         return {}
 
     try:
-        df = pd.read_excel(MANUAL_EXCEL_PATH)
+        df = pd.read_excel(manual_path)
     except Exception as exc:
-        print(f"Warning: Could not read manual Excel report {MANUAL_EXCEL_PATH}: {exc}")
+        print(f"Warning: Could not read manual Excel report {manual_path}: {exc}")
         return {}
 
     required = {"Test Name", "Expected", "Actual", "Status"}
@@ -269,8 +296,8 @@ def _extract_expected_actual(longrepr, outcome):
     return "Not recorded by test", _clean(text, 500), text[:300]
 
 
-def _build_test_rows(data):
-    manual_results = _load_manual_results()
+def _build_test_rows(data, manual_excel_path):
+    manual_results = _load_manual_results(manual_excel_path)
     tests = []
     seen = set()
     counts = {"passed": 0, "failed": 0, "skipped": 0}
@@ -280,12 +307,12 @@ def _build_test_rows(data):
         test_name = _test_case_name(nodeid)
         status = _normalize_status(t.get("outcome", ""))
         properties = _property_map(t)
-        
+
         # 🔹 PRIORITY 1: Check properties (set by report_case fixture or pytest hook)
         properties_expected = _clean(properties.get("expected"))
         properties_actual = _clean(properties.get("actual"))
         properties_message = _clean(properties.get("message"), 300)
-        
+
         # 🔹 PRIORITY 2: Extract from error/longrepr only if properties don't have expected/actual
         if properties_expected or properties_actual:
             # Properties has explicit values - use them
@@ -299,9 +326,11 @@ def _build_test_rows(data):
             )
             # Override message with property if available
             message = properties_message or message
-        
+
         # 🔹 PRIORITY 3: Update status from properties if available
-        status = _normalize_status(properties.get("result") or properties.get("status") or status)
+        status = _normalize_status(
+            properties.get("result") or properties.get("status") or status
+        )
 
         # 🔹 PRIORITY 4: Manual results (from write_result) override everything
         manual = manual_results.get(test_name)
@@ -313,14 +342,16 @@ def _build_test_rows(data):
 
         counts[{"pass": "passed", "fail": "failed"}.get(status, "skipped")] += 1
         seen.add(test_name)
-        
+
         # 🔍 Debug logging for "Not recorded by test" issues
         if "Not recorded by test" in (expected or actual):
-            print(f"⚠️  DEBUG: Test '{test_name}' has 'Not recorded by test' in expected/actual")
+            print(
+                f"⚠️  DEBUG: Test '{test_name}' has 'Not recorded by test' in expected/actual"
+            )
             print(f"   - has properties: {bool(properties)}")
             print(f"   - has manual: {bool(manual)}")
             print(f"   - longrepr length: {len(str(t.get('longrepr', '')))}")
-        
+
         tests.append(
             {
                 "name": test_name,
@@ -354,50 +385,53 @@ def _build_test_rows(data):
 
 
 # ================= STEP 1: RUN PYTEST =================
-def run_pytest():
-    REPORT_DIR.mkdir(exist_ok=True)
+def run_pytest(json_path, project_name=None):
+    report_dir = json_path.parent
+    report_dir.mkdir(parents=True, exist_ok=True)
 
     cmd = [
         sys.executable,
         "-m",
         "pytest",
+        "-v",
         "--json-report",
-        f"--json-report-file={JSON_PATH}",
+        f"--json-report-file={json_path}",
     ]
 
-    print("Running pytest...")
+    if project_name:
+        cmd.append(f"--project={project_name}")
+
+    print("Running pytest...", "project=" + str(project_name) if project_name else "")
     result = subprocess.run(cmd, cwd=ROOT)
     return result.returncode
 
 
 # ================= STEP 2: PROCESS JSON =================
-def process_json():
+def process_json(json_path, manual_excel_path):
     """Process JSON report and merge manual expected/actual rows when present."""
     data = {"tests": []}
 
-    if not JSON_PATH.exists():
-        print(f"Warning: JSON file not found at {JSON_PATH}")
-        print(f"Looking in: {_reports_upper / 'json' / 'report.json'}")
-        print(f"And: {_reports_lower / 'report.json'}")
-        return (*_build_test_rows(data), data)
+    if not json_path.exists():
+        print(f"Warning: JSON file not found at {json_path}")
+        return (*_build_test_rows(data, manual_excel_path), data)
 
     try:
-        with open(JSON_PATH, encoding="utf-8") as f:
+        with open(json_path, encoding="utf-8") as f:
             data = json.load(f)
-        print(f"JSON loaded from: {JSON_PATH}")
+        print(f"JSON loaded from: {json_path}")
     except json.JSONDecodeError as exc:
-        print(f"Warning: Invalid JSON in {JSON_PATH}: {exc}")
+        print(f"Warning: Invalid JSON in {json_path}: {exc}")
         data = {"tests": []}
     except Exception as exc:
         print(f"Warning: Could not read JSON: {exc}")
         data = {"tests": []}
 
-    tests, counts, total = _build_test_rows(data)
+    tests, counts, total = _build_test_rows(data, manual_excel_path)
     return tests, counts, total, data
 
 
 # ================= STEP 3: HTML =================
-def generate_html(tests, counts, total):
+def generate_html(tests, counts, total, html_path):
     template = Template(HTML_TEMPLATE)
 
     html = template.render(
@@ -409,13 +443,13 @@ def generate_html(tests, counts, total):
         tests=tests,
     )
 
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    HTML_PATH.write_text(html, encoding="utf-8")
-    print("HTML generated:", HTML_PATH)
+    html_path.parent.mkdir(parents=True, exist_ok=True)
+    html_path.write_text(html, encoding="utf-8")
+    print("HTML generated:", html_path)
 
 
 # ================= STEP 4: EXCEL =================
-def generate_excel(tests):
+def generate_excel(tests, excel_path):
     rows = [
         {
             "Test Case Name": t["name"],
@@ -440,16 +474,16 @@ def generate_excel(tests):
         ],
     )
 
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_excel(EXCEL_PATH, index=False, sheet_name="Test Results")
-    _style_excel()
+    excel_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_excel(excel_path, index=False, sheet_name="Test Results")
+    _style_excel(excel_path)
 
-    print("Excel generated:", EXCEL_PATH)
+    print("Excel generated:", excel_path)
     print(f"Total rows: {len(rows)}")
 
 
-def _style_excel():
-    wb = load_workbook(EXCEL_PATH)
+def _style_excel(excel_path):
+    wb = load_workbook(excel_path)
     ws = wb["Test Results"]
 
     header_fill = PatternFill("solid", fgColor="D9EAF7")
@@ -492,52 +526,59 @@ def _style_excel():
 
     ws.freeze_panes = "A2"
     ws.auto_filter.ref = ws.dimensions
-    wb.save(EXCEL_PATH)
+    wb.save(excel_path)
 
 
 # ================= MAIN =================
-def main():
+def _run_report_for_target(project_name, base_report_dir, skip_pytest):
+    report_paths = _resolve_report_paths(project_name, base_report_dir)
+    report_dir = report_paths["report_dir"]
+    json_path = report_paths["json_path"]
+    html_path = report_paths["html_path"]
+    excel_path = report_paths["excel_path"]
+
     print("=" * 60)
-    print("TEST REPORT GENERATOR")
+    print(f"TEST REPORT GENERATOR: {project_name or 'default'}")
     print("=" * 60)
     print(f"Working directory: {ROOT}")
-    print(f"Report directory: {REPORT_DIR}")
-    print(f"JSON path: {JSON_PATH}")
-    print(f"Manual expected/actual path: {MANUAL_EXCEL_PATH}")
-    print(f"JSON exists: {JSON_PATH.exists()}")
+    print(f"Report directory: {report_dir}")
+    print(f"JSON path: {json_path}")
+    print(f"HTML path: {html_path}")
+    print(f"Excel path: {excel_path}")
+    print(f"Manual expected/actual path: {report_paths['manual_excel_path']}")
+    print(f"JSON exists: {json_path.exists()}")
     print("-" * 60)
 
-    run_pytest_flag = os.getenv("RUN_PYTEST", "true").lower() != "false"
-
-    if run_pytest_flag:
-        exit_code = run_pytest()
-    else:
-        print("Skipping pytest (RUN_PYTEST=false)")
+    if skip_pytest:
+        print("Skipping pytest (--skip-pytest specified)")
         exit_code = 0
+    else:
+        exit_code = run_pytest(json_path, project_name)
 
     try:
-        tests, counts, total, data = process_json()
-
+        tests, counts, total, data = process_json(
+            json_path, report_paths["manual_excel_path"]
+        )
         print("Generating HTML report...")
-        generate_html(tests, counts, total)
+        generate_html(tests, counts, total, html_path)
 
         print("Generating Excel report...")
-        generate_excel(tests)
+        generate_excel(tests, excel_path)
 
         print("\n" + "=" * 60)
         print("ALL REPORTS GENERATED SUCCESSFULLY!")
         print("=" * 60)
-        print(f"HTML:  {HTML_PATH} (exists: {HTML_PATH.exists()})")
-        print(f"Excel: {EXCEL_PATH} (exists: {EXCEL_PATH.exists()})")
-        print(f"JSON:  {JSON_PATH} (exists: {JSON_PATH.exists()})")
+        print(f"HTML:  {html_path} (exists: {html_path.exists()})")
+        print(f"Excel: {excel_path} (exists: {excel_path.exists()})")
+        print(f"JSON:  {json_path} (exists: {json_path.exists()})")
         print("=" * 60)
 
     except Exception as exc:
         print(f"Error processing reports: {exc}")
         try:
             print("Attempting to generate reports with fallback...")
-            generate_html([], {"passed": 0, "failed": 0, "skipped": 0}, 0)
-            generate_excel([])
+            generate_html([], {"passed": 0, "failed": 0, "skipped": 0}, 0, html_path)
+            generate_excel([], excel_path)
         except Exception as fallback_exc:
             print(f"Failed to generate reports: {fallback_exc}")
             return 1
@@ -546,6 +587,26 @@ def main():
         print("Some tests failed")
 
     return exit_code
+
+
+def main():
+    args = parse_args()
+    project_names = []
+    if args.projects:
+        project_names = [p.strip() for p in args.projects.split(",") if p.strip()]
+    if args.project:
+        project_names.append(args.project)
+    if not project_names:
+        project_names = [None]
+
+    overall_exit_code = 0
+    for project_name in project_names:
+        exit_code = _run_report_for_target(
+            project_name, args.report_dir, args.skip_pytest
+        )
+        overall_exit_code = max(overall_exit_code, exit_code)
+
+    return overall_exit_code
 
 
 if __name__ == "__main__":
