@@ -1,10 +1,10 @@
-import pytest
 from playwright.sync_api import expect
-
 from pages.login_page import LoginPage
 from pages.model_page import DeviceModel
 from utils.logger import get_logger
 from config.config import MODEL_URL, CREATE_NEW_MODEL, UPDATE_MODEL
+
+import pytest
 
 logger = get_logger(__name__)
 

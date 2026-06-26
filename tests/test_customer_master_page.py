@@ -2,15 +2,7 @@ from utils.logger import get_logger
 from pages.base_page import BasePage
 from pages.customer_master_page import CustomerMasterPage
 from pages.login_page import LoginPage
-import pytest
-from config.config import (
-    
-    BASE_URL,
-    CUSTOMER_MASTER_URL,
-    PASSWORD,
-    USERNAME,
-)
-
+from config.config import BASE_URL, CUSTOMER_MASTER_URL, PASSWORD, USERNAME
 
 logger = get_logger(__name__)
 
@@ -22,12 +14,12 @@ class TestCustomerMaster:
         login_page.login(USERNAME, PASSWORD)
 
         return CustomerMasterPage(page)
-    
+
     def test_go_to_customer(self, page, report_case):
         logger.info("Starting validation of Customer master page navigation")
         customer_page = self._login_and_dashboard(page)
         customer_page.go_to_customer(CUSTOMER_MASTER_URL)
-        
+
         actual_url = page.url
         logger.debug(
             "Customer master URL check | expected=%s | actual=%s",
@@ -41,12 +33,12 @@ class TestCustomerMaster:
             message="Validate Customer master page navigation",
         )
 
-        assert actual_url == CUSTOMER_MASTER_URL, (
-            f"Expected URL '{CUSTOMER_MASTER_URL}', got '{actual_url}'"
-        )
+        assert (
+            actual_url == CUSTOMER_MASTER_URL
+        ), f"Expected URL '{CUSTOMER_MASTER_URL}', got '{actual_url}'"
         logger.info("Successfully validated Customer Master page navigation")
-    
-    def test_customer_master_nav_list(self, customer_master, report_case,page):
+
+    def test_customer_master_nav_list(self, customer_master, report_case, page):
 
         logger.info("Starting Test: Customer master navigation bar validation")
         customer_page = self._login_and_dashboard(page)
@@ -71,7 +63,9 @@ class TestCustomerMaster:
 
         logger.info("Page title is visible: Test Passed")
 
-    def test_customer_master_element_enability(self, customer_master, report_case, page):
+    def test_customer_master_element_enability(
+        self, customer_master, report_case, page
+    ):
         logger.info("Starting Test: Customer master element enability validation")
         customer_page = self._login_and_dashboard(page)
         customer_page.go_to_customer(CUSTOMER_MASTER_URL)
@@ -166,7 +160,9 @@ class TestCustomerMaster:
             "Customer search and update functionality validation successful: Test Passed"
         )
 
-    def test_customer_master_search_delete_customer(self, customer_master, report_case, page):
+    def test_customer_master_search_delete_customer(
+        self, customer_master, report_case, page
+    ):
         logger.info("Starting Test: Customer search and delete functionality")
         customer_page = self._login_and_dashboard(page)
         customer_page.go_to_customer(CUSTOMER_MASTER_URL)

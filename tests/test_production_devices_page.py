@@ -1,10 +1,9 @@
 from pathlib import Path
-
-import pytest
-
 from pages.login_page import LoginPage
 from pages.production_devices_page import ProductionDevices
 from utils.logger import get_logger
+
+import pytest
 
 TEST_DATA_DIR_PROD = Path(__file__).resolve().parents[1] / "test_data"
 logger = get_logger(__name__)

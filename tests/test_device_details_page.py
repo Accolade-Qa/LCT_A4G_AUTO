@@ -1,10 +1,6 @@
-import json
-import os
-from pathlib import Path
+from utils.logger import get_logger
 
 import pytest
-
-from utils.logger import get_logger
 
 logger = get_logger(__name__)
 

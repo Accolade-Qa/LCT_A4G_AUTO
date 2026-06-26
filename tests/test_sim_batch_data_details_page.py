@@ -1,9 +1,7 @@
 from pathlib import Path
-
-import pytest
-
-from config.config import SIM_DATA_DETAILS_URL, API_BASE_URL, API_USERNAME, API_PASSWORD
+from config.config import SIM_DATA_DETAILS_URL
 from utils.logger import get_logger
+import pytest
 
 logger = get_logger(__name__)
 

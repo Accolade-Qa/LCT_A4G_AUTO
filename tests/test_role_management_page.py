@@ -1,12 +1,10 @@
-import time
-
-import pytest
-
 from config.config import API_BASE_URL, ROLE_MANAGEMENT_URL, API_PASSWORD, API_USERNAME
 from pages.api.api_client import APIClient
 from pages.common import TableSection, PaginationHelper
 from utils.helpers import Helpers
 from utils.logger import get_logger
+import time
+import pytest
 
 logger = get_logger(__name__)
 

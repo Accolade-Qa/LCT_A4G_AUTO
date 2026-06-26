@@ -1,9 +1,10 @@
-import re
-import pytest
 from pages.login_page import LoginPage
 from utils.logger import get_logger
 import time
 from config.global_var import SCREENSHOT_PATH
+
+import re
+import pytest
 
 logger = get_logger(__name__)
 

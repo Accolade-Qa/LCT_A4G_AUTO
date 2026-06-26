@@ -1,10 +1,6 @@
 from utils.logger import get_logger
-
-# from pages.base_page import BasePage
 from pages.user_management_page import UserManagementPage
 from pages.login_page import LoginPage
-
-import pytest
 from config.config import (
     BASE_URL,
     USER_MANAGEMENT_URL,

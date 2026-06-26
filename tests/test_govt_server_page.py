@@ -1,16 +1,13 @@
-from pathlib import Path
-from unittest import result
-import os
-
-import pytest
 from playwright.sync_api import expect
-from pages import govt_server_page
 from pages.common.pagination import PaginationHelper
 from pages.common.search import SearchHelper
 from utils.logger import get_logger
 from pages.common.table_section import TableSection
 from pages.api.government_server_api import GovtServerAPI
 from config.config import GOVERNMENT_SERVERS_URL
+
+import os
+import pytest
 
 logger = get_logger(__name__)
 

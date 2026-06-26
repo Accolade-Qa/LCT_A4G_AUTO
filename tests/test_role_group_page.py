@@ -1,13 +1,12 @@
 from datetime import datetime
-import re
-
-import pytest
-
 from config.config import API_BASE_URL, API_USERNAME, API_PASSWORD
 from pages.api.api_client import APIClient
 from utils.helpers import Helpers
 from pages.common import TableSection, SearchHelper
 from utils.logger import get_logger
+
+import re
+import pytest
 
 logger = get_logger(__name__)
 

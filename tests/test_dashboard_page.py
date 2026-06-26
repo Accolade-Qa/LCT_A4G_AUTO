@@ -1,8 +1,8 @@
 from pages.api import DeviceDashboardAPI
 from pages.base_page import BasePage
-import pytest
-
 from utils.logger import get_logger
+
+import pytest
 
 logger = get_logger(__name__)
 

@@ -1,9 +1,8 @@
 from utils.logger import get_logger
-import pytest
-from pages.api.api_client import APIClient
-from pages.api.login_api import LoginAPI
 from pages.api.user_api import UserAPI
 from config.config import EXPECTED_PERMISSION_COUNT
+
+import pytest
 
 logger = get_logger(__name__)
 
