@@ -8,9 +8,16 @@ from config.config import (
     USERNAME,
 )
 
+import pytest
+
 logger = get_logger(__name__)
 
 
+@pytest.mark.atcu
+@pytest.mark.lct
+@pytest.mark.sampark
+@pytest.mark.swaraj
+@pytest.mark.trio
 class TestUserManagementPage:
 
     def _login_and_dashboard(self, page):

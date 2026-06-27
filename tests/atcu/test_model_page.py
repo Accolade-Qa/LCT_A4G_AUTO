@@ -9,7 +9,9 @@ import pytest
 logger = get_logger(__name__)
 
 
+@pytest.mark.atcu
 @pytest.mark.device
+@pytest.mark.atcu
 @pytest.mark.regression
 class TestModelPage:
     def _login_and_dashboard(self, page, project_config=None):

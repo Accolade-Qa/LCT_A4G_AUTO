@@ -1,6 +1,6 @@
 from playwright.sync_api import expect
 
-from pages.common import PaginationHelper, SearchHelper, TableSection
+from pages.common_utils import PaginationHelper, SearchHelper, TableSection
 
 from utils.logger import get_logger
 

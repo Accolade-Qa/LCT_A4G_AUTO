@@ -1,7 +1,7 @@
 from faker.generator import random
 
-from pages.common.table_section import TableSection
-from pages.common.search import SearchHelper
+from pages.common_utils.table_section import TableSection
+from pages.common_utils.search import SearchHelper
 from utils.logger import get_logger
 import re
 from pages.base_page import BasePage

@@ -1,6 +1,6 @@
 from utils.logger import get_logger
 
-from pages.common.pagination import PaginationHelper
+from pages.common_utils.pagination import PaginationHelper
 
 logger = get_logger(__name__)
 

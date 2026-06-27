@@ -4,9 +4,15 @@ from pages.customer_master_page import CustomerMasterPage
 from pages.login_page import LoginPage
 from config.config import BASE_URL, CUSTOMER_MASTER_URL, PASSWORD, USERNAME
 
+import pytest
+
 logger = get_logger(__name__)
 
 
+@pytest.mark.lct
+@pytest.mark.sampark
+@pytest.mark.swaraj
+@pytest.mark.trio
 class TestCustomerMaster:
     def _login_and_dashboard(self, page):
         login_page = LoginPage(page)

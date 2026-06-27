@@ -10,13 +10,12 @@ import pytest
 logger = get_logger(__name__)
 
 
-@pytest.mark.atcu
+@pytest.mark.device
+@pytest.mark.regression
 @pytest.mark.lct
 @pytest.mark.sampark
 @pytest.mark.swaraj
 @pytest.mark.trio
-@pytest.mark.device
-@pytest.mark.regression
 class TestOtaPage:
     """Test suite for OTA Batch and OTA Master pages."""
 

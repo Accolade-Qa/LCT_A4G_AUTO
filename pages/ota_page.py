@@ -3,10 +3,10 @@ import re
 
 from config.global_var import DOWNLOADS_PATH
 from pages.base_page import BasePage
-from pages.common.pagination import PaginationHelper
-from pages.common.pagination import PaginationHelper
-from pages.common.search import SearchHelper
-from pages.common.table_section import TableSection
+from pages.common_utils.pagination import PaginationHelper
+from pages.common_utils.pagination import PaginationHelper
+from pages.common_utils.search import SearchHelper
+from pages.common_utils.table_section import TableSection
 from utils.logger import get_logger
 
 logger = get_logger(__name__)

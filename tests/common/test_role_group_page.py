@@ -11,13 +11,13 @@ import pytest
 logger = get_logger(__name__)
 
 
+@pytest.mark.critical
+@pytest.mark.regression
 @pytest.mark.atcu
 @pytest.mark.lct
 @pytest.mark.sampark
 @pytest.mark.swaraj
 @pytest.mark.trio
-@pytest.mark.critical
-@pytest.mark.regression
 class TestRoleGroupPage:
     group = None
 

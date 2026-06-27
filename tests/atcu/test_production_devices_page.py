@@ -9,7 +9,9 @@ TEST_DATA_DIR_PROD = Path(__file__).resolve().parents[1] / "test_data"
 logger = get_logger(__name__)
 
 
+@pytest.mark.atcu
 @pytest.mark.device
+@pytest.mark.atcu
 @pytest.mark.regression
 class TestProductionDevices:
     def _login_and_dashboard(self, page, project_config):

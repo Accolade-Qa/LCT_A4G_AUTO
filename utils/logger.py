@@ -1,22 +1,23 @@
 import logging
 import os
-from datetime import datetime
 from pathlib import Path
 
-from config.global_var import LOGS_PATH
+from config.global_var import get_artifact_run_id, get_current_project, get_project_logs_path
 
 
 def _ensure_log_dir():
     """Create logs directory if not present."""
-    if not os.path.isdir(LOGS_PATH):
-        os.makedirs(LOGS_PATH, exist_ok=True)
+    logs_path = get_project_logs_path()
+    if not os.path.isdir(logs_path):
+        os.makedirs(logs_path, exist_ok=True)
 
 
 def _suite_log_name() -> str:
     """Generate suite log file name."""
     suite_name = os.getenv("SUITE_NAME", "LCT_A4G_AUTO")
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    return f"{suite_name}_{timestamp}.log"
+    project = get_current_project()
+    run_id = get_artifact_run_id()
+    return f"{project}_{suite_name}_{run_id}.log"
 
 
 _LOG_FILE_PATH: Path | None = None
@@ -31,7 +32,7 @@ def _get_log_file_path() -> Path:
 
     if _LOG_FILE_PATH is None:
         _ensure_log_dir()
-        _LOG_FILE_PATH = Path(LOGS_PATH) / _suite_log_name()
+        _LOG_FILE_PATH = Path(get_project_logs_path()) / _suite_log_name()
 
     return _LOG_FILE_PATH
 

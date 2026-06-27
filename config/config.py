@@ -140,6 +140,42 @@ UPDATE_MODEL = _get(
     "UPDATE_MODEL",
     "http://lct-a4g-qa.accoladeelectronics.com/model-firmware/11",
 )
+TICKET_DASHBOARD_URL = _get(
+    "TICKET_DASHBOARD_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/ticket-dashboard",
+)
+MY_AIS_TICKET_URL = _get(
+    "MY_AIS_TICKET_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/my-ais-ticket",
+)
+FOTA_URL = _get(
+    "FOTA_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/fota",
+)
+TML_REQUEST_LOG_URL = _get(
+    "TML_REQUEST_LOG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/tml-request-log",
+)
+AEPL_RESPONSE_LOG_URL = _get(
+    "AEPL_RESPONSE_LOG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/aepl-response-log",
+)
+STATUS_UPDATE_LOG_URL = _get(
+    "STATUS_UPDATE_LOG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/status-update-log",
+)
+DEVICE_STATE_CONFIG_URL = _get(
+    "DEVICE_STATE_CONFIG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/device-state-config",
+)
+DEVICE_VIN_CONFIG_URL = _get(
+    "DEVICE_VIN_CONFIG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/device-vin-config",
+)
+DEVICE_ACTIVITY_LOG_URL = _get(
+    "DEVICE_ACTIVITY_LOG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/device-activity-log",
+)
 
 # Expected permission counts per project (can be overridden in project YAML)
 EXPECTED_PERMISSION_COUNT = int(_get("EXPECTED_PERMISSION_COUNT", 16))

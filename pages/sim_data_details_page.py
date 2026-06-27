@@ -4,7 +4,7 @@ import re
 import pandas as pd
 
 from config.global_var import DOWNLOADS_PATH
-from pages.common import PaginationHelper, TableSection
+from pages.common_utils import PaginationHelper, TableSection
 from utils.logger import get_logger
 
 logger = get_logger(__name__)

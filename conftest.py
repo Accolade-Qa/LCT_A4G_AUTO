@@ -3,7 +3,6 @@ import json
 import os
 import sys
 from pathlib import Path
-from config.config import CUSTOMER_MASTER_URL
 
 import pytest
 from playwright.sync_api import sync_playwright
@@ -11,10 +10,10 @@ from playwright.sync_api import sync_playwright
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import config.config as config_module
-from config.global_var import SCREENSHOT_PATH
+from config.global_var import get_project_screenshot_path
 from pages.base_page import BasePage
 
-os.makedirs(SCREENSHOT_PATH, exist_ok=True)
+os.makedirs(get_project_screenshot_path(), exist_ok=True)
 
 # Path to cached authenticated storage state to avoid UI login every test
 STORAGE_STATE_PATH = os.path.join(
@@ -24,6 +23,8 @@ STORAGE_STATE_PATH = os.path.join(
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+VALID_PROJECTS = ("atcu", "lct", "sampark", "swaraj", "trio")
 
 ZOOM_SCRIPT = """
 () => {
@@ -104,8 +105,52 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower()
+    if project not in VALID_PROJECTS:
+        raise pytest.UsageError(
+            f"Invalid project '{project}'. Must be one of: {', '.join(VALID_PROJECTS)}"
+        )
+
     os.environ["PROJECT"] = project
     importlib.reload(config_module)
+
+    required_configs = ("BASE_URL", "USERNAME", "PASSWORD", "BROWSER")
+    missing = [
+        key for key in required_configs if not getattr(config_module, key, None)
+    ]
+    if missing:
+        raise ValueError(
+            f"Missing required config values for project '{project}': "
+            f"{', '.join(missing)}. Check config/{project}.yaml"
+        )
+
+    logger.info("=" * 60)
+    logger.info("PYTEST STARTUP - Project Configuration")
+    logger.info("=" * 60)
+    logger.info("PROJECT: %s", project)
+    logger.info("BASE_URL: %s", config_module.BASE_URL)
+    logger.info(
+        "BROWSER: %s (headless=%s)", config_module.BROWSER, config_module.HEADLESS
+    )
+    logger.info("=" * 60)
+
+
+def pytest_collection_modifyitems(config, items):
+    current_project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower()
+    project_markers = set(VALID_PROJECTS)
+
+    for item in items:
+        item_markers = {marker.name for marker in item.iter_markers()}
+        test_projects = item_markers & project_markers
+
+        if test_projects and current_project not in test_projects:
+            item.add_marker(
+                pytest.mark.skip(
+                    reason=(
+                        f"Test marked for {', '.join(sorted(test_projects))}, "
+                        f"running {current_project}"
+                    )
+                )
+            )
 
 
 @pytest.fixture(scope="session")
@@ -130,9 +175,19 @@ def project_config():
         "government_servers_url": config_module.GOVERNMENT_SERVERS_URL,
         "dispatched_device_url": config_module.DISPATCHED_DEVICE_URL,
         "profile_url": config_module.PROFILE_URL,
+        "customer_master_url": config_module.CUSTOMER_MASTER_URL,
         "model_url": config_module.MODEL_URL,
         "create_new_model": config_module.CREATE_NEW_MODEL,
         "update_model": config_module.UPDATE_MODEL,
+        "ticket_dashboard_url": config_module.TICKET_DASHBOARD_URL,
+        "my_ais_ticket_url": config_module.MY_AIS_TICKET_URL,
+        "fota_url": config_module.FOTA_URL,
+        "tml_request_log_url": config_module.TML_REQUEST_LOG_URL,
+        "aepl_response_log_url": config_module.AEPL_RESPONSE_LOG_URL,
+        "status_update_log_url": config_module.STATUS_UPDATE_LOG_URL,
+        "device_state_config_url": config_module.DEVICE_STATE_CONFIG_URL,
+        "device_vin_config_url": config_module.DEVICE_VIN_CONFIG_URL,
+        "device_activity_log_url": config_module.DEVICE_ACTIVITY_LOG_URL,
         "api_base_url": config_module.API_BASE_URL,
         "page_title": config_module.PAGE_TITLE,
         "imei": config_module.IMEI,
@@ -150,11 +205,57 @@ def project_config():
 @pytest.fixture(scope="session")
 def test_data(project_config):
     project = project_config["project"]
-    path = Path(__file__).parent / "test_data" / project / "login.json"
-    if path.exists():
-        with path.open("r", encoding="utf-8") as json_file:
-            return json.load(json_file)
-    return {}
+    test_data_root = Path(__file__).parent / "test_data"
+    data_files = (
+        "login.json",
+        "device_data.json",
+        "user_data.json",
+        "customer_data.json",
+    )
+
+    combined_data = {}
+    for data_file in data_files:
+        data_path = test_data_root / project / data_file
+        if not data_path.exists():
+            data_path = test_data_root / "common" / data_file
+
+        if data_path.exists():
+            with data_path.open("r", encoding="utf-8") as json_file:
+                file_data = json.load(json_file)
+            data_key = data_file.replace(".json", "")
+            combined_data[data_key] = file_data
+
+            if data_file == "login.json" and isinstance(file_data, dict):
+                combined_data.update(file_data)
+
+    logger.info(
+        "Loaded test data for project %s: %s",
+        project,
+        ", ".join(sorted(combined_data.keys())) or "none",
+    )
+    return combined_data
+
+
+@pytest.fixture(scope="session", autouse=True)
+def validate_project_config(project_config):
+    required_keys = (
+        "base_url",
+        "username",
+        "password",
+        "browser",
+        "api_base_url",
+        "api_username",
+        "api_password",
+    )
+    missing_keys = [key for key in required_keys if not project_config.get(key)]
+
+    if missing_keys:
+        raise ValueError(
+            f"Missing required config keys for project "
+            f"'{project_config['project']}': {', '.join(missing_keys)}"
+        )
+
+    logger.info("Project config validation passed for %s", project_config["project"])
 
 
 @pytest.fixture
@@ -248,7 +349,13 @@ def pytest_runtest_makereport(item, call):
         page = item.funcargs.get("page")
         if page:
             logger.warning("Test %s failed, capturing screenshot", item.name)
-            page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png", full_page=True)
+            screenshot_path = get_project_screenshot_path()
+            os.makedirs(screenshot_path, exist_ok=True)
+            safe_nodeid = item.nodeid.replace("::", "__").replace("/", "_").replace("\\", "_")
+            page.screenshot(
+                path=os.path.join(screenshot_path, f"{safe_nodeid}.png"),
+                full_page=True,
+            )
 
 
 # Page Fixtures
@@ -377,7 +484,7 @@ def customer_master(page):
     from pages.customer_master_page import CustomerMasterPage
 
     customermaster = CustomerMasterPage(page)
-    customermaster.go_to_customer(CUSTOMER_MASTER_URL)
+    customermaster.go_to_customer(config_module.CUSTOMER_MASTER_URL)
     return customermaster
 
 

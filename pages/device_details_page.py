@@ -3,7 +3,7 @@ import re
 
 from playwright.sync_api import expect
 
-from pages.common import PaginationHelper, SearchHelper, TableSection
+from pages.common_utils import PaginationHelper, SearchHelper, TableSection
 from config.global_var import DOWNLOADS_PATH
 from utils.logger import get_logger
 
