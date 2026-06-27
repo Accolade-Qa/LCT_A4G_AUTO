@@ -1,5 +1,5 @@
 param(
-    [string[]]$Projects = @('lct','sampark','swaraj','trio'),
+    [string[]]$Projects = @('lct','sampark','swaraj','trio', 'atcu'),
     [string]$PythonExe = 'python',
     [string]$ReportScript = 'utils\\generate_reports.py',
     [string]$ReportDir = 'reports',

@@ -101,6 +101,12 @@ def pytest_addoption(parser):
         default=os.getenv("PROJECT", "lct"),
         help="Project name to select the configuration",
     )
+    parser.addoption(
+        "--headless",
+        action="store_true",
+        default=False,
+        help="Run browser in headless mode",
+    )
 
 
 def pytest_configure(config):
@@ -114,9 +120,7 @@ def pytest_configure(config):
     importlib.reload(config_module)
 
     required_configs = ("BASE_URL", "USERNAME", "PASSWORD", "BROWSER")
-    missing = [
-        key for key in required_configs if not getattr(config_module, key, None)
-    ]
+    missing = [key for key in required_configs if not getattr(config_module, key, None)]
     if missing:
         raise ValueError(
             f"Missing required config values for project '{project}': "
@@ -351,7 +355,9 @@ def pytest_runtest_makereport(item, call):
             logger.warning("Test %s failed, capturing screenshot", item.name)
             screenshot_path = get_project_screenshot_path()
             os.makedirs(screenshot_path, exist_ok=True)
-            safe_nodeid = item.nodeid.replace("::", "__").replace("/", "_").replace("\\", "_")
+            safe_nodeid = (
+                item.nodeid.replace("::", "__").replace("/", "_").replace("\\", "_")
+            )
             page.screenshot(
                 path=os.path.join(screenshot_path, f"{safe_nodeid}.png"),
                 full_page=True,

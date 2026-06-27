@@ -2,7 +2,11 @@ import logging
 import os
 from pathlib import Path
 
-from config.global_var import get_artifact_run_id, get_current_project, get_project_logs_path
+from config.global_var import (
+    get_artifact_run_id,
+    get_current_project,
+    get_project_logs_path,
+)
 
 
 def _ensure_log_dir():
@@ -14,7 +18,7 @@ def _ensure_log_dir():
 
 def _suite_log_name() -> str:
     """Generate suite log file name."""
-    suite_name = os.getenv("SUITE_NAME", "LCT_A4G_AUTO")
+    suite_name = os.getenv("SUITE_NAME", "lct")
     project = get_current_project()
     run_id = get_artifact_run_id()
     return f"{project}_{suite_name}_{run_id}.log"
