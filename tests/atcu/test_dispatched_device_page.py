@@ -15,7 +15,6 @@ logger = get_logger(__name__)
 
 @pytest.mark.atcu
 @pytest.mark.device
-@pytest.mark.atcu
 @pytest.mark.regression
 class TestDispatchedDevicePage:
     @pytest.fixture(autouse=True)
