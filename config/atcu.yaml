@@ -20,7 +20,7 @@ customer_master_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/customer-mas
 ticket_dashboard_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/ticket-dashboard"
 my_ais_ticket_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/my-ais-ticket"
 fota_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/fota"
-tml_request_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/tml-request-log"
+tml_request_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/ais140-api-req-logs"
 aepl_response_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/aepl-response-log"
 status_update_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/status-update-log"
 device_state_config_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-state-config"
@@ -29,6 +29,7 @@ device_activity_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-a
 api_base_url: "https://aepl-tcu4g-qa.accoladeelectronics.com:9090"
 username: "suraj.bhalerao@accoladeelectronics.com"
 password: "b5oc6zxy"
+ticket_base_url: "https://aepl-tcu4g-qa.accoladeelectronics.com:6109"
 api_username: "suraj.bhalerao@accoladeelectronics.com"
 api_password: "b5oc6zxy"
 browser: chromium

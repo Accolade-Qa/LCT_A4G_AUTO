@@ -54,6 +54,7 @@ class APIClient:
             login_url = f"{api_base_url}/api/users/login"
         else:
             login_url = f"{api_base_url}/users/login"
+
         login_payload = {
             "userEmail": api_username,
             "password": api_password,
@@ -88,59 +89,45 @@ class APIClient:
         api_password,
         extra_headers=None,
         include_json_content_type=True,
+        token=None,
     ):
-        """Get authorization headers for API requests.
+        if token is None:
+            token = APIClient.get_bearer_token(
+                page,
+                api_base_url,
+                api_username,
+                api_password,
+            )
 
-        Args:
-            page: Playwright page object with request context.
-            api_base_url: Base URL for API.
-            api_username: API username.
-            api_password: API password.
-            extra_headers: Optional headers to merge.
-            include_json_content_type: If False, omit Content-Type.
-
-        Returns:
-            dict: Authorization headers for API requests.
-        """
-        token = APIClient.get_bearer_token(
-            page, api_base_url, api_username, api_password
-        )
         headers = {
             "Authorization": f"Bearer {token}",
         }
+
         if include_json_content_type:
             headers["Content-Type"] = "application/json"
+
         if extra_headers:
             headers.update(extra_headers)
+
         return headers
 
     @staticmethod
     def send_request(
         page, api_base_url, api_username, api_password, method, endpoint, **kwargs
     ):
-        """Send an authenticated API request.
+        """Send an authenticated API request."""
 
-        Args:
-            page: Playwright page object with request context.
-            api_base_url: Base URL for API.
-            api_username: API username.
-            api_password: API password.
-            method: HTTP method ('GET', 'POST', 'PUT', 'PATCH', or 'DELETE').
-            endpoint: API endpoint path (e.g., '/device/getProductionDeviceCount').
-            **kwargs: Additional arguments to pass to page.request.
-
-        Returns:
-            dict: Parsed JSON response.
-
-        Raises:
-            Exception: If the request fails.
-        """
         headers = kwargs.pop("headers", None)
 
         files = kwargs.pop("files", None)
         if files is not None:
             kwargs["multipart"] = files
+
         include_json_content_type = files is None
+
+        # Use supplied token if available
+        token = kwargs.pop("token", None)
+
         headers = APIClient.get_request_headers(
             page,
             api_base_url,
@@ -148,12 +135,15 @@ class APIClient:
             api_password,
             extra_headers=headers,
             include_json_content_type=include_json_content_type,
+            token=token,
         )
+
         url = f"{api_base_url}{endpoint}"
 
         logger.info("Sending %s request to %s", method, endpoint)
 
         method_upper = method.upper()
+
         if method_upper == "GET":
             response = page.request.get(url, headers=headers, **kwargs)
         elif method_upper == "POST":
@@ -169,30 +159,38 @@ class APIClient:
 
         if response.ok:
             logger.info("API request succeeded with status %s", response.status)
-            if response.status == 204:  # No Content
+
+            if response.status == 204:
                 return {}
+
             try:
                 return response.json()
             except json.JSONDecodeError as decode_err:
                 response_text = response.text()
+
                 if not response_text or response_text.isspace():
                     return {}
+
                 logger.error(
                     "Failed to parse JSON response from %s: %s",
                     endpoint,
                     response_text,
                 )
+
                 raise Exception(
-                    f"API request to {endpoint} returned invalid JSON: {decode_err}. Response body: {response_text}"
+                    f"API request to {endpoint} returned invalid JSON: "
+                    f"{decode_err}. Response body: {response_text}"
                 ) from decode_err
-        else:
-            response_text = response.text()
-            logger.warning(
-                "API request to %s failed with status %s: %s",
-                endpoint,
-                response.status,
-                response_text,
-            )
-            raise Exception(
-                f"API request to {endpoint} failed: {response.status} {response_text}"
-            )
+
+        response_text = response.text()
+
+        logger.warning(
+            "API request to %s failed with status %s: %s",
+            endpoint,
+            response.status,
+            response_text,
+        )
+
+        raise Exception(
+            f"API request to {endpoint} failed: {response.status} {response_text}"
+        )

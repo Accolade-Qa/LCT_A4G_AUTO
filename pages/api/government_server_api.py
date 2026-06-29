@@ -2,7 +2,6 @@ from pages.api.api_client import APIClient
 from pages.api.login_api import LoginAPI
 from utils.logger import get_logger
 from config.config import (
-    GOVERNMENT_SERVERS_URL,
     API_BASE_URL,
     API_USERNAME,
     API_PASSWORD,

@@ -41,6 +41,11 @@ def _get_bool(key, default=False):
 BASE_URL = _get("BASE_URL")
 USERNAME = _get("USERNAME", _get("APP_USERNAME"))
 PASSWORD = _get("PASSWORD", _get("APP_PASSWORD"))
+TICKET_BASE_URL = _get(
+    "TICKET_BASE_URL", "https://aepl-tcu4g-qa.accoladeelectronics.com:6109"
+)
+TICKET_USERNAME = _get("TICKET_USERNAME", _get("APP_USERNAME"))
+TICKET_PASSWORD = _get("TICKET_PASSWORD", _get("APP_PASSWORD"))
 BROWSER = _get("BROWSER", "chromium")
 HEADLESS = _get_bool("HEADLESS", False)
 SCREENSHOT_ON_FAILURE = _get_bool("SCREENSHOT_ON_FAILURE", True)

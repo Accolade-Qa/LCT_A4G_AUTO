@@ -524,6 +524,17 @@ def production_devices_page(page, project_config):
     return production
 
 
+@pytest.fixture
+def tml_request_log_page(page, project_config):
+    from pages.atcu.tml_request_log_page import TmlRequestLogPage
+
+    tml_request_log = TmlRequestLogPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["tml_request_log_url"])
+    logger.info("TML Request Log page fixture ready")
+    return tml_request_log
+
+
 # API Fixtures
 @pytest.fixture
 def api_context(project_config):
