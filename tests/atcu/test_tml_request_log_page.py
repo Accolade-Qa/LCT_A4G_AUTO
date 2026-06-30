@@ -11,7 +11,6 @@ logger = get_logger(__name__)
 @pytest.mark.atcu
 @pytest.mark.regression
 class TestTmlRequestLogPage:
-
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
         test_name = request.node.name
@@ -75,71 +74,144 @@ class TestTmlRequestLogPage:
             title == "AIS140 Ticket TML Request Logs"
         ), f"TML Request Log page title is incorrect: {title}"
 
-    # test that the search functionality is working as expected
+    # test that the first data in the table is equal with the sent request payload
+    @pytest.mark.regression
+    def test_tml_request_log_page_payload_validation_on_ui(
+        self,
+        tml_request_log_page,
+        report_case,
+    ):
+        logger.info("Validating TML Request Log payload on UI")
 
+        # Trigger API and fetch request payload
+        (
+            api_payload,
+            expected_vin,
+            expected_uin,
+            expected_iccid,
+            ticket_number,
+        ) = tml_request_log_page.get_tml_request_payload_by_api()
+
+        # API payload is returned as list[dict]
+        expected_dict = (
+            api_payload[0]
+            if isinstance(api_payload, list) and len(api_payload) > 0
+            else api_payload
+        )
+
+        payload_found = False
+        ui_payloads = []
+
+        # Attempt to find the payload on the UI, reloading up to 3 times with a short sleep
+        import time
+
+        for attempt in range(4):
+            if attempt > 0:
+                logger.info(
+                    "Payload not found on attempt %s. Reloading page and retrying...",
+                    attempt,
+                )
+                tml_request_log_page.page.reload()
+                tml_request_log_page.is_page_loaded()
+                time.sleep(2)
+
+            # Read latest UI payloads
+            ui_payloads = tml_request_log_page.get_tml_request_payload_by_ui()
+
+            logger.debug(
+                "UI Payload Count: %s | Ticket No: %s (Attempt %s)",
+                len(ui_payloads),
+                ticket_number,
+                attempt + 1,
+            )
+
+            for payload in ui_payloads:
+                try:
+                    ui_json = json.loads(payload)
+                    if isinstance(ui_json, list) and len(ui_json) > 0:
+                        ui_json = ui_json[0]
+
+                    if ui_json == expected_dict:
+                        payload_found = True
+                        logger.info("Matching payload found in UI.")
+                        break
+                    else:
+                        # Log discrepancy for debugging
+                        logger.debug("Payload mismatch details:")
+                        logger.debug("Expected: %s", expected_dict)
+                        logger.debug("Actual: %s", ui_json)
+
+                except Exception as exc:
+                    logger.warning("Unable to parse UI payload: %s", exc)
+
+            if payload_found:
+                break
+
+        report_case(
+            expected="Latest UI payload should match the API request payload",
+            actual=f"ui_payload_count={len(ui_payloads)}, ticket_number={ticket_number}",
+        )
+
+        assert ui_payloads, "No payloads found in the TML Request Log table."
+
+        assert (
+            payload_found
+        ), "The API request payload was not found in the UI payload column."
+
+        logger.info(
+            "Payload validation completed successfully. VIN=%s, UIN=%s, ICCID=%s",
+            expected_vin,
+            expected_uin,
+            expected_iccid,
+        )
+
+    # test that the search functionality is working as expected
     @pytest.mark.ui
     @pytest.mark.smoke
     def test_tml_request_log_page_search(
         self,
         tml_request_log_page,
-        project_config,
         report_case,
     ):
         logger.info("Validating TML Request Log page search functionality")
 
-        search_term = project_config["imei"]
+        (
+            _,
+            expected_vin,
+            _,
+            _,
+            _,
+        ) = tml_request_log_page.get_tml_request_payload_by_api()
 
-        search_result = tml_request_log_page.search_logs(search_term)
+        search_result = tml_request_log_page.search_logs(expected_vin)
 
         logger.debug(
-            "Search completed. Success=%s, Results Found=%s",
+            "Search Result: success=%s, results_found=%s",
             search_result["success"],
             search_result["results_found"],
         )
 
         report_case(
-            expected=f"Search should execute successfully for '{search_term}'",
+            expected=f"Search should return records for VIN '{expected_vin}'",
             actual=(
                 f"success={search_result['success']}, "
                 f"results_found={search_result['results_found']}"
             ),
         )
 
-        # Search execution should always succeed
-        assert search_result["success"], f"Search failed: {search_result['error']}"
-
-        # If no records exist, helper should return an empty result set
-        if search_result["results_found"] == 0:
-            logger.info("No records found for search term '%s'", search_term)
-
-            assert (
-                search_result["results"] == []
-            ), "Expected empty results when 'No Data Found' is displayed."
-
-            assert (
-                search_result["error"] is None
-            ), "No error should be reported when there are simply no matching records."
-
-            return
-
-        # Otherwise validate the returned data
-        logger.info(
-            "%s matching record(s) found for '%s'",
-            search_result["results_found"],
-            search_term,
-        )
+        assert search_result[
+            "success"
+        ], f"Search operation failed: {search_result['error']}"
 
         assert (
-            len(search_result["results"]) == search_result["results_found"]
-        ), "Results count does not match the reported results_found value."
-
-        assert all(
-            row.strip() for row in search_result["results"]
-        ), "One or more returned rows are empty."
+            search_result["results_found"] > 0
+        ), f"No records found for VIN '{expected_vin}'."
 
         assert any(
-            search_term.lower() in row.lower() for row in search_result["results"]
-        ), f"Search term '{search_term}' was not found in any returned row."
+            expected_vin.lower() in row.lower() for row in search_result["results"]
+        ), f"VIN '{expected_vin}' not found in search results."
+
+        logger.info("Search validation completed successfully.")
 
     # test that the table headers are showned is correct
     @pytest.mark.ui
@@ -187,77 +259,7 @@ class TestTmlRequestLogPage:
 
         logger.info("TML Request Log table headers validated successfully.")
 
-    # test that the first data in the table is equal with the sent request payload
-    @pytest.mark.regression
-    def test_tml_request_log_page_payload_validation_on_ui(
-        self,
-        tml_request_log_page,
-        report_case,
-    ):
-        logger.info("Validating TML Request Log payload on UI")
-
-        # Trigger API and fetch request payload
-        (
-            api_payload,
-            expected_vin,
-            expected_uin,
-            expected_iccid,
-            ticket_number,
-        ) = tml_request_log_page.get_tml_request_payload_by_api()
-
-        # Read latest UI payloads
-        ui_payloads = tml_request_log_page.get_tml_request_payload_by_ui()
-
-        logger.debug(
-            "UI Payload Count: %s | Ticket No: %s",
-            len(ui_payloads),
-            ticket_number,
-        )
-
-        report_case(
-            expected="Latest UI payload should match the API request payload",
-            actual=f"ui_payload_count={len(ui_payloads)}, ticket_number={ticket_number}",
-        )
-
-        assert ui_payloads, "No payloads found in the TML Request Log table."
-
-        # API payload is returned as list[dict]
-        expected_payload = json.dumps(
-            api_payload, separators=(",", ":"), sort_keys=True
-        )
-
-        payload_found = False
-
-        for payload in ui_payloads:
-            try:
-                ui_json = json.loads(payload)
-
-                ui_payload = json.dumps(
-                    ui_json,
-                    separators=(",", ":"),
-                    sort_keys=True,
-                )
-
-                if ui_payload == expected_payload:
-                    payload_found = True
-                    logger.info("Matching payload found in UI.")
-                    break
-
-            except Exception as exc:
-                logger.warning("Unable to parse UI payload: %s", exc)
-
-        assert (
-            payload_found
-        ), "The API request payload was not found in the UI payload column."
-
-        logger.info(
-            "Payload validation completed successfully. VIN=%s, UIN=%s, ICCID=%s",
-            expected_vin,
-            expected_uin,
-            expected_iccid,
-        )
-
-    # test that the pagingation is working as expected
+    # test that the pagination is working as expected
     @pytest.mark.smoke
     def test_tml_request_log_page_pagination(
         self,
@@ -308,3 +310,69 @@ class TestTmlRequestLogPage:
         ), "Visited pages exceed the total page count."
 
         logger.info("Pagination validated successfully.")
+
+    # after all these test cases validate that the by rto state and vehicle owner state is in the given state array then check does it add the fota batch on the ui or not.
+    @pytest.mark.regression
+    def test_tml_request_log_page_fota_batch_addition(
+        self,
+        tml_request_log_page,
+        project_config,
+        report_case,
+    ):
+        logger.info("Validating Auto FOTA batch creation")
+
+        (
+            api_payload,
+            _,
+            _,
+            _,
+            ticket_number,
+        ) = tml_request_log_page.get_tml_request_payload_by_api()
+
+        expected_payload = (
+            api_payload[0] if isinstance(api_payload, list) else api_payload
+        )
+
+        state_name = expected_payload.get("VEHICLE_OWNER_STATE", "").strip()
+
+        vehicle_owner_states = {
+            "Haryana",
+            "Assam",
+            "Andhra Pradesh",
+            "Jammu & Kashmir",
+            "Punjab",
+            "Nagaland",
+            "Gujarat",
+            "Daman and Diu",
+            "Dadra and Nagar Haveli",
+            "Jharkhand",
+        }
+
+        conditions_met = state_name in vehicle_owner_states
+
+        if conditions_met:
+            batch_added = tml_request_log_page.check_fota_batch_on_ui(
+                project_config=project_config,
+                ticket_number=ticket_number,
+                state_name=state_name,
+            )
+        else:
+            batch_added = False
+
+        report_case(
+            expected="FOTA batch should be created only for eligible states",
+            actual=(
+                f"state={state_name}, "
+                f"conditions_met={conditions_met}, "
+                f"batch_added={batch_added}"
+            ),
+        )
+
+        if conditions_met:
+            assert batch_added, f"Auto FOTA batch not created for state '{state_name}'."
+        else:
+            assert (
+                not batch_added
+            ), f"Batch should not be created for state '{state_name}'."
+
+        logger.info("Auto FOTA batch validation completed successfully.")

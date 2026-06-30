@@ -11,7 +11,7 @@ class TmlRequestApi:
 
     @staticmethod
     def _get_token(
-        page,
+        page=None,
         api_base_url=TICKET_BASE_URL,
     ):
         """
@@ -27,14 +27,22 @@ class TmlRequestApi:
         logger.info("Fetching authentication token from %s", endpoint)
 
         try:
-            response = page.request.post(api_base_url + endpoint, data=payload)
+            import urllib.request
+            import urllib.parse
+            import ssl
 
-            if not response.ok:
-                raise Exception(
-                    f"Token request failed: {response.status} {response.text()}"
-                )
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
 
-            token_data = response.json()
+            data = urllib.parse.urlencode(payload).encode("utf-8")
+            req = urllib.request.Request(
+                api_base_url + endpoint, data=data, method="POST"
+            )
+
+            with urllib.request.urlopen(req, context=ctx) as response:
+                token_data = json.loads(response.read().decode("utf-8"))
+
             token = token_data.get("token")
 
             print("token :> ", token)
@@ -52,9 +60,11 @@ class TmlRequestApi:
 
     @staticmethod
     def post_tml_request_log(
-        page,
+        page=None,
         api_base_url=TICKET_BASE_URL,
     ):
+        state_name = Helpers.generate_random_state_name()
+        state_code = Helpers.generate_random_state_abbreviation()
         payload = [
             {
                 "VIN_NO": f"ACCDEV07241580{Helpers.generate_random_number(3)}",
@@ -65,37 +75,36 @@ class TmlRequestApi:
                 "DEVICE_MODEL": "AEPL051401",
                 "ENGINE_NO": "ENGINE_FIXED_00001",
                 "REG_NUMBER": "AN01AB1000",
-                "REGISTERED_MOBILE_NUMBER": "9730922327",
-                "VEHICLE_OWNER_FIRST_NAME": "SURAJ",
-                "VEHICLE_OWNER_MIDDLE_NAME": "S",
-                "VEHICLE_OWNER_LAST_NAME": "BHALERAO",
+                "REGISTERED_MOBILE_NUMBER": Helpers.generate_random_phone(),
+                "VEHICLE_OWNER_FIRST_NAME": Helpers.generate_random_string(5),
+                "VEHICLE_OWNER_MIDDLE_NAME": "",
+                "VEHICLE_OWNER_LAST_NAME": Helpers.generate_random_string(5),
                 "ADDRESS_LINE_1": "SHIVANE",
                 "ADDRESS_LINE_2": "SHIVANE",
                 "VEHICLE_OWNER_CITY": "PUNE",
                 "VEHICLE_OWNER_DISTRICT": "PUNE",
-                "VEHICLE_OWNER_STATE": "Maharashtra",
+                "VEHICLE_OWNER_STATE": state_name,
                 "VEHICLE_OWNER_COUNTRY": "India",
                 "VEHICLE_OWNER_PINCODE": "411045",
-                "VEHICLE_OWNER_REGISTERED_MOBILE": "9730922327",
+                "VEHICLE_OWNER_REGISTERED_MOBILE": Helpers.generate_random_phone(),
                 "POS_CODE": "AB123",
                 "POA_DOC_NAME": "PANAB123",
                 "POA_DOC_NO": "PAN1AB123",
                 "POI_DOC_TYPE": "ADHARAB123",
                 "POI_DOC_NO": "ADHARXYZ123",
-                "RTO_OFFICE_CODE": "MH12",
-                "RTO_STATE": "MH",
+                "RTO_OFFICE_CODE": f"{state_code}12",
+                "RTO_STATE": state_code,
                 "PRIMARY_OPERATOR": "BSNL",
                 "SECONDARY_OPERATOR": "BHA",
-                "PRIMARY_MOBILE_NUMBER": "7777777777",
-                "SECONDARY_MOBILE_NUMBER": "9876543210",
+                "PRIMARY_MOBILE_NUMBER": Helpers.generate_random_phone(),
+                "SECONDARY_MOBILE_NUMBER": Helpers.generate_random_phone(),
                 "VEHICLE_MODEL": "NANO",
                 "DEALER_CODE": "1000",
-                "COMMERCIAL_ACTIVATION_START_DATE": "2024-06-07",
-                "COMMERCIAL_ACTIVATION_EXPIRY_DATE": "2028-06-07",
+                "COMMERCIAL_ACTIVATION_START_DATE": Helpers.get_timestamp(fmt="%Y-%m-%d"),
+                "COMMERCIAL_ACTIVATION_EXPIRY_DATE": Helpers.get_future_date(2, fmt="%Y-%m-%d"),
                 "MFG_YEAR": "2024",
-                "ACCOLADE_POSTING_DATE_TIME": "2024-10-04",
-                "SURAJ": "SURAJ DEMO",
-                "INVOICE_DATE": "2025-05-01",
+                "ACCOLADE_POSTING_DATE_TIME": Helpers.get_timestamp(fmt="%Y-%m-%d"),
+                "INVOICE_DATE": Helpers.get_timestamp(fmt="%Y-%m-%d"),
                 "INVOICE_NUMBER": "AEPL100000000",
                 "CERTIFICATE_VALIDITY_DURATION_IN_YEAR": "2",
             }
@@ -106,27 +115,36 @@ class TmlRequestApi:
         logger.info("Creating TML request ticket.")
 
         try:
-            token = TmlRequestApi._get_token(page)
+            token = TmlRequestApi._get_token(api_base_url=api_base_url)
 
-            response = page.request.post(
-                api_base_url + endpoint,
-                data=json.dumps(payload),
-                headers={
-                    "Authorization": f"Bearer {token}",
-                    "Content-Type": "application/json",
-                },
+            import urllib.request
+            import ssl
+
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+
+            body = json.dumps(payload).encode("utf-8")
+            headers = {
+                "token": token,
+                "Content-Type": "application/json",
+            }
+            req = urllib.request.Request(
+                api_base_url + endpoint, data=body, headers=headers, method="POST"
             )
 
-            print("response :> ", response)
+            with urllib.request.urlopen(req, context=ctx) as response:
+                tml_request_log_data = json.loads(response.read().decode("utf-8"))
 
-            if not response.ok:
-                raise Exception(
-                    f"Ticket request failed: {response.status} {response.text()}"
-                )
+            print("response :> OK")
 
-            tml_request_log_data = response.json()
-
-            data = tml_request_log_data.get("data", {})
+            data_list = tml_request_log_data.get("data", [])
+            if isinstance(data_list, list) and len(data_list) > 0:
+                data = data_list[0]
+            elif isinstance(data_list, dict):
+                data = data_list
+            else:
+                data = {}
 
             ticket_number = data.get("TICKET_NO")
             VIN = data.get("VIN_NO")

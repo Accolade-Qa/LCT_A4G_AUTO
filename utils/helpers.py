@@ -3,6 +3,7 @@ import random
 import string
 import time
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from faker import Faker
 
 from utils.logger import get_logger
@@ -11,7 +12,6 @@ logger = get_logger(__name__)
 
 
 class Helpers:
-
     @staticmethod
     def generate_random_string(length=6):
         """Generate a random alphabetic string."""
@@ -38,19 +38,30 @@ class Helpers:
         return f"{username}@{domain}"
 
     @staticmethod
-    def generate_random_phone(country_code="+91", length=10):
+    def generate_random_phone(country_code="+91", length=8):
         """Generate a random phone number string."""
         if length <= 0:
             raise ValueError("length must be a positive integer")
         number = "".join(random.choices(string.digits, k=length))
         logger.debug("Generated phone number with country code %s", country_code)
-        return f"{country_code}{number}"
+        return f"97{number}"
 
     @staticmethod
     def get_timestamp(fmt="%Y%m%d%H%M%S"):
         """Return current timestamp string in given format."""
         logger.debug("Generating timestamp with format %s", fmt)
         return datetime.now().strftime(fmt)
+
+    @staticmethod
+    def get_future_date(years_to_add=2, fmt="%Y-%m-%d"):
+        """Return a future date string by adding years to the current date."""
+        future_datetime = datetime.now() + relativedelta(years=years_to_add)
+        logger.debug(
+            "Generating future date (current + %d years) with format %s",
+            years_to_add,
+            fmt,
+        )
+        return future_datetime.strftime(fmt)
 
     @staticmethod
     def sleep(seconds=1):
@@ -77,20 +88,72 @@ class Helpers:
         page.set_viewport_size({"width": 1920, "height": 1080})
 
     @staticmethod
+    def generate_random_indian_state_data():
+        """
+        Generate a matched random Indian state name and its state code.
+        Returns:
+            tuple: (state_name, state_code) e.g., ("Maharashtra", "MH")
+        """
+        indian_states = {
+            "Andhra Pradesh": "AP",
+            "Arunachal Pradesh": "AR",
+            "Assam": "AS",
+            "Bihar": "BR",
+            "Chhattisgarh": "CG",
+            "Goa": "GA",
+            "Gujarat": "GJ",
+            "Haryana": "HR",
+            "Himachal Pradesh": "HP",
+            "Jharkhand": "JH",
+            "Karnataka": "KA",
+            "Kerala": "KL",
+            "Madhya Pradesh": "MP",
+            "Maharashtra": "MH",
+            "Manipur": "MN",
+            "Meghalaya": "ML",
+            "Mizoram": "MZ",
+            "Nagaland": "NL",
+            "Odisha": "OD",
+            "Punjab": "PB",
+            "Rajasthan": "RJ",
+            "Sikkim": "SK",
+            "Tamil Nadu": "TN",
+            "Telangana": "TG",
+            "Tripura": "TR",
+            "Uttar Pradesh": "UP",
+            "Uttarakhand": "UK",
+            "West Bengal": "WB",
+            "Andaman and Nicobar Islands": "AN",
+            "Chandigarh": "CH",
+            "Dadra and Nagar Haveli": "DN",
+            "Daman and Diu": "DD",
+            "Delhi": "DL",
+            "Jammu & Kashmir": "JK",
+            "Ladakh": "LA",
+            "Lakshadweep": "LD",
+            "Puducherry": "PY",
+        }
+        state_name = random.choice(list(indian_states.keys()))
+        state_code = indian_states[state_name]
+
+        logger.debug(
+            "Generated matched Indian state data -> Name: %s, Code: %s",
+            state_name,
+            state_code,
+        )
+        return state_name, state_code
+
+    @staticmethod
     def generate_random_state_name():
-        """Generate a random state name using Faker."""
-        fake = Faker()
-        state_name = fake.state()
-        logger.debug("Generated random state name: %s", state_name)
+        """Generate a random Indian state name."""
+        state_name, _ = Helpers.generate_random_indian_state_data()
         return state_name
 
     @staticmethod
     def generate_random_state_abbreviation():
-        """Generate a random state abbreviation using Faker."""
-        fake = Faker()
-        state_abbr = fake.state_abbr()
-        logger.debug("Generated random state abbreviation: %s", state_abbr)
-        return state_abbr
+        """Generate a random Indian state abbreviation matching the generated flow."""
+        _, state_code = Helpers.generate_random_indian_state_data()
+        return state_code
 
     @staticmethod
     def generate_random_ip():
