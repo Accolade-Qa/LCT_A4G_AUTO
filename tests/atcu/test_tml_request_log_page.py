@@ -376,10 +376,10 @@ class TestTmlRequestLogPage:
 
         logger.info("Auto FOTA batch validation completed successfully.")
 
-    # @pytest.mark.skip(
-    #     reason="This test is currently skipped due to it being resource-intensive and may cause instability in the test environment. "
-    #     "It can be enabled for dedicated performance testing."
-    # )
+    @pytest.mark.skip(
+        reason="This test is currently skipped due to it being resource-intensive and may cause instability in the test environment. "
+        "It can be enabled for dedicated performance testing."
+    )
     @pytest.mark.api
     @pytest.mark.regression
     def test_multiple_ticket_generation(
