@@ -1,7 +1,6 @@
 import pytest
 import json
 
-from pages.atcu.tml_request_log_page import TmlRequestLogPage
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -376,3 +375,35 @@ class TestTmlRequestLogPage:
             ), f"Batch should not be created for state '{state_name}'."
 
         logger.info("Auto FOTA batch validation completed successfully.")
+
+    # @pytest.mark.skip(
+    #     reason="This test is currently skipped due to it being resource-intensive and may cause instability in the test environment. "
+    #     "It can be enabled for dedicated performance testing."
+    # )
+    @pytest.mark.api
+    @pytest.mark.regression
+    def test_multiple_ticket_generation(
+        self,
+        tml_request_log_page,
+        report_case,
+    ):
+        logger.info("Validating simultaneous ticket generation")
+
+        result = tml_request_log_page.create_multiple_tickets_concurrently()
+
+        report_case(
+            expected="All concurrent requests should generate unique ticket numbers",
+            actual=(
+                f"Generated={len(result['tickets'])}, "
+                f"Failed={len(result['failed_requests'])}, "
+                f"Duplicates={len(result['duplicates'])}"
+            ),
+        )
+
+        assert not result[
+            "failed_requests"
+        ], f"Failed Requests: {result['failed_requests']}"
+
+        assert not result["duplicates"], f"Duplicate Tickets: {result['duplicates']}"
+
+        assert result["tickets"], "No tickets were generated."

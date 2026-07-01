@@ -1,9 +1,12 @@
-from utils.logger import get_logger
+from utils.helpers import Helpers
 from pages.base_page import BasePage
 from pages.api.tml_request_api import TmlRequestApi
 from pages.common_utils import SearchHelper, TableSection, PaginationHelper
+import asyncio
+import aiohttp
 
-import json
+
+from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -246,3 +249,172 @@ class TmlRequestLogPage(BasePage):
             logger.exception("Failed while validating Auto FOTA batch.")
             logger.error(str(e))
             return False
+
+    def create_multiple_tickets_concurrently(self):
+        """Generate multiple TML tickets simultaneously and validate uniqueness."""
+
+        payloads = []
+
+        # Number of concurrent requests
+        request_count = 10
+
+        for _ in range(request_count):
+            state_name = Helpers.generate_random_state_name()
+            state_code = Helpers.generate_random_state_abbreviation()
+
+            payloads.append(
+                {
+                    "VIN_NO": f"ACCDEV07241580{Helpers.generate_random_number(3)}",
+                    "ICCID": "89916420534724851291",
+                    "UIN_NO": "ACON4NA082300092233",
+                    "DEVICE_IMEI": "861564061380138",
+                    "DEVICE_MAKE": "Accolade",
+                    "DEVICE_MODEL": "AEPL051401",
+                    "ENGINE_NO": "ENGINE_FIXED_00001",
+                    "REG_NUMBER": "AN01AB1000",
+                    "REGISTERED_MOBILE_NUMBER": Helpers.generate_random_phone(),
+                    "VEHICLE_OWNER_FIRST_NAME": Helpers.generate_random_string(5),
+                    "VEHICLE_OWNER_MIDDLE_NAME": "",
+                    "VEHICLE_OWNER_LAST_NAME": Helpers.generate_random_string(5),
+                    "ADDRESS_LINE_1": "SHIVANE",
+                    "ADDRESS_LINE_2": "SHIVANE",
+                    "VEHICLE_OWNER_CITY": "PUNE",
+                    "VEHICLE_OWNER_DISTRICT": "PUNE",
+                    "VEHICLE_OWNER_STATE": state_name,
+                    "VEHICLE_OWNER_COUNTRY": "India",
+                    "VEHICLE_OWNER_PINCODE": "411045",
+                    "VEHICLE_OWNER_REGISTERED_MOBILE": Helpers.generate_random_phone(),
+                    "POS_CODE": "AB123",
+                    "POA_DOC_NAME": "PANAB123",
+                    "POA_DOC_NO": "PAN1AB123",
+                    "POI_DOC_TYPE": "ADHARAB123",
+                    "POI_DOC_NO": "ADHARXYZ123",
+                    "RTO_OFFICE_CODE": f"{state_code}12",
+                    "RTO_STATE": state_code,
+                    "PRIMARY_OPERATOR": "BSNL",
+                    "SECONDARY_OPERATOR": "BHA",
+                    "PRIMARY_MOBILE_NUMBER": Helpers.generate_random_phone(),
+                    "SECONDARY_MOBILE_NUMBER": Helpers.generate_random_phone(),
+                    "VEHICLE_MODEL": "NANO",
+                    "DEALER_CODE": "1000",
+                    "COMMERCIAL_ACTIVATION_START_DATE": Helpers.get_timestamp(
+                        fmt="%Y-%m-%d"
+                    ),
+                    "COMMERCIAL_ACTIVATION_EXPIRY_DATE": Helpers.get_future_date(
+                        2, fmt="%Y-%m-%d"
+                    ),
+                    "MFG_YEAR": "2024",
+                    "ACCOLADE_POSTING_DATE_TIME": Helpers.get_timestamp(fmt="%Y-%m-%d"),
+                    "INVOICE_DATE": Helpers.get_timestamp(fmt="%Y-%m-%d"),
+                    "INVOICE_NUMBER": "AEPL100000000",
+                    "CERTIFICATE_VALIDITY_DURATION_IN_YEAR": "2",
+                }
+            )
+
+        token = TmlRequestApi.get_token()
+
+        headers = {
+            "Content-Type": "application/json",
+            "token": token,
+        }
+
+        async def send_request(session, payload):
+            vin = payload["VIN_NO"]
+
+            try:
+                async with session.post(
+                    self.endpoint,
+                    json=[payload],
+                    headers=headers,
+                ) as response:
+
+                    http_status = response.status
+
+                    try:
+                        response_json = await response.json(content_type=None)
+                    except Exception:
+                        return {
+                            "vin": vin,
+                            "http_status": http_status,
+                            "ticket_number": None,
+                            "record_status": None,
+                            "validation_errors": ["Non JSON Response"],
+                            "response": {},
+                        }
+
+                    ticket_number = None
+                    record_status = None
+                    validation_errors = []
+
+                    data = response_json.get("data", [])
+
+                    if isinstance(data, list) and data:
+                        record = data[0]
+                        ticket_number = record.get("TICKET_NO")
+                        record_status = record.get("status")
+                        validation_errors = record.get("VALIDATION_ERROR", [])
+
+                    return {
+                        "vin": vin,
+                        "http_status": http_status,
+                        "ticket_number": ticket_number,
+                        "record_status": record_status,
+                        "validation_errors": validation_errors,
+                        "response": response_json,
+                    }
+
+            except Exception as exc:
+                return {
+                    "vin": vin,
+                    "http_status": None,
+                    "ticket_number": None,
+                    "record_status": None,
+                    "validation_errors": [str(exc)],
+                    "response": {},
+                }
+
+        async def execute():
+            connector = aiohttp.TCPConnector(limit=10, ssl=False)
+            timeout = aiohttp.ClientTimeout(total=60)
+
+            async with aiohttp.ClientSession(
+                connector=connector,
+                timeout=timeout,
+            ) as session:
+
+                tasks = []
+
+                for payload in payloads:
+                    tasks.append(asyncio.create_task(send_request(session, payload)))
+                    await asyncio.sleep(0.001)
+
+                return await asyncio.gather(*tasks)
+
+        results = asyncio.run(execute())
+
+        tickets = []
+        failed_requests = []
+
+        for result in results:
+            if result["ticket_number"]:
+                tickets.append(result["ticket_number"])
+            else:
+                failed_requests.append(result)
+
+        duplicates = list({ticket for ticket in tickets if tickets.count(ticket) > 1})
+
+        logger.info(
+            "Concurrent Ticket Generation Summary | "
+            "Total=%s Generated=%s Failed=%s Duplicates=%s",
+            len(results),
+            len(tickets),
+            len(failed_requests),
+            len(duplicates),
+        )
+
+        return {
+            "results": results,
+            "tickets": tickets,
+            "failed_requests": failed_requests,
+            "duplicates": duplicates,
+        }

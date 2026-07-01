@@ -10,7 +10,7 @@ logger = get_logger(__name__)
 class TmlRequestApi:
 
     @staticmethod
-    def _get_token(
+    def get_token(
         page=None,
         api_base_url=TICKET_BASE_URL,
     ):
@@ -100,8 +100,12 @@ class TmlRequestApi:
                 "SECONDARY_MOBILE_NUMBER": Helpers.generate_random_phone(),
                 "VEHICLE_MODEL": "NANO",
                 "DEALER_CODE": "1000",
-                "COMMERCIAL_ACTIVATION_START_DATE": Helpers.get_timestamp(fmt="%Y-%m-%d"),
-                "COMMERCIAL_ACTIVATION_EXPIRY_DATE": Helpers.get_future_date(2, fmt="%Y-%m-%d"),
+                "COMMERCIAL_ACTIVATION_START_DATE": Helpers.get_timestamp(
+                    fmt="%Y-%m-%d"
+                ),
+                "COMMERCIAL_ACTIVATION_EXPIRY_DATE": Helpers.get_future_date(
+                    2, fmt="%Y-%m-%d"
+                ),
                 "MFG_YEAR": "2024",
                 "ACCOLADE_POSTING_DATE_TIME": Helpers.get_timestamp(fmt="%Y-%m-%d"),
                 "INVOICE_DATE": Helpers.get_timestamp(fmt="%Y-%m-%d"),
@@ -115,7 +119,7 @@ class TmlRequestApi:
         logger.info("Creating TML request ticket.")
 
         try:
-            token = TmlRequestApi._get_token(api_base_url=api_base_url)
+            token = TmlRequestApi.get_token(api_base_url=api_base_url)
 
             import urllib.request
             import ssl
