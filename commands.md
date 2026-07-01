@@ -293,3 +293,8 @@ If you're new to this repo:
 ```bash
 (Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& d:\AEPL_AUTOMATION\LCT_A4G_AUTO\.venv\Scripts\Activate.ps1)
 ```
+
+## Remove the __pycache__ folders from all folders
+```bash
+   Get-ChildItem -Path . -Filter "__pycache__" -Recurse -Directory | Remove-Item -Force -Recurse
+```
