@@ -25,15 +25,15 @@ def _get(key, default=None):
 
 
 def _get_bool(key, default=False):
+    env_value = os.getenv(key)
+    if env_value is not None:
+        return str(env_value).lower() == "true"
+
     project_value = _PROJECT_CONFIG.get(key.lower())
     if isinstance(project_value, bool):
         return project_value
     if project_value is not None:
         return str(project_value).lower() == "true"
-
-    env_value = os.getenv(key)
-    if env_value is not None:
-        return str(env_value).lower() == "true"
 
     return default
 

@@ -6,7 +6,7 @@ import urllib.request
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Trigger the GitHub Actions reporting workflow via repository_dispatch."
+        description="Trigger the GitHub Actions reporting workflow via repository_dispatch or workflow_dispatch."
     )
     parser.add_argument("--owner", required=True, help="GitHub repository owner")
     parser.add_argument("--repo", required=True, help="GitHub repository name")
@@ -21,6 +21,15 @@ def parse_args():
         default="reports",
         help="Optional report output directory",
     )
+    parser.add_argument(
+        "--ref",
+        help="Git ref used for workflow_dispatch. If supplied, the helper triggers workflow_dispatch on the specified branch or tag.",
+    )
+    parser.add_argument(
+        "--workflow",
+        default="reporting.yml",
+        help="Workflow file name or path to trigger when using workflow_dispatch.",
+    )
     return parser.parse_args()
 
 
@@ -31,20 +40,37 @@ def main():
         print("Error: --project and --projects are mutually exclusive.")
         sys.exit(1)
 
-    url = f"https://api.github.com/repos/{args.owner}/{args.repo}/dispatches"
-    payload = {
-        "event_type": "run-project-report",
-        "client_payload": {
-            "report_dir": args.report_dir,
-        },
-    }
-
-    if args.project:
-        payload["client_payload"]["project"] = args.project
-    if args.projects:
-        payload["client_payload"]["projects"] = args.projects
-    if args.marker:
-        payload["client_payload"]["marker"] = args.marker
+    if args.ref:
+        url = (
+            f"https://api.github.com/repos/{args.owner}/{args.repo}"
+            f"/actions/workflows/{args.workflow}/dispatches"
+        )
+        payload = {
+            "ref": args.ref,
+            "inputs": {
+                "report_dir": args.report_dir,
+            },
+        }
+        if args.project:
+            payload["inputs"]["project"] = args.project
+        if args.projects:
+            payload["inputs"]["projects"] = args.projects
+        if args.marker:
+            payload["inputs"]["marker"] = args.marker
+    else:
+        url = f"https://api.github.com/repos/{args.owner}/{args.repo}/dispatches"
+        payload = {
+            "event_type": "run-project-report",
+            "client_payload": {
+                "report_dir": args.report_dir,
+            },
+        }
+        if args.project:
+            payload["client_payload"]["project"] = args.project
+        if args.projects:
+            payload["client_payload"]["projects"] = args.projects
+        if args.marker:
+            payload["client_payload"]["marker"] = args.marker
 
     data = json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(url, data=data)
