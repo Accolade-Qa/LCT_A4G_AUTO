@@ -121,7 +121,7 @@ class TestUserManagementPage:
         logger.info("Verifying user type dropdown validation message")
         assert (
             error_msg["result_drop_text"] == "This field is mandatory."
-        ), f"Expected error message to be 'This field is mandatory.', got '{error_msg["result_drop_text"]}'"
+        ), f"Expected error message to be 'This field is mandatory.', got '{error_msg['result_drop_text']}'"
         logger.info("User type dropdown validation test passed")
 
     def test_first_name_field(self, user_management, report_case, page):
