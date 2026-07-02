@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.status_update_log_page import StatusUpdateLogPage
+from pages.atcu.atcu_status_update_log_page import StatusUpdateLogPage
 
 
 @pytest.mark.log

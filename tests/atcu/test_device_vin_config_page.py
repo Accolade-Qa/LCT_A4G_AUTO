@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.device_vin_config_page import DeviceVinConfigPage
+from pages.atcu.atcu_device_vin_config_page import DeviceVinConfigPage
 
 
 @pytest.mark.config

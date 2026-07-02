@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.fota_page import FotaPage
+from pages.atcu.atcu_fota_page import FotaPage
 
 
 @pytest.mark.atcu

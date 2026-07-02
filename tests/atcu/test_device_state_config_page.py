@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.device_state_config_page import DeviceStateConfigPage
+from pages.atcu.atcu_device_state_config_page import DeviceStateConfigPage
 
 
 @pytest.mark.config

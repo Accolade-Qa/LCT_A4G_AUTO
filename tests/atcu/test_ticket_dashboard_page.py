@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.ticket_dashboard_page import TicketDashboardPage
+from pages.atcu.atcu_ticket_dashboard_page import TicketDashboardPage
 
 
 @pytest.mark.ticket

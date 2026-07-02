@@ -1,4 +1,0 @@
-
-
-class FotaPage():
-    pass

@@ -11,7 +11,7 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-class TmlRequestLogPage(BasePage):
+class AtcuTmlRequestLogPage(BasePage):
     """
     this page should mainly for validating the ticket request,
     and validate the data exactly on the ui.

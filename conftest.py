@@ -61,17 +61,20 @@ def playwright_instance():
 
 # Browser
 @pytest.fixture(scope="session")
-def browser(playwright_instance):
+def browser(playwright_instance, request):
     browser_type = getattr(playwright_instance, config_module.BROWSER)
 
+    cli_headless = request.config.getoption("--headless")
+    effective_headless = True if cli_headless else config_module.HEADLESS
+
     browser = browser_type.launch(
-        headless=config_module.HEADLESS,
+        headless=effective_headless,
         args=["--start-maximized", "--kiosk"],
     )
     logger.info(
         "Launched browser instance (%s) headless=%s in fullscreen mode",
         config_module.BROWSER,
-        config_module.HEADLESS,
+        effective_headless,
     )
 
     yield browser
@@ -355,9 +358,14 @@ def pytest_runtest_makereport(item, call):
             logger.warning("Test %s failed, capturing screenshot", item.name)
             screenshot_path = get_project_screenshot_path()
             os.makedirs(screenshot_path, exist_ok=True)
+            safe_nodeid = item.nodeid
             safe_nodeid = (
-                item.nodeid.replace("::", "__").replace("/", "_").replace("\\", "_")
+                safe_nodeid.replace("::", "__").replace("/", "_").replace("\\", "_")
             )
+            safe_nodeid = safe_nodeid.replace(" ", "_")
+            import re
+
+            safe_nodeid = re.sub(r'[<>:"\\|?*]+', "_", safe_nodeid)
             page.screenshot(
                 path=os.path.join(screenshot_path, f"{safe_nodeid}.png"),
                 full_page=True,
@@ -526,9 +534,9 @@ def production_devices_page(page, project_config):
 
 @pytest.fixture
 def tml_request_log_page(page, project_config):
-    from pages.atcu.tml_request_log_page import TmlRequestLogPage
+    from pages.atcu.atcu_tml_request_log_page import AtcuTmlRequestLogPage
 
-    tml_request_log = TmlRequestLogPage(page)
+    tml_request_log = AtcuTmlRequestLogPage(page)
     base = BasePage(page)
     base.navigate_to(project_config["tml_request_log_url"])
     logger.info("TML Request Log page fixture ready")

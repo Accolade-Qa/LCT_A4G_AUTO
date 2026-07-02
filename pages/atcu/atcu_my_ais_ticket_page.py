@@ -1,0 +1,2 @@
+class AtcuMyAisTicketPage:
+    pass

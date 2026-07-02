@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.my_ais_ticket_page import MyAisTicketPage
+from pages.atcu.atcu_my_ais_ticket_page import MyAisTicketPage
 
 
 @pytest.mark.ticket

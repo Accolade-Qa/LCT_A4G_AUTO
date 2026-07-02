@@ -32,13 +32,17 @@ def get_current_project(default="lct"):
     return default
 
 
-def get_artifact_run_id():
-    run_id = os.getenv("ARTIFACT_RUN_ID")
-    if run_id:
-        return run_id
+_ARTIFACT_RUN_ID = os.getenv("ARTIFACT_RUN_ID")
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    return f"{timestamp}_pid-{os.getpid()}"
+
+def get_artifact_run_id():
+    global _ARTIFACT_RUN_ID
+    if _ARTIFACT_RUN_ID:
+        return _ARTIFACT_RUN_ID
+
+    _ARTIFACT_RUN_ID = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    _ARTIFACT_RUN_ID = f"{_ARTIFACT_RUN_ID}_pid-{os.getpid()}"
+    return _ARTIFACT_RUN_ID
 
 
 def get_project_logs_path(project=None):

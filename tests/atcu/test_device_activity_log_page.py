@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.device_activity_log_page import DeviceActivityLogPage
+from pages.atcu.atcu_device_activity_log_page import DeviceActivityLogPage
 
 
 @pytest.mark.log

@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.aepl_response_log_page import AeplResponseLogPage
+from pages.atcu.atcu_aepl_response_log_page import AeplResponseLogPage
 
 
 @pytest.mark.log
