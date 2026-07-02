@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.atcu_device_activity_log_page import DeviceActivityLogPage
+from pages.atcu.atcu_device_activity_log_page import AtcuDeviceActivityLogPage
 
 
 @pytest.mark.log
@@ -9,7 +9,7 @@ from pages.atcu.atcu_device_activity_log_page import DeviceActivityLogPage
 class TestDeviceActivityLogPage:
     @pytest.mark.smoke
     def test_device_activity_log_page_loads(self, page, project_config, report_case):
-        device_activity_log = DeviceActivityLogPage(
+        device_activity_log = AtcuDeviceActivityLogPage(
             page, project_config["device_activity_log_url"]
         )
         device_activity_log.load()

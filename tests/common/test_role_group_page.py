@@ -1,6 +1,6 @@
 from datetime import datetime
 from config.config import API_BASE_URL, API_USERNAME, API_PASSWORD
-from pages.api.api_client import APIClient
+from api.api_client import APIClient
 from utils.helpers import Helpers
 from pages.common_utils import TableSection, SearchHelper
 from utils.logger import get_logger
@@ -11,13 +11,13 @@ import pytest
 logger = get_logger(__name__)
 
 
-@pytest.mark.critical
-@pytest.mark.regression
 @pytest.mark.atcu
 @pytest.mark.lct
 @pytest.mark.sampark
 @pytest.mark.swaraj
 @pytest.mark.trio
+@pytest.mark.critical
+@pytest.mark.regression
 class TestRoleGroupPage:
     group = None
 

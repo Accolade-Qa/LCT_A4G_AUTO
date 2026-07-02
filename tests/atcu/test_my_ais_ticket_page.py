@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.atcu_my_ais_ticket_page import MyAisTicketPage
+from pages.atcu.atcu_my_ais_ticket_page import AtcuMyAisTicketPage
 
 
 @pytest.mark.ticket
@@ -9,7 +9,7 @@ from pages.atcu.atcu_my_ais_ticket_page import MyAisTicketPage
 class TestMyAisTicketPage:
     @pytest.mark.smoke
     def test_my_ais_ticket_page_loads(self, page, project_config, report_case):
-        my_ais_ticket = MyAisTicketPage(page, project_config["my_ais_ticket_url"])
+        my_ais_ticket = AtcuMyAisTicketPage(page, project_config["my_ais_ticket_url"])
         my_ais_ticket.load()
 
         loaded = my_ais_ticket.is_loaded()

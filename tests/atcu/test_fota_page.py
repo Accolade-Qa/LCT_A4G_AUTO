@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.atcu_fota_page import FotaPage
+from pages.atcu.atcu_fota_page import AtcuFotaPage
 
 
 @pytest.mark.atcu
@@ -8,7 +8,7 @@ from pages.atcu.atcu_fota_page import FotaPage
 class TestFotaPage:
     @pytest.mark.smoke
     def test_fota_page_loads(self, page, project_config, report_case):
-        fota = FotaPage(page, project_config["fota_url"])
+        fota = AtcuFotaPage(page, project_config["fota_url"])
         fota.load()
 
         loaded = fota.is_loaded()

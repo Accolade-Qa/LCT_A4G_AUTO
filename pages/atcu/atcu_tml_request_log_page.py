@@ -1,6 +1,6 @@
 from utils.helpers import Helpers
 from pages.base_page import BasePage
-from pages.api.tml_request_api import TmlRequestApi
+from api.tml_request_api import TmlRequestApi
 from pages.common_utils import SearchHelper, TableSection, PaginationHelper
 import asyncio
 import aiohttp

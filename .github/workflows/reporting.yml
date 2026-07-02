@@ -4,18 +4,13 @@ on:
   push:
     branches:
       - master
-
-  # schedule:
-  #   - cron: '30 4 * * 1-5'  # 10:00 AM IST (Mon–Fri)
+      - main
 
 env:
-  REPORT_HTML: ${{ github.workspace }}/reports/report.html
-  REPORT_JSON: ${{ github.workspace }}/reports/report.json
-  REPORT_EXCEL: ${{ github.workspace }}/reports/report.xlsx
-  REPORT_JUNIT: ${{ github.workspace }}/reports/report.xml
+  REPORT_DIR: ${{ github.workspace }}/reports
 
 jobs:
-  test-suite:
+  report:
     runs-on: ubuntu-latest
     env:
       HEADLESS: 'true'
@@ -29,117 +24,58 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Create virtual environment
-        run: python -m venv venv
-
       - name: Install dependencies
         run: |
-          source venv/bin/activate
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Install Playwright
-        run: |
-          source venv/bin/activate
-          playwright install
+          python -m playwright install
           npx playwright install-deps
 
-      - name: Run tests
+      - name: Generate test reports
         run: |
-          source venv/bin/activate
-          mkdir -p reports
-          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' \
-            python -m pytest \
-            --html=$REPORT_HTML --self-contained-html \
-            --json-report --json-report-file=$REPORT_JSON \
-            --junitxml=$REPORT_JUNIT tests
+          python utils/generate_reports.py --report-dir "$REPORT_DIR"
 
-      - name: Upload reports artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports
-          path: reports
-
-  report-generator:
-    needs: test-suite
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download reports artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: test-reports
-          path: reports
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Create virtual environment
-        run: python -m venv venv
-
-      - name: Install dependencies
-        run: |
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Generate Excel report
-        env:
-          RUN_PYTEST: 'false'
-        run: |
-          source venv/bin/activate
-          python utils/generate_reports.py
-
-      - name: Verify reports exist
+      - name: Verify generated reports
         run: |
           echo "Checking for report files..."
-          test -f reports/report.html && echo "✓ HTML report found" || { echo "✗ HTML report missing"; exit 1; }
-          test -f reports/report.xlsx && echo "✓ Excel report found" || { echo "✗ Excel report missing"; exit 1; }
-          echo "All reports verified!"
+          test -f "$REPORT_DIR/report.json" && echo "✓ JSON report found" || exit 1
+          test -f "$REPORT_DIR/report.html" && echo "✓ HTML report found" || exit 1
+          test -f "$REPORT_DIR/report.xlsx" && echo "✓ Excel report found" || exit 1
 
-      # 📧 SIMPLE EMAIL (STABLE)
+      - name: Upload report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-reports
+          path: reports
+
       - name: Send report email
+        if: always()
         uses: dawidd6/action-send-mail@v4
         with:
+          secure: true
           server_address: smtp.gmail.com
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-
           subject: >
-            ${{ github.ref_name == 'master' && github.event_name == 'push'
-              && format('Master Test Report - Run #{0}', github.run_number)
-              || format('Test Report [{0}] - Run #{1}', github.ref_name, github.run_number) }}
-
+            [CI] Automation Test Report | ${{ github.ref_name }} | Run #${{ github.run_number }}
           body: |
-            Hello Team,
+            Automation test execution is complete.
 
-            The test execution has completed successfully.
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Workflow: ${{ github.workflow }}
+            Run: #${{ github.run_number }}
+            Status: ${{ job.status }}
 
-            Execution Details:
-            - Repository: ${{ github.repository }}
-            - Branch: ${{ github.ref_name }}
-            - Trigger: ${{ github.event_name }}
-            - Run Number: ${{ github.run_number }}
-
-            Reports are attached for your review.
+            Attached: HTML and Excel reports.
 
             Regards,
-            Automation Bot
-
+            CI Automation
+          content_type: text/plain
           to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_FROM }}
-
           attachments: |
-            ${{ env.REPORT_HTML }}
-            ${{ env.REPORT_EXCEL }}
+            ${{ env.REPORT_DIR }}/report.html
+            ${{ env.REPORT_DIR }}/report.xlsx

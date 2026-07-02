@@ -85,71 +85,149 @@ body {
     margin: 0;
     padding: 24px;
 }
-h1 { margin-bottom: 4px; }
-.meta { color: #475569; margin-top: 0; }
+header {
+    margin-bottom: 24px;
+}
+h1 { margin: 0; font-size: 32px; }
+.meta { color: #475569; margin: 8px 0 0; }
 .cards {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
     margin: 24px 0;
 }
 .card {
-    padding: 16px;
-    border-radius: 8px;
+    padding: 20px;
+    border-radius: 16px;
     background: white;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
-.pass { border-left: 5px solid #22c55e; }
-.fail { border-left: 5px solid #ef4444; }
-.skip { border-left: 5px solid #f59e0b; }
-.value { font-size: 28px; font-weight: 700; margin-top: 6px; }
+.card-title { font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
+.value { font-size: 36px; font-weight: 700; margin-top: 10px; }
+.small { font-size: 14px; color: #64748b; margin-top: 8px; }
+.cards .pass { border-left: 6px solid #22c55e; }
+.cards .fail { border-left: 6px solid #ef4444; }
+.cards .skip { border-left: 6px solid #f59e0b; }
+.charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+    align-items: start;
+}
+.chart-card {
+    padding: 20px;
+    border-radius: 16px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    min-height: 380px;
+    max-height: 420px;
+    overflow: hidden;
+}
+.chart-title { font-weight: 700; margin-bottom: 14px; }
+.chart-canvas {
+    width: 100%;
+    height: 320px;
+    max-height: 320px;
+    display: block;
+}
+.table-container {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: auto;
+    max-height: 920px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
 table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    overflow: hidden;
     table-layout: fixed;
 }
 th {
-    background: #e2e8f0;
+    background: #f8fafc;
     color: #0f172a;
     text-align: left;
     font-size: 13px;
+    font-weight: 700;
+    padding: 14px 16px;
 }
-td, th {
-    padding: 10px 12px;
+td {
+    padding: 14px 16px;
     border-bottom: 1px solid #e2e8f0;
     vertical-align: top;
-    word-wrap: break-word;
+    word-break: break-word;
+    font-size: 13px;
+    color: #334155;
 }
 .status-pass { color: #166534; font-weight: 700; }
 .status-fail { color: #991b1b; font-weight: 700; }
 .status-skipped { color: #92400e; font-weight: 700; }
 .muted { color: #64748b; }
+@media (max-width: 900px) {
+    .chart-canvas { height: 240px; }
+}
 </style>
 </head>
 <body>
+<header>
 <h1>Automation Test Report</h1>
 <p class="meta">Generated at {{ time }}</p>
-
+</header>
 <div class="cards">
-<div class="card"><div>Total</div><div class="value">{{ total }}</div></div>
-<div class="card pass"><div>Passed</div><div class="value">{{ passed }}</div></div>
-<div class="card fail"><div>Failed</div><div class="value">{{ failed }}</div></div>
-<div class="card skip"><div>Skipped</div><div class="value">{{ skipped }}</div></div>
+    <div class="card">
+        <div class="card-title">Total Tests</div>
+        <div class="value">{{ total }}</div>
+        <div class="small">Overall execution count</div>
+    </div>
+    <div class="card pass">
+        <div class="card-title">Passed</div>
+        <div class="value">{{ passed }}</div>
+        <div class="small">Successful assertions</div>
+    </div>
+    <div class="card fail">
+        <div class="card-title">Failed</div>
+        <div class="value">{{ failed }}</div>
+        <div class="small">Requires attention</div>
+    </div>
+    <div class="card skip">
+        <div class="card-title">Skipped</div>
+        <div class="value">{{ skipped }}</div>
+        <div class="small">Conditional or blocked tests</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Avg Duration</div>
+        <div class="value">{{ average_duration }}</div>
+        <div class="small">Seconds per test</div>
+    </div>
 </div>
 
+<div class="charts">
+    <div class="chart-card">
+        <div class="chart-title">Test Status Distribution</div>
+        <canvas id="statusChart" class="chart-canvas"></canvas>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title">Test Duration Trend</div>
+        <canvas id="durationChart" class="chart-canvas"></canvas>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title">Top Slow Tests</div>
+        <canvas id="slowChart" class="chart-canvas"></canvas>
+    </div>
+</div>
+
+<div class="table-container">
 <table>
 <tr>
-    <th style="width: 22%;">Test Case Name</th>
-    <th style="width: 26%;">Expected</th>
-    <th style="width: 26%;">Actual</th>
-    <th style="width: 9%;">Result</th>
-    <th style="width: 8%;">Duration</th>
-    <th style="width: 9%;">Message</th>
+    <th style="width: 24%;">Test Case Name</th>
+    <th style="width: 20%;">Expected</th>
+    <th style="width: 20%;">Actual</th>
+    <th style="width: 10%;">Result</th>
+    <th style="width: 10%;">Duration</th>
+    <th style="width: 16%;">Message</th>
 </tr>
 {% for t in tests %}
 <tr>
@@ -162,6 +240,84 @@ td, th {
 </tr>
 {% endfor %}
 </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const statusData = {
+    labels: ['Passed', 'Failed', 'Skipped'],
+    datasets: [{
+        data: [{{ passed }}, {{ failed }}, {{ skipped }}],
+        backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
+        borderWidth: 0
+    }]
+};
+const statusChart = new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: statusData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { usePointStyle: true } }
+        }
+    }
+});
+
+const durationData = {
+    labels: [{% for t in tests %}'{{ t.name | replace("'", "\\'") }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+    datasets: [{
+        label: 'Duration (s)',
+        data: [{% for t in tests %}{{ t.duration or 0 }}{% if not loop.last %}, {% endif %}{% endfor %}],
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(59, 130, 246, 0.15)',
+        fill: true,
+        tension: 0.25,
+        pointRadius: 3,
+        borderWidth: 2
+    }]
+};
+const durationChart = new Chart(document.getElementById('durationChart'), {
+    type: 'line',
+    data: durationData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: { ticks: { autoSkip: true, maxRotation: 45, minRotation: 0 } },
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+const slowTests = [
+{% for t in slow_tests %}
+    { name: '{{ t.name | replace("'", "\\'") }}', duration: {{ t.duration }} }{% if not loop.last %}, {% endif %}
+{% endfor %}
+];
+const slowData = {
+    labels: slowTests.map(item => item.name),
+    datasets: [{
+        label: 'Duration (s)',
+        data: slowTests.map(item => item.duration),
+        backgroundColor: '#f97316'
+    }]
+};
+const slowChart = new Chart(document.getElementById('slowChart'), {
+    type: 'bar',
+    data: slowData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+</script>
 </body>
 </html>
 """
@@ -220,13 +376,17 @@ def _property_map(test_result):
         if isinstance(item, dict):
             name = item.get("name") or item.get("key")
             value = item.get("value")
+            if name:
+                properties[str(name).lower()] = value
+            else:
+                for key, value in item.items():
+                    properties[str(key).lower()] = value
         elif isinstance(item, (list, tuple)) and len(item) >= 2:
             name, value = item[0], item[1]
+            if name:
+                properties[str(name).lower()] = value
         else:
             continue
-
-        if name:
-            properties[str(name).lower()] = value
 
     return properties
 
@@ -332,6 +492,13 @@ def _build_test_rows(data, manual_excel_path):
             properties.get("result") or properties.get("status") or status
         )
 
+        # If report_case stored properties but they are empty strings,
+        # preserve the default expected/actual values from the test itself.
+        if not expected and properties.get("expected") == "":
+            expected = "Not recorded by test"
+        if not actual and properties.get("actual") == "":
+            actual = "Not recorded by test"
+
         # 🔹 PRIORITY 4: Manual results (from write_result) override everything
         manual = manual_results.get(test_name)
         if manual:
@@ -430,6 +597,24 @@ def process_json(json_path, manual_excel_path):
     return tests, counts, total, data
 
 
+def _average_duration(tests):
+    durations = [
+        t["duration"] for t in tests if isinstance(t["duration"], (int, float))
+    ]
+    if not durations:
+        return 0
+    return round(sum(durations) / len(durations), 2)
+
+
+def _top_slow_tests(tests, limit=5):
+    slow_tests = sorted(
+        [t for t in tests if isinstance(t["duration"], (int, float))],
+        key=lambda item: item["duration"],
+        reverse=True,
+    )
+    return slow_tests[:limit]
+
+
 # ================= STEP 3: HTML =================
 def generate_html(tests, counts, total, html_path):
     template = Template(HTML_TEMPLATE)
@@ -440,7 +625,9 @@ def generate_html(tests, counts, total, html_path):
         passed=counts["passed"],
         failed=counts["failed"],
         skipped=counts["skipped"],
+        average_duration=_average_duration(tests),
         tests=tests,
+        slow_tests=_top_slow_tests(tests),
     )
 
     html_path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.atcu_device_vin_config_page import DeviceVinConfigPage
+from pages.atcu.atcu_device_vin_config_page import AtcuDeviceVinConfigPage
 
 
 @pytest.mark.config
@@ -9,7 +9,7 @@ from pages.atcu.atcu_device_vin_config_page import DeviceVinConfigPage
 class TestDeviceVinConfigPage:
     @pytest.mark.smoke
     def test_device_vin_config_page_loads(self, page, project_config, report_case):
-        device_vin_config = DeviceVinConfigPage(
+        device_vin_config = AtcuDeviceVinConfigPage(
             page, project_config["device_vin_config_url"]
         )
         device_vin_config.load()

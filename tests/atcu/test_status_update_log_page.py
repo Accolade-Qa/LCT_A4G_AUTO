@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.atcu_status_update_log_page import StatusUpdateLogPage
+from pages.atcu.atcu_status_update_log_page import AtcuStatusUpdateLogPage
 
 
 @pytest.mark.log
@@ -9,7 +9,7 @@ from pages.atcu.atcu_status_update_log_page import StatusUpdateLogPage
 class TestStatusUpdateLogPage:
     @pytest.mark.smoke
     def test_status_update_log_page_loads(self, page, project_config, report_case):
-        status_update_log = StatusUpdateLogPage(
+        status_update_log = AtcuStatusUpdateLogPage(
             page, project_config["status_update_log_url"]
         )
         status_update_log.load()

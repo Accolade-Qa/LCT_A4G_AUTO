@@ -1,5 +1,5 @@
 from utils.logger import get_logger
-from pages.api.user_api import UserAPI
+from api.user_api import UserAPI
 from config.config import EXPECTED_PERMISSION_COUNT
 
 import pytest

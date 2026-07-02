@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.atcu_ticket_dashboard_page import TicketDashboardPage
+from pages.atcu.atcu_ticket_dashboard_page import AtcuTicketDashboardPage
 
 
 @pytest.mark.ticket
@@ -9,7 +9,7 @@ from pages.atcu.atcu_ticket_dashboard_page import TicketDashboardPage
 class TestTicketDashboardPage:
     @pytest.mark.smoke
     def test_ticket_dashboard_page_loads(self, page, project_config, report_case):
-        ticket_dashboard = TicketDashboardPage(
+        ticket_dashboard = AtcuTicketDashboardPage(
             page, project_config["ticket_dashboard_url"]
         )
         ticket_dashboard.load()

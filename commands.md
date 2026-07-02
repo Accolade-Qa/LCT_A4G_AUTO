@@ -133,6 +133,23 @@ pytest -m regression --html=reports/report.html --self-contained-html
 pytest -m regression -v --log-cli-level=DEBUG
 ```
 
+```bash
+# Generate custom dashboard report for a specific project
+.\.venv\Scripts\python utils\generate_reports.py --project atcu
+
+# Generate custom dashboard report for a different project
+.\.venv\Scripts\python utils\generate_reports.py --project lct
+
+# Generate custom dashboard reports for multiple projects
+.\.venv\Scripts\python utils\generate_reports.py --projects atcu,lct
+
+# Generate report from existing JSON without running pytest
+.\.venv\Scripts\python utils\generate_reports.py --project atcu --skip-pytest
+
+# Generate report into a custom directory
+.\.venv\Scripts\python utils\generate_reports.py --project atcu --report-dir reports
+```
+
 ## Browser & Display Options
 
 ```bash

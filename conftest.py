@@ -556,34 +556,34 @@ def api_context(project_config):
 
 @pytest.fixture
 def sim_batch_api(page, api_context):
-    from pages.api.sim_batch_api import SIMBatchAPI
+    from api.sim_batch_api import SIMBatchAPI
 
     return SIMBatchAPI
 
 
 @pytest.fixture
 def customer_api(page, api_context):
-    from pages.api.customer_api import CustomerAPI
+    from api.customer_api import CustomerAPI
 
     return CustomerAPI
 
 
 @pytest.fixture
 def device_dashboard_api(page, api_context):
-    from pages.api.device_dashboard_api import DeviceDashboardAPI
+    from api.device_dashboard_api import DeviceDashboardAPI
 
     return DeviceDashboardAPI
 
 
 @pytest.fixture
 def login_api_fixture(page, api_context):
-    from pages.api.login_api import LoginAPI
+    from api.login_api import LoginAPI
 
     return LoginAPI
 
 
 @pytest.fixture
 def govt_server_api(page, api_context):
-    from pages.api.government_server_api import GovtServerAPI
+    from api.government_server_api import GovtServerAPI
 
     return GovtServerAPI

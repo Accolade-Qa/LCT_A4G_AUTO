@@ -5,7 +5,7 @@ from pages.common_utils.search import SearchHelper
 from test_data.device_data import DeviceData
 from utils.logger import get_logger
 from pages.base_page import BasePage
-from pages.api.customer_api import CustomerAPI
+from api.customer_api import CustomerAPI
 from config.config import DISPATCHED_DEVICE_URL
 
 import pytest

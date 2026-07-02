@@ -1,5 +1,5 @@
 from config.config import API_BASE_URL, ROLE_MANAGEMENT_URL, API_PASSWORD, API_USERNAME
-from pages.api.api_client import APIClient
+from api.api_client import APIClient
 from pages.common_utils import TableSection, PaginationHelper
 from utils.helpers import Helpers
 from utils.logger import get_logger
@@ -9,13 +9,13 @@ import pytest
 logger = get_logger(__name__)
 
 
-@pytest.mark.critical
-@pytest.mark.regression
 @pytest.mark.atcu
 @pytest.mark.lct
 @pytest.mark.sampark
 @pytest.mark.swaraj
 @pytest.mark.trio
+@pytest.mark.critical
+@pytest.mark.regression
 class TestRoleManagementPage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):

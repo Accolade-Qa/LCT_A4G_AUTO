@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.atcu_aepl_response_log_page import AeplResponseLogPage
+from pages.atcu.atcu_aepl_response_log_page import AtcuAeplResponseLogPage
 
 
 @pytest.mark.log
@@ -9,7 +9,7 @@ from pages.atcu.atcu_aepl_response_log_page import AeplResponseLogPage
 class TestAeplResponseLogPage:
     @pytest.mark.smoke
     def test_aepl_response_log_page_loads(self, page, project_config, report_case):
-        aepl_response_log = AeplResponseLogPage(
+        aepl_response_log = AtcuAeplResponseLogPage(
             page, project_config["aepl_response_log_url"]
         )
         aepl_response_log.load()

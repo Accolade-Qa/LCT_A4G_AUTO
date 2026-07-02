@@ -1,5 +1,5 @@
-from pages.api.api_client import APIClient
-from pages.api.login_api import LoginAPI
+from api.api_client import APIClient
+from api.login_api import LoginAPI
 from utils.logger import get_logger
 from config.config import (
     API_BASE_URL,

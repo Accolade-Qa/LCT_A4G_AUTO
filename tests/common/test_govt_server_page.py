@@ -3,7 +3,7 @@ from pages.common_utils.pagination import PaginationHelper
 from pages.common_utils.search import SearchHelper
 from utils.logger import get_logger
 from pages.common_utils.table_section import TableSection
-from pages.api.government_server_api import GovtServerAPI
+from api.government_server_api import GovtServerAPI
 from config.config import GOVERNMENT_SERVERS_URL
 
 import os

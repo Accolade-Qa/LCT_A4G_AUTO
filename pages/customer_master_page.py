@@ -42,6 +42,7 @@ class CustomerMasterPage(BasePage):
 
     def go_to_customer(self, url):
         self.page.goto(url)
+        self.page.wait_for_load_state("networkidle", timeout=15000)
 
     def _nav_list_enability(self):
 

@@ -1,6 +1,6 @@
 import pytest
 
-from pages.atcu.atcu_device_state_config_page import DeviceStateConfigPage
+from pages.atcu.atcu_device_state_config_page import AtcuDeviceStateConfigPage
 
 
 @pytest.mark.config
@@ -9,7 +9,7 @@ from pages.atcu.atcu_device_state_config_page import DeviceStateConfigPage
 class TestDeviceStateConfigPage:
     @pytest.mark.smoke
     def test_device_state_config_page_loads(self, page, project_config, report_case):
-        device_state_config = DeviceStateConfigPage(
+        device_state_config = AtcuDeviceStateConfigPage(
             page, project_config["device_state_config_url"]
         )
         device_state_config.load()

@@ -1,4 +1,4 @@
-from pages.api import DeviceDashboardAPI
+from api import DeviceDashboardAPI
 from pages.base_page import BasePage
 from utils.logger import get_logger
 
