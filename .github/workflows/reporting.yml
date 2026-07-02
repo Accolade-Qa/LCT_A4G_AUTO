@@ -6,15 +6,37 @@ on:
       - master
       - main
       - atcu
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Project to run (atcu, lct, sampark, swaraj, trio)'
+        required: false
+      projects:
+        description: 'Comma-separated list of projects, e.g. atcu,lct'
+        required: false
+      marker:
+        description: 'Pytest marker expression, e.g. smoke, regression and not slow'
+        required: false
+      report_dir:
+        description: 'Optional base report directory'
+        required: false
+        default: 'reports'
+  repository_dispatch:
+    types:
+      - run-project-report
 
 env:
   REPORT_DIR: ${{ github.workspace }}/reports
 
 jobs:
-  report:
+  test-and-report:
     runs-on: ubuntu-latest
     env:
       HEADLESS: 'true'
+      PROJECT_INPUT: ${{ github.event.inputs.project }}
+      PROJECTS_INPUT: ${{ github.event.inputs.projects }}
+      MARKER_INPUT: ${{ github.event.inputs.marker }}
+      REPORT_DIR_INPUT: ${{ github.event.inputs.report_dir }}
 
     steps:
       - name: Checkout repository
@@ -32,9 +54,29 @@ jobs:
           python -m playwright install
           npx playwright install-deps
 
-      - name: Generate test reports
+      - name: Run tests and generate reports
         run: |
-          python utils/generate_reports.py --report-dir "$REPORT_DIR"
+          REPORT_DIR=${REPORT_DIR_INPUT:-$REPORT_DIR}
+          EVENT_PROJECT=${{ github.event.client_payload.project || github.event.inputs.project || '' }}
+          EVENT_PROJECTS=${{ github.event.client_payload.projects || github.event.inputs.projects || '' }}
+          EVENT_MARKER=${{ github.event.client_payload.marker || github.event.inputs.marker || '' }}
+          EVENT_REPORT_DIR=${{ github.event.client_payload.report_dir || github.event.inputs.report_dir || '' }}
+
+          TARGET_REPORT_DIR=${EVENT_REPORT_DIR:-$REPORT_DIR}
+          ARGS="--report-dir $TARGET_REPORT_DIR"
+
+          if [ -n "$EVENT_PROJECTS" ]; then
+            ARGS="$ARGS --projects \"$EVENT_PROJECTS\""
+          elif [ -n "$EVENT_PROJECT" ]; then
+            ARGS="$ARGS --project $EVENT_PROJECT"
+          fi
+
+          if [ -n "$EVENT_MARKER" ]; then
+            ARGS="$ARGS --marker \"$EVENT_MARKER\""
+          fi
+
+          echo "Executing: python utils/generate_reports.py $ARGS"
+          eval python utils/generate_reports.py $ARGS
 
       - name: Verify generated reports
         run: |

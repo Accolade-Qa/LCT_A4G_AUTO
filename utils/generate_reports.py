@@ -59,6 +59,12 @@ def parse_args():
         help="Comma-separated list of project names to generate reports for.",
     )
     parser.add_argument(
+        "--marker",
+        "--markers",
+        dest="markers",
+        help="Pytest marker expression to select tests, e.g. smoke, regression and not slow.",
+    )
+    parser.add_argument(
         "--report-dir",
         help="Optional base report directory. Defaults to Reports/ or reports/.",
     )
@@ -552,7 +558,7 @@ def _build_test_rows(data, manual_excel_path):
 
 
 # ================= STEP 1: RUN PYTEST =================
-def run_pytest(json_path, project_name=None):
+def run_pytest(json_path, project_name=None, markers=None):
     report_dir = json_path.parent
     report_dir.mkdir(parents=True, exist_ok=True)
 
@@ -567,8 +573,19 @@ def run_pytest(json_path, project_name=None):
 
     if project_name:
         cmd.append(f"--project={project_name}")
+    if markers:
+        cmd.extend(["-m", markers])
 
-    print("Running pytest...", "project=" + str(project_name) if project_name else "")
+    if project_name or markers:
+        details = []
+        if project_name:
+            details.append(f"project={project_name}")
+        if markers:
+            details.append(f"markers={markers}")
+        print("Running pytest...", " ".join(details))
+    else:
+        print("Running pytest...")
+
     result = subprocess.run(cmd, cwd=ROOT)
     return result.returncode
 
@@ -717,7 +734,7 @@ def _style_excel(excel_path):
 
 
 # ================= MAIN =================
-def _run_report_for_target(project_name, base_report_dir, skip_pytest):
+def _run_report_for_target(project_name, base_report_dir, skip_pytest, markers=None):
     report_paths = _resolve_report_paths(project_name, base_report_dir)
     report_dir = report_paths["report_dir"]
     json_path = report_paths["json_path"]
@@ -740,7 +757,7 @@ def _run_report_for_target(project_name, base_report_dir, skip_pytest):
         print("Skipping pytest (--skip-pytest specified)")
         exit_code = 0
     else:
-        exit_code = run_pytest(json_path, project_name)
+        exit_code = run_pytest(json_path, project_name, markers)
 
     try:
         tests, counts, total, data = process_json(
@@ -789,7 +806,7 @@ def main():
     overall_exit_code = 0
     for project_name in project_names:
         exit_code = _run_report_for_target(
-            project_name, args.report_dir, args.skip_pytest
+            project_name, args.report_dir, args.skip_pytest, args.markers
         )
         overall_exit_code = max(overall_exit_code, exit_code)
 

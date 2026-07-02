@@ -67,14 +67,27 @@ def browser(playwright_instance, request):
     cli_headless = request.config.getoption("--headless")
     effective_headless = True if cli_headless else config_module.HEADLESS
 
+    launch_args = []
+    if effective_headless:
+        launch_args = [
+            "--disable-gpu",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--window-size=1920,1080",
+        ]
+    else:
+        launch_args = ["--start-maximized"]
+
     browser = browser_type.launch(
         headless=effective_headless,
-        args=["--start-maximized", "--kiosk"],
+        args=launch_args,
     )
     logger.info(
-        "Launched browser instance (%s) headless=%s in fullscreen mode",
+        "Launched browser instance (%s) headless=%s args=%s",
         config_module.BROWSER,
         effective_headless,
+        launch_args,
     )
 
     yield browser
