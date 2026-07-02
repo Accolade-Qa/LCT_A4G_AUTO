@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - main
+      - atcu
 
 env:
   REPORT_DIR: ${{ github.workspace }}/reports
