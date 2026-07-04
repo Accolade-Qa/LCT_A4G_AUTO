@@ -8,6 +8,10 @@ ROOT = Path(__file__).resolve().parent
 load_dotenv(dotenv_path=ROOT.parent / ".env")
 
 PROJECT = os.getenv("PROJECT", "lct").lower()
+PROJECT_ENV_PATH = ROOT / f"{PROJECT}.env"
+if PROJECT_ENV_PATH.exists():
+    load_dotenv(dotenv_path=PROJECT_ENV_PATH, override=True)
+
 PROJECT_CONFIG_PATH = ROOT / f"{PROJECT}.yaml"
 
 _PROJECT_CONFIG = {}

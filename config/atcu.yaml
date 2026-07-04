@@ -27,11 +27,7 @@ device_state_config_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-s
 device_vin_config_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-vin-config"
 device_activity_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-activity-log"
 api_base_url: "https://aepl-tcu4g-qa.accoladeelectronics.com:9090"
-username: "suraj.bhalerao@accoladeelectronics.com"
-password: "b5oc6zxy"
 ticket_base_url: "https://aepl-tcu4g-qa.accoladeelectronics.com:6109"
-api_username: "suraj.bhalerao@accoladeelectronics.com"
-api_password: "b5oc6zxy"
 browser: chromium
 headless: false
 screenshot_on_failure: true
