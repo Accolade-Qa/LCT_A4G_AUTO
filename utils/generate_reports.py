@@ -349,7 +349,7 @@ footer {
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
         </button>
-        <div class="logo-container" style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; padding: 4px; overflow: hidden; border-radius: 12px;">
+        <div class="logo-container" style="display: flex; align-items: center; justify-content: center; width: 120px; height: 120px; padding: 8px; overflow: hidden; border-radius: 16px;">
             {% if logo_base64 %}
             <img src="data:image/png;base64,{{ logo_base64 }}" alt="Accolade Logo" style="width: 100%; height: 100%; object-fit: contain;">
             {% else %}
@@ -1064,8 +1064,8 @@ def _style_excel(excel_path, project_name=None):
     logo_path = Path(__file__).resolve().parent / "accolade_logo.png"
     if logo_path.exists():
         img = Image(str(logo_path))
-        img.width = 75
-        img.height = 75
+        img.width = 130
+        img.height = 130
         ws.add_image(img, "A1")
 
     # 2. Write Metadata
@@ -1105,7 +1105,7 @@ def _style_excel(excel_path, project_name=None):
         d_cell.alignment = Alignment(horizontal="left")
 
     for r in range(1, 5):
-        ws.row_dimensions[r].height = 20
+        ws.row_dimensions[r].height = 28
 
     ws.row_dimensions[5].height = 15
 
