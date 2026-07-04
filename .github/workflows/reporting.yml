@@ -37,9 +37,6 @@ jobs:
       PROJECTS_INPUT: ${{ github.event.inputs.projects }}
       MARKER_INPUT: ${{ github.event.inputs.marker }}
       REPORT_DIR_INPUT: ${{ github.event.inputs.report_dir }}
-
-    env:
-      HEADLESS: 'true'
       TARGET_REPORT_DIR: ${{ github.event.client_payload.report_dir || github.event.inputs.report_dir || 'reports' }}
     steps:
       - name: Checkout repository
