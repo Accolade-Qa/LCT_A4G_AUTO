@@ -135,13 +135,22 @@ pytest -m regression -v --log-cli-level=DEBUG
 
 ```bash
 # Generate custom dashboard report for a specific project
-.\.venv\Scripts\python utils\generate_reports.py --project atcu
+.\.venv\Scripts\python utils\generate_reports.py -p atcu
 
 # Generate custom dashboard report for a different project
-.\.venv\Scripts\python utils\generate_reports.py --project lct
+.\.venv\Scripts\python utils\generate_reports.py -p lct
 
 # Generate custom dashboard reports for multiple projects
 .\.venv\Scripts\python utils\generate_reports.py --projects atcu,lct
+
+# Generate report with multiple test markers (comma-separated, space-separated, or quoted)
+.\.venv\Scripts\python utils\generate_reports.py --project lct --markers smoke, ui
+.\.venv\Scripts\python utils\generate_reports.py --project lct --markers "smoke, ui"
+.\.venv\Scripts\python utils\generate_reports.py --project lct --markers smoke ui
+
+# Trigger GitHub Actions workflow with multiple markers
+python trigger_project_report.py --owner Accolade-Qa --repo LCT_A4G_AUTO --token YOUR_TOKEN --project lct --marker smoke, ui
+python trigger_project_report.py --owner Accolade-Qa --repo LCT_A4G_AUTO --token YOUR_TOKEN --project lct --marker "smoke or ui"
 
 # Generate report from existing JSON without running pytest
 .\.venv\Scripts\python utils\generate_reports.py --project atcu --skip-pytest

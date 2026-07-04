@@ -7,6 +7,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+# Add project root to sys.path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import pandas as pd
 from jinja2 import Template
 from openpyxl import load_workbook
@@ -45,37 +48,6 @@ def _resolve_report_paths(project_name=None, base_report_dir=None):
     }
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Generate test reports for one or more projects."
-    )
-    parser.add_argument(
-        "--project",
-        "-p",
-        help="Project name to generate reports for (same as pytest --project).",
-    )
-    parser.add_argument(
-        "--projects",
-        help="Comma-separated list of project names to generate reports for.",
-    )
-    parser.add_argument(
-        "--marker",
-        "--markers",
-        dest="markers",
-        help="Pytest marker expression to select tests, e.g. smoke, regression and not slow.",
-    )
-    parser.add_argument(
-        "--report-dir",
-        help="Optional base report directory. Defaults to Reports/ or reports/.",
-    )
-    parser.add_argument(
-        "--skip-pytest",
-        action="store_true",
-        help="Skip running pytest and only generate reports from existing JSON.",
-    )
-    return parser.parse_args()
-
-
 # ================= HTML TEMPLATE =================
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -84,18 +56,124 @@ HTML_TEMPLATE = """
 <meta charset="UTF-8">
 <title>Automation Test Report</title>
 <style>
+:root {
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --border-color: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-title: #ffffff;
+    --logo-text-main: #ffffff;
+    --table-header-bg: #0f172a;
+    --table-row-hover: #1e293b;
+    --status-pass: #4ade80;
+    --status-fail: #f87171;
+    --status-skipped: #fbbf24;
+    --caution-bg: #2d1e10;
+    --caution-border: #451a03;
+    --caution-text: #fde68a;
+    --caution-icon: #f59e0b;
+    --footer-meta: #64748b;
+}
+
+[data-theme="light"] {
+    --bg-body: #f8fafc;
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --text-main: #334155;
+    --text-muted: #64748b;
+    --text-title: #0f172a;
+    --logo-text-main: #2a257c;
+    --table-header-bg: #f8fafc;
+    --table-row-hover: #f1f5f9;
+    --status-pass: #166534;
+    --status-fail: #991b1b;
+    --status-skipped: #92400e;
+    --caution-bg: #fffbeb;
+    --caution-border: #fef3c7;
+    --caution-text: #92400e;
+    --caution-icon: #d97706;
+    --footer-meta: #94a3b8;
+}
+
 body {
     font-family: Segoe UI, Arial, sans-serif;
-    background: #f8fafc;
-    color: #0f172a;
+    background: var(--bg-body);
+    color: var(--text-main);
     margin: 0;
     padding: 24px;
+    transition: background 0.3s, color 0.3s;
 }
 header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
     margin-bottom: 24px;
 }
-h1 { margin: 0; font-size: 32px; }
-.meta { color: #475569; margin: 8px 0 0; }
+.header-left {
+    display: flex;
+    flex-direction: column;
+}
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+h1 { margin: 0; font-size: 32px; font-weight: 800; color: var(--text-title); }
+.meta { color: var(--text-muted); margin: 8px 0 0; font-size: 14px; font-weight: 500; }
+
+.project-info {
+    display: flex;
+    gap: 20px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-main);
+    background: var(--bg-card);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.info-item strong {
+    color: var(--text-muted);
+}
+
+.theme-toggle-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.theme-toggle-btn:hover {
+    background: var(--border-color);
+    transform: scale(1.05);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 .cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -105,13 +183,13 @@ h1 { margin: 0; font-size: 32px; }
 .card {
     padding: 20px;
     border-radius: 16px;
-    background: white;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
-.card-title { font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
-.value { font-size: 36px; font-weight: 700; margin-top: 10px; }
-.small { font-size: 14px; color: #64748b; margin-top: 8px; }
+.card-title { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.value { font-size: 36px; font-weight: 700; margin-top: 10px; color: var(--text-title); }
+.small { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
 .cards .pass { border-left: 6px solid #22c55e; }
 .cards .fail { border-left: 6px solid #ef4444; }
 .cards .skip { border-left: 6px solid #f59e0b; }
@@ -125,14 +203,15 @@ h1 { margin: 0; font-size: 32px; }
 .chart-card {
     padding: 20px;
     border-radius: 16px;
-    background: white;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
     min-height: 380px;
     max-height: 420px;
     overflow: hidden;
+    color: var(--text-main);
 }
-.chart-title { font-weight: 700; margin-bottom: 14px; }
+.chart-title { font-weight: 700; margin-bottom: 14px; color: var(--text-title); }
 .chart-canvas {
     width: 100%;
     height: 320px;
@@ -140,12 +219,12 @@ h1 { margin: 0; font-size: 32px; }
     display: block;
 }
 .table-container {
-    background: white;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     overflow: auto;
     max-height: 920px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 table {
     width: 100%;
@@ -153,25 +232,73 @@ table {
     table-layout: fixed;
 }
 th {
-    background: #f8fafc;
-    color: #0f172a;
+    background: var(--table-header-bg);
+    color: var(--text-main);
     text-align: left;
     font-size: 13px;
     font-weight: 700;
     padding: 14px 16px;
+    border-bottom: 2px solid var(--border-color);
 }
 td {
     padding: 14px 16px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-color);
     vertical-align: top;
     word-break: break-word;
     font-size: 13px;
-    color: #334155;
+    color: var(--text-main);
 }
-.status-pass { color: #166534; font-weight: 700; }
-.status-fail { color: #991b1b; font-weight: 700; }
-.status-skipped { color: #92400e; font-weight: 700; }
-.muted { color: #64748b; }
+.status-pass { color: var(--status-pass); font-weight: 700; }
+.status-fail { color: var(--status-fail); font-weight: 700; }
+.status-skipped { color: var(--status-skipped); font-weight: 700; }
+.muted { color: var(--text-muted); }
+
+footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+.footer-caution {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--caution-bg);
+    border: 1px solid var(--caution-border);
+    color: var(--caution-text);
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+.caution-icon {
+    margin-top: 2px;
+    color: var(--caution-icon);
+    flex-shrink: 0;
+}
+.footer-disclaimer {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+.footer-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--footer-meta);
+    padding: 0 4px;
+}
+.footer-right {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
 @media (max-width: 900px) {
     .chart-canvas { height: 240px; }
 }
@@ -179,8 +306,57 @@ td {
 </head>
 <body>
 <header>
-<h1>Automation Test Report</h1>
-<p class="meta">Generated at {{ time }}</p>
+    <div class="header-left">
+        <h1>{{ (project_name or config_project or 'AEPL').upper() }} Automation Test Report</h1>
+        <p class="meta">Generated at {{ time }}</p>
+        <div class="project-info">
+            <div class="info-item">
+                <strong>Project:</strong>
+                <span>{{ (project_name or config_project or 'LCT').upper() }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Target URL:</strong>
+                <a href="{{ base_url }}" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 600;">{{ base_url }}</a>
+            </div>
+            <div class="info-item">
+                <strong>Browser:</strong>
+                <span>{{ browser }} ({{ 'Headless' if headless else 'Headed' }})</span>
+            </div>
+            <div class="info-item">
+                <strong>Test Suite:</strong>
+                <span>{{ markers }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Execution Duration:</strong>
+                <span>{{ total_duration }}s</span>
+            </div>
+        </div>
+    </div>
+    <div class="header-right">
+        <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+        <div class="logo-container" style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; padding: 4px; overflow: hidden; border-radius: 12px;">
+            {% if logo_base64 %}
+            <img src="data:image/png;base64,{{ logo_base64 }}" alt="Accolade Logo" style="width: 100%; height: 100%; object-fit: contain;">
+            {% else %}
+            <span style="font-weight: 800; font-size: 16px; color: var(--text-title);">AEPL</span>
+            {% endif %}
+        </div>
+    </div>
 </header>
 <div class="cards">
     <div class="card">
@@ -248,6 +424,24 @@ td {
 </table>
 </div>
 
+<footer>
+    <div class="footer-caution">
+        <svg class="caution-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span><strong>CAUTION:</strong> This is a secure system diagnostic report. The outcomes, logs, and metadata contained within are confidential and intended exclusively for internal review and validation by authorized team members. Unauthorized duplication, modification, or distribution is strictly prohibited.</span>
+    </div>
+    <div class="footer-disclaimer">
+        <strong>Disclaimer:</strong> This automated test execution report is generated dynamically by the Accolade Electronics QA Testing Pipeline. The testing outcomes, metrics, and logs present a point-in-time assessment of the application's functional sanity under controlled execution parameters. Actual production environment behavior may vary depending on environmental factors, network latency, database states, or external integrations.
+    </div>
+    <div class="footer-meta">
+        <span>AEPL Automation Diagnostic System &copy; {{ current_year }}. All rights reserved.</span>
+        <span>Run by: <strong>{{ run_by }}</strong> | Environment: <strong>QA</strong></span>
+    </div>
+</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const statusData = {
@@ -265,13 +459,19 @@ const statusChart = new Chart(document.getElementById('statusChart'), {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: { position: 'bottom', labels: { usePointStyle: true } }
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    color: '#cbd5e1'
+                }
+            }
         }
     }
 });
 
 const durationData = {
-    labels: [{% for t in tests %}'{{ t.name | replace("'", "\\'") }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+    labels: [{% for t in tests %}'{{ t.name | replace("'", "\'") }}'{% if not loop.last %}, {% endif %}{% endfor %}],
     datasets: [{
         label: 'Duration (s)',
         data: [{% for t in tests %}{{ t.duration or 0 }}{% if not loop.last %}, {% endif %}{% endfor %}],
@@ -290,15 +490,57 @@ const durationChart = new Chart(document.getElementById('durationChart'), {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-            x: { ticks: { autoSkip: true, maxRotation: 45, minRotation: 0 } },
-            y: { beginAtZero: true }
+            x: {
+                ticks: {
+                    color: '#94a3b8',
+                    autoSkip: true,
+                    maxRotation: 45,
+                    minRotation: 0,
+                    callback: function(value, index, values) {
+                        const label = this.getLabelForValue(value);
+                        return label.length > 15 ? label.substring(0, 15) + '...' : label;
+                    }
+                },
+                grid: {
+                    color: '#334155'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: '#94a3b8'
+                },
+                grid: {
+                    color: '#334155'
+                },
+                title: {
+                    display: true,
+                    text: 'Duration (s)',
+                    color: '#cbd5e1',
+                    font: { weight: 'bold' }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#cbd5e1'
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    title: function(context) {
+                        return context[0].label;
+                    }
+                }
+            }
         }
     }
 });
 
 const slowTests = [
 {% for t in slow_tests %}
-    { name: '{{ t.name | replace("'", "\\'") }}', duration: {{ t.duration }} }{% if not loop.last %}, {% endif %}
+    { name: '{{ t.name | replace("'", "\'") }}', duration: {{ t.duration }} }{% if not loop.last %}, {% endif %}
 {% endfor %}
 ];
 const slowData = {
@@ -313,20 +555,113 @@ const slowChart = new Chart(document.getElementById('slowChart'), {
     type: 'bar',
     data: slowData,
     options: {
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-            y: { beginAtZero: true }
+            x: {
+                beginAtZero: true,
+                ticks: {
+                    color: '#94a3b8'
+                },
+                grid: {
+                    color: '#334155'
+                },
+                title: {
+                    display: true,
+                    text: 'Duration (s)',
+                    color: '#cbd5e1',
+                    font: { weight: 'bold' }
+                }
+            },
+            y: {
+                ticks: {
+                    color: '#94a3b8',
+                    autoSkip: true,
+                    callback: function(value, index, values) {
+                        const label = this.getLabelForValue(value);
+                        return label.length > 20 ? label.substring(0, 20) + '...' : label;
+                    }
+                },
+                grid: {
+                    color: '#334155'
+                }
+            }
         },
         plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    title: function(context) {
+                        return context[0].label;
+                    }
+                }
+            }
         }
     }
 });
+
+const themeToggle = document.getElementById('themeToggle');
+const sunIcon = themeToggle.querySelector('.sun-icon');
+const moonIcon = themeToggle.querySelector('.moon-icon');
+
+function updateChartTheme(theme) {
+    const textColor = theme === 'light' ? '#334155' : '#cbd5e1';
+    const gridColor = theme === 'light' ? '#e2e8f0' : '#334155';
+
+    // Update duration chart
+    durationChart.options.scales.x.ticks.color = textColor;
+    durationChart.options.scales.x.grid.color = gridColor;
+    durationChart.options.scales.y.ticks.color = textColor;
+    durationChart.options.scales.y.grid.color = gridColor;
+    durationChart.options.scales.y.title.color = textColor;
+    durationChart.options.plugins.legend.labels.color = textColor;
+    durationChart.update();
+
+    // Update slow chart
+    slowChart.options.scales.x.ticks.color = textColor;
+    slowChart.options.scales.x.grid.color = gridColor;
+    slowChart.options.scales.x.title.color = textColor;
+    slowChart.options.scales.y.ticks.color = textColor;
+    slowChart.options.scales.y.grid.color = gridColor;
+    slowChart.update();
+
+    // Update status chart
+    statusChart.options.plugins.legend.labels.color = textColor;
+    statusChart.update();
+}
+
+themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    
+    if (newTheme === 'light') {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+    } else {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+    }
+    
+    updateChartTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+});
+
+// Load preferred theme on startup
+const savedTheme = localStorage.getItem('theme') || 'dark';
+if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    sunIcon.style.display = 'none';
+    moonIcon.style.display = 'block';
+    window.addEventListener('load', () => updateChartTheme('light'));
+}
 </script>
 </body>
 </html>
 """
+
 
 
 def _clean(value, limit=500):
@@ -633,8 +968,22 @@ def _top_slow_tests(tests, limit=5):
 
 
 # ================= STEP 3: HTML =================
-def generate_html(tests, counts, total, html_path):
+def generate_html(tests, counts, total, html_path, project_name=None, markers=None):
+    import config.config as config_module
+    import getpass
+    import base64
     template = Template(HTML_TEMPLATE)
+
+    logo_base64 = ""
+    logo_path = Path(__file__).resolve().parent / "accolade_logo.png"
+    if logo_path.exists():
+        try:
+            logo_base64 = base64.b64encode(logo_path.read_bytes()).decode("utf-8")
+        except Exception:
+            pass
+
+    run_by = os.getenv("EXECUTION_USER") or os.getenv("GITHUB_ACTOR") or getpass.getuser()
+    total_duration = round(sum(t["duration"] for t in tests if isinstance(t["duration"], (int, float))), 2)
 
     html = template.render(
         time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -643,8 +992,18 @@ def generate_html(tests, counts, total, html_path):
         failed=counts["failed"],
         skipped=counts["skipped"],
         average_duration=_average_duration(tests),
+        total_duration=total_duration,
+        logo_base64=logo_base64,
         tests=tests,
         slow_tests=_top_slow_tests(tests),
+        project_name=project_name,
+        config_project=getattr(config_module, "PROJECT", "lct"),
+        base_url=getattr(config_module, "BASE_URL", "N/A"),
+        browser=getattr(config_module, "BROWSER", "chromium"),
+        headless=getattr(config_module, "HEADLESS", True),
+        markers=markers or "All",
+        run_by=run_by,
+        current_year=datetime.now().year
     )
 
     html_path.parent.mkdir(parents=True, exist_ok=True)
@@ -653,7 +1012,7 @@ def generate_html(tests, counts, total, html_path):
 
 
 # ================= STEP 4: EXCEL =================
-def generate_excel(tests, excel_path):
+def generate_excel(tests, excel_path, project_name=None):
     rows = [
         {
             "Test Case Name": t["name"],
@@ -679,62 +1038,164 @@ def generate_excel(tests, excel_path):
     )
 
     excel_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_excel(excel_path, index=False, sheet_name="Test Results")
-    _style_excel(excel_path)
+    with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Test Results", startrow=5)
+
+    _style_excel(excel_path, project_name)
 
     print("Excel generated:", excel_path)
     print(f"Total rows: {len(rows)}")
 
 
-def _style_excel(excel_path):
+def _style_excel(excel_path, project_name=None):
+    import getpass
+    import os
+    from datetime import datetime
+    import config.config as config_module
+    from openpyxl import load_workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.drawing.image import Image
+
     wb = load_workbook(excel_path)
     ws = wb["Test Results"]
 
-    header_fill = PatternFill("solid", fgColor="D9EAF7")
-    pass_fill = PatternFill("solid", fgColor="D9EAD3")
-    fail_fill = PatternFill("solid", fgColor="F4CCCC")
-    skip_fill = PatternFill("solid", fgColor="FFF2CC")
+    # 1. Insert Logo
+    ws.merge_cells("A1:B4")
+    logo_path = Path(__file__).resolve().parent / "accolade_logo.png"
+    if logo_path.exists():
+        img = Image(str(logo_path))
+        img.width = 75
+        img.height = 75
+        ws.add_image(img, "A1")
 
-    for cell in ws[1]:
-        cell.font = Font(bold=True)
+    # 2. Write Metadata
+    run_by = os.getenv("EXECUTION_USER") or os.getenv("GITHUB_ACTOR") or getpass.getuser()
+    base_url = getattr(config_module, "BASE_URL", "N/A")
+    browser = getattr(config_module, "BROWSER", "chromium")
+
+    proj_display = (project_name or getattr(config_module, "PROJECT", "lct")).upper()
+    execution_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    metadata = [
+        ("Project Name:", f"{proj_display}"),
+        ("Target URL:", base_url),
+        ("Browser:", browser.upper()),
+        ("Test Executed by:", run_by)
+    ]
+
+    label_font = Font(name="Segoe UI", size=10, bold=True, color="475569")
+    value_font = Font(name="Segoe UI", size=10, color="0f172a")
+    header_font = Font(name="Segoe UI", size=11, bold=True, color="ffffff")
+    data_font = Font(name="Segoe UI", size=10, color="334155")
+
+    thin_border = Border(
+        left=Side(style='thin', color='cbd5e1'),
+        right=Side(style='thin', color='cbd5e1'),
+        top=Side(style='thin', color='cbd5e1'),
+        bottom=Side(style='thin', color='cbd5e1')
+    )
+
+    for r_idx, (l1, v1) in enumerate(metadata, start=1):
+        c_cell = ws.cell(row=r_idx, column=3, value=l1)
+        c_cell.font = label_font
+        c_cell.alignment = Alignment(horizontal="right")
+
+        d_cell = ws.cell(row=r_idx, column=4, value=v1)
+        d_cell.font = value_font
+        d_cell.alignment = Alignment(horizontal="left")
+
+    for r in range(1, 5):
+        ws.row_dimensions[r].height = 20
+
+    ws.row_dimensions[5].height = 15
+
+    header_fill = PatternFill("solid", fgColor="1e293b")
+    for cell in ws[6]:
+        cell.font = header_font
         cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="left", vertical="center")
+        cell.border = thin_border
+
+    ws.row_dimensions[6].height = 26
+
+    pass_fill = PatternFill("solid", fgColor="d1fae5")
+    fail_fill = PatternFill("solid", fgColor="fee2e2")
+    skip_fill = PatternFill("solid", fgColor="fef3c7")
 
     result_col = None
-    for cell in ws[1]:
+    for cell in ws[6]:
         if cell.value == "Result":
             result_col = cell.column
             break
 
-    if result_col:
-        for row in range(2, ws.max_row + 1):
+    for row in range(7, ws.max_row + 1):
+        ws.row_dimensions[row].height = 20
+        for col in range(1, 7):
+            cell = ws.cell(row=row, column=col)
+            cell.font = data_font
+            cell.border = thin_border
+            cell.alignment = Alignment(vertical="center")
+
+        if result_col:
             cell = ws.cell(row=row, column=result_col)
             result = str(cell.value or "").upper()
             if result == "PASS":
                 cell.fill = pass_fill
+                cell.font = Font(name="Segoe UI", size=10, bold=True, color="065f46")
             elif result == "FAIL":
                 cell.fill = fail_fill
+                cell.font = Font(name="Segoe UI", size=10, bold=True, color="991b1b")
             else:
                 cell.fill = skip_fill
-            cell.font = Font(bold=True)
+                cell.font = Font(name="Segoe UI", size=10, bold=True, color="92400e")
 
     widths = {
         "A": 36,
         "B": 48,
-        "C": 48,
-        "D": 12,
-        "E": 14,
+        "C": 30,
+        "D": 36,
+        "E": 24,
         "F": 55,
     }
     for column, width in widths.items():
         ws.column_dimensions[column].width = width
 
-    ws.freeze_panes = "A2"
-    ws.auto_filter.ref = ws.dimensions
+    ws.freeze_panes = "A7"
+    ws.auto_filter.ref = f"A6:F{ws.max_row}"
     wb.save(excel_path)
 
 
 # ================= MAIN =================
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--project", help="Project name to run.")
+    parser.add_argument("--projects", help="Comma-separated project names.")
+    parser.add_argument(
+        "--marker",
+        "--markers",
+        dest="markers",
+        nargs="+",
+        help="Pytest marker expression to select tests, e.g. smoke, ui.",
+    )
+    parser.add_argument(
+        "--report-dir",
+        help="Optional base report directory. Defaults to Reports/ or reports/.",
+    )
+    parser.add_argument(
+        "--skip-pytest",
+        action="store_true",
+        help="Skip running pytest and only generate reports from existing JSON.",
+    )
+    return parser.parse_args()
+
+
 def _run_report_for_target(project_name, base_report_dir, skip_pytest, markers=None):
+    if project_name:
+        os.environ["PROJECT"] = project_name
+        import importlib
+        import config.config as config_module
+        importlib.reload(config_module)
+
     report_paths = _resolve_report_paths(project_name, base_report_dir)
     report_dir = report_paths["report_dir"]
     json_path = report_paths["json_path"]
@@ -764,10 +1225,10 @@ def _run_report_for_target(project_name, base_report_dir, skip_pytest, markers=N
             json_path, report_paths["manual_excel_path"]
         )
         print("Generating HTML report...")
-        generate_html(tests, counts, total, html_path)
+        generate_html(tests, counts, total, html_path, project_name, markers)
 
         print("Generating Excel report...")
-        generate_excel(tests, excel_path)
+        generate_excel(tests, excel_path, project_name)
 
         print("\n" + "=" * 60)
         print("ALL REPORTS GENERATED SUCCESSFULLY!")
@@ -781,8 +1242,8 @@ def _run_report_for_target(project_name, base_report_dir, skip_pytest, markers=N
         print(f"Error processing reports: {exc}")
         try:
             print("Attempting to generate reports with fallback...")
-            generate_html([], {"passed": 0, "failed": 0, "skipped": 0}, 0, html_path)
-            generate_excel([], excel_path)
+            generate_html([], {"passed": 0, "failed": 0, "skipped": 0}, 0, html_path, project_name, markers)
+            generate_excel([], excel_path, project_name)
         except Exception as fallback_exc:
             print(f"Failed to generate reports: {fallback_exc}")
             return 1
@@ -803,10 +1264,26 @@ def main():
     if not project_names:
         project_names = [None]
 
+    marker_expr = None
+    if args.markers:
+        cleaned = []
+        for item in args.markers:
+            parts = item.split(",")
+            for p in parts:
+                p_clean = p.strip()
+                if p_clean:
+                    cleaned.append(p_clean)
+        raw_joined = " ".join(args.markers).lower()
+        has_logical = any(w in raw_joined for w in [" or ", " and ", " not "])
+        if has_logical:
+            marker_expr = " ".join(cleaned)
+        else:
+            marker_expr = " or ".join(cleaned)
+
     overall_exit_code = 0
     for project_name in project_names:
         exit_code = _run_report_for_target(
-            project_name, args.report_dir, args.skip_pytest, args.markers
+            project_name, args.report_dir, args.skip_pytest, marker_expr
         )
         overall_exit_code = max(overall_exit_code, exit_code)
 

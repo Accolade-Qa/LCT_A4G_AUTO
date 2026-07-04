@@ -15,7 +15,7 @@ def parse_args():
     parser.add_argument(
         "--projects", help="Comma-separated list of projects, e.g. atcu,lct"
     )
-    parser.add_argument("--marker", help="Pytest marker expression, e.g. api or smoke")
+    parser.add_argument("--marker", nargs="+", help="Pytest marker expression, e.g. api or smoke")
     parser.add_argument(
         "--report-dir",
         default="reports",
@@ -40,6 +40,22 @@ def main():
         print("Error: --project and --projects are mutually exclusive.")
         sys.exit(1)
 
+    marker_expr = None
+    if args.marker:
+        cleaned = []
+        for item in args.marker:
+            parts = item.split(",")
+            for p in parts:
+                p_clean = p.strip()
+                if p_clean:
+                    cleaned.append(p_clean)
+        raw_joined = " ".join(args.marker).lower()
+        has_logical = any(w in raw_joined for w in [" or ", " and ", " not "])
+        if has_logical:
+            marker_expr = " ".join(cleaned)
+        else:
+            marker_expr = " or ".join(cleaned)
+
     if args.ref:
         url = (
             f"https://api.github.com/repos/{args.owner}/{args.repo}"
@@ -55,8 +71,8 @@ def main():
             payload["inputs"]["project"] = args.project
         if args.projects:
             payload["inputs"]["projects"] = args.projects
-        if args.marker:
-            payload["inputs"]["marker"] = args.marker
+        if marker_expr:
+            payload["inputs"]["marker"] = marker_expr
     else:
         url = f"https://api.github.com/repos/{args.owner}/{args.repo}/dispatches"
         payload = {
@@ -69,8 +85,8 @@ def main():
             payload["client_payload"]["project"] = args.project
         if args.projects:
             payload["client_payload"]["projects"] = args.projects
-        if args.marker:
-            payload["client_payload"]["marker"] = args.marker
+        if marker_expr:
+            payload["client_payload"]["marker"] = marker_expr
 
     data = json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(url, data=data)

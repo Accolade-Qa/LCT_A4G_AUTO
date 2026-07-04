@@ -45,8 +45,12 @@ def get_artifact_run_id():
     return _ARTIFACT_RUN_ID
 
 
-def get_project_logs_path(project=None):
-    return os.path.join(LOGS_PATH, project or get_current_project())
+def get_project_logs_path(project=None, run_id=None):
+    return os.path.join(
+        LOGS_PATH,
+        project or get_current_project(),
+        run_id or get_artifact_run_id(),
+    )
 
 
 def get_project_screenshot_path(project=None, run_id=None):
