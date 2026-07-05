@@ -69,6 +69,29 @@ jobs:
           EVENT_PROJECTS=${{ github.event.client_payload.projects || github.event.inputs.projects || '' }}
           EVENT_MARKER=${{ github.event.client_payload.marker || github.event.inputs.marker || '' }}
 
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          echo "Commit Message: $COMMIT_MSG"
+
+          if [ -z "$EVENT_PROJECT" ] && [ -z "$EVENT_PROJECTS" ] && [ -n "$COMMIT_MSG" ]; then
+            PARSED_PROJECT=$(echo "$COMMIT_MSG" | grep -oP '\[project:\s*\K[^\]]+' || true)
+            PARSED_PROJECTS=$(echo "$COMMIT_MSG" | grep -oP '\[projects:\s*\K[^\]]+' || true)
+            if [ -n "$PARSED_PROJECTS" ]; then
+              EVENT_PROJECTS="$PARSED_PROJECTS"
+            elif [ -n "$PARSED_PROJECT" ]; then
+              EVENT_PROJECT="$PARSED_PROJECT"
+            fi
+          fi
+
+          if [ -z "$EVENT_MARKER" ] && [ -n "$COMMIT_MSG" ]; then
+            PARSED_MARKER=$(echo "$COMMIT_MSG" | grep -oP '\[marker:\s*\K[^\]]+' || true)
+            PARSED_MARKERS=$(echo "$COMMIT_MSG" | grep -oP '\[markers:\s*\K[^\]]+' || true)
+            if [ -n "$PARSED_MARKERS" ]; then
+              EVENT_MARKER="$PARSED_MARKERS"
+            elif [ -n "$PARSED_MARKER" ]; then
+              EVENT_MARKER="$PARSED_MARKER"
+            fi
+          fi
+
           TARGET_REPORT_DIR=${{ env.TARGET_REPORT_DIR }}
           ARGS="--report-dir \"$TARGET_REPORT_DIR\""
 

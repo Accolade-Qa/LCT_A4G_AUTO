@@ -520,6 +520,7 @@ const durationChart = new Chart(document.getElementById('durationChart'), {
             },
             y: {
                 beginAtZero: true,
+                max: {{ y_max }},
                 ticks: {
                     color: '#94a3b8'
                 },
@@ -998,6 +999,15 @@ def generate_html(tests, counts, total, html_path, project_name=None, markers=No
     run_by = os.getenv("EXECUTION_USER") or os.getenv("GITHUB_ACTOR") or getpass.getuser()
     total_duration = round(sum(t["duration"] for t in tests if isinstance(t["duration"], (int, float))), 2)
 
+    durations = [t["duration"] for t in tests if isinstance(t["duration"], (int, float)) and t["duration"] > 0]
+    if durations:
+        sorted_dur = sorted(durations)
+        idx = min(len(sorted_dur) - 1, int(len(sorted_dur) * 0.95))
+        p95 = sorted_dur[idx]
+        y_max = int(max(10, round(p95 * 2.0)))
+    else:
+        y_max = 50
+
     html = template.render(
         time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         total=total,
@@ -1007,6 +1017,7 @@ def generate_html(tests, counts, total, html_path, project_name=None, markers=No
         average_duration=_average_duration(tests),
         total_duration=total_duration,
         logo_base64=logo_base64,
+        y_max=y_max,
         tests=tests,
         slow_tests=_top_slow_tests(tests),
         project_name=project_name,
