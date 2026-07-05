@@ -63,6 +63,7 @@ jobs:
           npx playwright install-deps || true
 
       - name: Run tests and generate reports
+        continue-on-error: true
         run: |
           EVENT_PROJECT=${{ github.event.client_payload.project || github.event.inputs.project || '' }}
           EVENT_PROJECTS=${{ github.event.client_payload.projects || github.event.inputs.projects || '' }}

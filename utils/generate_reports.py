@@ -193,9 +193,16 @@ h1 { margin: 0; font-size: 32px; font-weight: 800; color: var(--text-title); }
 .cards .pass { border-left: 6px solid #22c55e; }
 .cards .fail { border-left: 6px solid #ef4444; }
 .cards .skip { border-left: 6px solid #f59e0b; }
-.charts {
+.charts-top-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+    align-items: start;
+}
+.charts-bottom-row {
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 18px;
     margin-bottom: 24px;
     align-items: start;
@@ -232,6 +239,9 @@ table {
     table-layout: fixed;
 }
 th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     background: var(--table-header-bg);
     color: var(--text-main);
     text-align: left;
@@ -386,18 +396,21 @@ footer {
     </div>
 </div>
 
-<div class="charts">
+<div class="charts-top-row">
     <div class="chart-card">
         <div class="chart-title">Test Status Distribution</div>
         <canvas id="statusChart" class="chart-canvas"></canvas>
     </div>
     <div class="chart-card">
-        <div class="chart-title">Test Duration Trend</div>
-        <canvas id="durationChart" class="chart-canvas"></canvas>
-    </div>
-    <div class="chart-card">
         <div class="chart-title">Top Slow Tests</div>
         <canvas id="slowChart" class="chart-canvas"></canvas>
+    </div>
+</div>
+
+<div class="charts-bottom-row">
+    <div class="chart-card" style="max-height: none; min-height: 400px;">
+        <div class="chart-title">Test Duration Trend</div>
+        <canvas id="durationChart" class="chart-canvas"></canvas>
     </div>
 </div>
 
@@ -494,11 +507,11 @@ const durationChart = new Chart(document.getElementById('durationChart'), {
                 ticks: {
                     color: '#94a3b8',
                     autoSkip: true,
-                    maxRotation: 45,
+                    maxTicksLimit: 25,
+                    maxRotation: 0,
                     minRotation: 0,
                     callback: function(value, index, values) {
-                        const label = this.getLabelForValue(value);
-                        return label.length > 15 ? label.substring(0, 15) + '...' : label;
+                        return index + 1;
                     }
                 },
                 grid: {
@@ -851,10 +864,10 @@ def _build_test_rows(data, manual_excel_path):
         counts[{"pass": "passed", "fail": "failed"}.get(status, "skipped")] += 1
         seen.add(test_name)
 
-        # 🔍 Debug logging for "Not recorded by test" issues
+        # [DEBUG] logging for "Not recorded by test" issues
         if "Not recorded by test" in (expected or actual):
             print(
-                f"⚠️  DEBUG: Test '{test_name}' has 'Not recorded by test' in expected/actual"
+                f"[DEBUG] Test '{test_name}' has 'Not recorded by test' in expected/actual"
             )
             print(f"   - has properties: {bool(properties)}")
             print(f"   - has manual: {bool(manual)}")
