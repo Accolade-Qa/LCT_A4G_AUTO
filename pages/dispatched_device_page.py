@@ -143,9 +143,11 @@ class DispatchedDevicePage:
     def clear_uid_input_and_click(self):
         logger.debug("Clearing UID input field")
         uid_input = self.page.locator("input[id='uid']")
-        uid_input.clear()
         uid_input.click()
-        logger.info("UID input field cleared")
+        uid_input.fill("")
+        uid_input.press("Backspace")
+        uid_input.blur()
+        logger.info("UID input field cleared and blurred")
 
     def click_on_outside(self):
         logger.debug("Clicking on outside to trigger validation")
@@ -156,11 +158,15 @@ class DispatchedDevicePage:
     def get_uid_error_message(self):
         logger.debug("Retrieving UID field error message")
         error_message_element = self.page.locator(
-            "//mat-error[contains(text(), '') or contains(text(), 'Special') or contains(text(), 'Remove')]"
+            "//mat-form-field[.//input[@id='uid']]//mat-error"
         )
+        try:
+            error_message_element.first.wait_for(state="visible", timeout=3000)
+        except Exception:
+            pass
         error_message = (
-            error_message_element.text_content().strip()
-            if error_message_element.is_visible()
+            error_message_element.first.text_content().strip()
+            if error_message_element.first.is_visible()
             else ""
         )
         logger.info("UID error message retrieved: %s", error_message)

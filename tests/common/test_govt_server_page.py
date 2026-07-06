@@ -1016,7 +1016,9 @@ class TestGovtServerPage:
 
         logger.info("Validating UI input field data with API response")
 
-        state_name = "SURAJ"
+        state_name = (
+            "SURAJ" if project_config.get("project") == "sampark" else "Shital"
+        )
 
         response, _, _ = GovtServerAPI.get_state_server_details_by_name(
             govt_server_page.page,
@@ -1981,7 +1983,7 @@ class TestGovtServerPage:
         # Step 2: Get currently added OC firmwares count from API for the selected state
         api_before = GovtServerAPI.get_oc_firmwares_added_in_state(
             govt_server_page.page,
-            state_name="Shital",
+            state_name="SURAJ",
         )
 
         firmware_count_before = len(api_before)
@@ -2055,7 +2057,7 @@ class TestGovtServerPage:
         # Step 8: Get OC firmware count from API after submit for the selected state
         api_after = GovtServerAPI.get_oc_firmwares_added_in_state(
             govt_server_page.page,
-            state_name="Shital",
+            state_name="SURAJ",
         )
 
         firmware_count_after = len(api_after)

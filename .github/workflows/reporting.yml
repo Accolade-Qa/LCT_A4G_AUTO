@@ -55,7 +55,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Ensure Playwright system dependencies
         run: |
@@ -128,7 +128,7 @@ jobs:
         with:
           secure: true
           server_address: smtp.gmail.com
-          server_port: 587
+          server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: >
@@ -147,7 +147,6 @@ jobs:
 
             Regards,
             Automation CI
-          content_type: text/plain
           to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_FROM }}
           attachments: |
