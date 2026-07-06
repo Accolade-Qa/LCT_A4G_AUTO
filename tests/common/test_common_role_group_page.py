@@ -83,7 +83,7 @@ class TestRoleGroupPage:
                 )
 
                 assert (
-                    response.get("message") == "Success"
+                    response.get("message") == "User Deleted Successfully!!"
                 ), f"Failed to delete permission for role group {i}"
 
                 logger.info("Deleted role group %s successfully", i)
