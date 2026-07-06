@@ -6,6 +6,8 @@ from pages.atcu.atcu_fota_page import AtcuFotaPage
 @pytest.mark.atcu
 @pytest.mark.regression
 class TestFotaPage:
+    @pytest.mark.regression
+    @pytest.mark.ui
     @pytest.mark.smoke
     def test_fota_page_loads(self, page, project_config, report_case):
         fota = AtcuFotaPage(page, project_config["fota_url"])

@@ -1,4 +1,4 @@
-from pages.login_page import LoginPage
+from pages.common_login_page import LoginPage
 from utils.logger import get_logger
 import time
 from config.global_var import SCREENSHOT_PATH
@@ -99,6 +99,7 @@ class TestLoginPage:
 
         logger.info("Login validation with valid credentials completed successfully")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_login_with_invalid_credentials(
         self,
@@ -152,6 +153,7 @@ class TestLoginPage:
 
         logger.info("Invalid credentials validation completed successfully")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_login_with_username_only(
         self,
@@ -199,6 +201,7 @@ class TestLoginPage:
 
         logger.info("Username only validation completed successfully")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_login_with_password_only(
         self,
@@ -246,6 +249,7 @@ class TestLoginPage:
 
         logger.info("Password only validation completed successfully")
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_page_title_is_correct(
@@ -289,6 +293,8 @@ class TestLoginPage:
 
         logger.info("Page title validation completed successfully")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_network_loss_during_login_shows_login_page(
         self,
@@ -325,6 +331,8 @@ class TestLoginPage:
         login_page.set_network_offline(False)
         logger.info("Network offline simulation completed")
 
+    @pytest.mark.api
+    @pytest.mark.smoke
     @pytest.mark.regression
     @pytest.mark.slow
     def test_login_with_high_latency_still_completes(
@@ -385,6 +393,8 @@ class TestLoginPage:
 
         logger.info("High latency login test completed in %.1f seconds", duration)
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_recover_after_network_restore_and_login(
         self,
@@ -418,6 +428,7 @@ class TestLoginPage:
 
         logger.info("Network restore recovery test completed successfully")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_login_with_long_username_and_short_password(
         self,
@@ -480,6 +491,7 @@ class TestLoginPage:
             "Long username and short password validation completed successfully"
         )
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_login_with_short_username_and_short_password(
         self,
@@ -536,6 +548,8 @@ class TestLoginPage:
             f"Expected error messages {expected_errors}, " f"but got {actual_errors}"
         )
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_cookie_expiry_logs_user_out(self, page, project_config, report_case):
         """Simulate cookie expiry and verify user is logged out and login form shown"""
@@ -571,6 +585,7 @@ class TestLoginPage:
 
         logger.info("Cookie expiry simulation validated: user is logged out")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_cookies_shared_across_tabs(self, page, project_config, report_case):
         """Verify that authentication cookies are shared across tabs in same context"""
@@ -614,7 +629,7 @@ class TestLoginPage:
             pass
 
         # Check that dashboard content is visible in new tab
-        from pages.dashboard_page import DashboardPage
+        from pages.common_dashboard_page import DashboardPage
 
         dashboard = DashboardPage(new_tab)
         try:
@@ -670,6 +685,8 @@ class TestLoginPage:
             "SessionStorage-based auth behavior validated: new tab not authenticated by default"
         )
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_simulate_6hr_cookie_expiry_and_logout(
         self, page, project_config, report_case
@@ -728,6 +745,7 @@ class TestLoginPage:
 
         logger.info("6-hour cookie expiry simulation validated: user logged out")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_simulate_cookie_valid_before_6hr(self, page, project_config, report_case):
         """Simulate cookies still valid just before 6 hours and validate session remains"""
@@ -765,7 +783,7 @@ class TestLoginPage:
         page.goto(dashboard_url, wait_until="networkidle")
         page.wait_for_load_state("networkidle")
 
-        from pages.dashboard_page import DashboardPage
+        from pages.common_dashboard_page import DashboardPage
 
         dashboard = DashboardPage(page)
         try:
@@ -783,6 +801,8 @@ class TestLoginPage:
 
         logger.info("Cookie validity before 6 hours validated: session active")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_expired_cookies_do_not_authenticate_new_tab(
         self, page, project_config, report_case
@@ -842,6 +862,7 @@ class TestLoginPage:
 
         logger.info("Expired cookies do not authenticate new tab validated")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_footer_links_are_present(
         self,
@@ -896,6 +917,8 @@ class TestLoginPage:
 
         logger.info("Footer links presence validation completed successfully")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_footer_links_are_clickable(
         self,
@@ -944,6 +967,7 @@ class TestLoginPage:
 
         logger.info("Footer links clickability validation completed successfully")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_footer_contains_current_year(
         self,
@@ -992,6 +1016,8 @@ class TestLoginPage:
 
         logger.info("Footer year validation completed successfully")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_build_version_format_is_valid(
         self,

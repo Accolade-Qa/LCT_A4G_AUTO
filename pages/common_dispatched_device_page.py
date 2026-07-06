@@ -5,7 +5,7 @@ from click import Path
 from config.global_var import DOWNLOADS_PATH
 from utils.logger import get_logger
 from pages.common_utils.table_section import TableSection
-from pages.base_page import BasePage
+from pages.common_base_page import BasePage
 
 logger = get_logger(__name__)
 

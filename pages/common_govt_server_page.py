@@ -4,7 +4,7 @@ from pages.common_utils.table_section import TableSection
 from pages.common_utils.search import SearchHelper
 from utils.logger import get_logger
 import re
-from pages.base_page import BasePage
+from pages.common_base_page import BasePage
 from utils.helpers import Helpers
 
 logger = get_logger(__name__)

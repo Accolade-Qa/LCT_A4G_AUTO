@@ -34,6 +34,7 @@ class TestTmlRequestLogPage:
             logger.warning("Dispatched Device test skipped: %s", test_name)
 
     # test that the page is loaded successfully
+    @pytest.mark.regression
     @pytest.mark.ui
     @pytest.mark.smoke
     def test_tml_request_log_page_loaded(
@@ -53,6 +54,7 @@ class TestTmlRequestLogPage:
         assert is_loaded, "TML Request Log page is not loaded"
 
     # test that the page title is correct when page is loaded
+    @pytest.mark.regression
     @pytest.mark.ui
     @pytest.mark.smoke
     def test_tml_request_log_page_title(
@@ -74,6 +76,9 @@ class TestTmlRequestLogPage:
         ), f"TML Request Log page title is incorrect: {title}"
 
     # test that the first data in the table is equal with the sent request payload
+    @pytest.mark.api
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_tml_request_log_page_payload_validation_on_ui(
         self,
@@ -165,6 +170,7 @@ class TestTmlRequestLogPage:
         )
 
     # test that the search functionality is working as expected
+    @pytest.mark.regression
     @pytest.mark.ui
     @pytest.mark.smoke
     def test_tml_request_log_page_search(
@@ -259,6 +265,8 @@ class TestTmlRequestLogPage:
         logger.info("TML Request Log table headers validated successfully.")
 
     # test that the pagination is working as expected
+    @pytest.mark.regression
+    @pytest.mark.ui
     @pytest.mark.smoke
     def test_tml_request_log_page_pagination(
         self,
@@ -311,6 +319,9 @@ class TestTmlRequestLogPage:
         logger.info("Pagination validated successfully.")
 
     # after all these test cases validate that the by rto state and vehicle owner state is in the given state array then check does it add the fota batch on the ui or not.
+    @pytest.mark.api
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_tml_request_log_page_fota_batch_addition(
         self,
@@ -376,6 +387,7 @@ class TestTmlRequestLogPage:
 
         logger.info("Auto FOTA batch validation completed successfully.")
 
+    @pytest.mark.smoke
     @pytest.mark.skip(
         reason="This test is currently skipped due to it being resource-intensive and may cause instability in the test environment. "
         "It can be enabled for dedicated performance testing."

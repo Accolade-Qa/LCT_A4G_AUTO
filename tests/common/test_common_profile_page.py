@@ -37,6 +37,8 @@ class TestProfilePage:
         elif report.skipped:
             logger.warning("Profile page test skipped: %s", test_name)
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_profile_page_login_data_for_validation(self, profile_page, report_case):
         """Test fetching login data using API client."""
@@ -114,6 +116,7 @@ class TestProfilePage:
             logger.error("Unexpected error during login data test: %s", str(e))
             raise
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_profile_page_validate_page_title(self, profile_page, report_case):
@@ -136,6 +139,8 @@ class TestProfilePage:
             logger.error("Unexpected error during profile page title test: %s", str(e))
             raise
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_profile_page_validate_component_title(self, profile_page, report_case):
         """Test validating the profile page component title."""
@@ -163,6 +168,8 @@ class TestProfilePage:
             )
             raise
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_profile_page_validate_admin_and_role_input_fields_not_editable(
         self, profile_page, report_case
@@ -232,6 +239,8 @@ class TestProfilePage:
             )
             raise
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_profile_page_validate_input_fields_values_with_actual_data(
         self, profile_page, report_case
@@ -353,6 +362,8 @@ class TestProfilePage:
             )
             raise
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_profile_page_validate_buttons_are_visible_and_enabled(
         self, profile_page, report_case
@@ -413,6 +424,8 @@ class TestProfilePage:
             )
             raise
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_profile_page_click_update_button_without_changes(
         self, profile_page, report_case
@@ -469,6 +482,8 @@ class TestProfilePage:
             )
             raise
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_profile_page_update_state_and_validate_update_message(
         self, profile_page, report_case

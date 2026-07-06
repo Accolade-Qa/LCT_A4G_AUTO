@@ -7,6 +7,8 @@ from pages.atcu.atcu_device_activity_log_page import AtcuDeviceActivityLogPage
 @pytest.mark.atcu
 @pytest.mark.regression
 class TestDeviceActivityLogPage:
+    @pytest.mark.regression
+    @pytest.mark.ui
     @pytest.mark.smoke
     def test_device_activity_log_page_loads(self, page, project_config, report_case):
         device_activity_log = AtcuDeviceActivityLogPage(

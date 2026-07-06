@@ -1,5 +1,5 @@
 from api import DeviceDashboardAPI
-from pages.base_page import BasePage
+from pages.common_base_page import BasePage
 from utils.logger import get_logger
 
 import pytest
@@ -37,6 +37,7 @@ class TestDashboardPage:
         elif report.skipped:
             logger.warning("Dashboard test skipped: %s", test_name)
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.critical
     @pytest.mark.regression
@@ -57,6 +58,7 @@ class TestDashboardPage:
 
         assert actual_url == expected_url, f"Expected {expected_url}, got {actual_url}"
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_dashboard_page_title_is_correct(self, dashboard_page, report_case):
@@ -72,6 +74,7 @@ class TestDashboardPage:
 
         assert actual_title == "Device Dashboard", "Dashboard title is incorrect"
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_dashboard_page_all_elements_are_visible(self, dashboard_page, report_case):
@@ -93,6 +96,7 @@ class TestDashboardPage:
         assert table_visible, "Dashboard table is not visible"
         # assert dashboard_page._is_buttons_visible(), "Dashboard buttons are not visible"
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_dashboard_page_cards_are_visible(self, dashboard_page, report_case):
@@ -101,6 +105,7 @@ class TestDashboardPage:
         report_case(expected=True, actual=cards_visible)
         assert cards_visible, "Dashboard cards are not visible"
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_dashboard_page_displays_four_cards(self, dashboard_page, report_case):
@@ -122,6 +127,8 @@ class TestDashboardPage:
             card = dashboard_page.get_card_element(index)
             assert card.is_visible(), f"Card {index} is missing or not visible"
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_dashboard_page_card_titles_are_correct(self, dashboard_page, report_case):
         expected_title = [
@@ -145,6 +152,9 @@ class TestDashboardPage:
             assert actual_title == title, f"Expected '{title}', got '{actual_title}'"
         report_case(expected=expected_title, actual=actual_titles)
 
+    @pytest.mark.api
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_dashboard_page_card_counts_match_api_data(
         self, page, dashboard_page, report_case
@@ -173,6 +183,8 @@ class TestDashboardPage:
         report_case(expected=True, actual=graph_visible)
         assert graph_visible, "Dashboard graph is not visible"
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_dashboard_page_graph_title_is_correct(self, dashboard_page, report_case):
         logger.info("Validating each graph title")
@@ -192,6 +204,8 @@ class TestDashboardPage:
             ), f"Expected graph title '{title}', got '{actual_graph_title}'"
         report_case(expected=expected_graph_title, actual=actual_graph_titles)
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_dashboard_page_table_is_visible(self, dashboard_page, report_case):
         logger.info("Verifying table visibility")
@@ -199,6 +213,8 @@ class TestDashboardPage:
         report_case(expected=True, actual=table_visible)
         assert table_visible, "Dashboard table is not visible"
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_dashboard_page_card_and_graph_clicks_update_table_title(
         self, dashboard_page, report_case
@@ -225,6 +241,8 @@ class TestDashboardPage:
             ), f"Expected table title '{title}', got '{actual_table_title}'"
         report_case(expected=expected_table_title, actual=actual_table_titles)
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_dashboard_page_export_button_is_visible_and_functional(
         self, dashboard_page, report_case
@@ -240,6 +258,8 @@ class TestDashboardPage:
             "success"
         ], f"Export button functionality failed: {result['error']}"
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_dashboard_page_search_filters_table_data(
         self, dashboard_page, project_config, test_data, report_case
@@ -265,6 +285,8 @@ class TestDashboardPage:
             search_query in item for item in result["results"]
         ), "Search results do not match the query"
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_dashboard_page_table_headers_are_correct(
         self, dashboard_page, report_case
@@ -282,6 +304,8 @@ class TestDashboardPage:
             actual_headers == expected_headers
         ), f"Expected table headers {expected_headers}, got {actual_headers}"
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_dashboard_page_pagination_navigates_across_pages(
         self, dashboard_page, report_case

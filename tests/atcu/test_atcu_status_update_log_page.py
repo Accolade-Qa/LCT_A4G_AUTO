@@ -7,6 +7,8 @@ from pages.atcu.atcu_status_update_log_page import AtcuStatusUpdateLogPage
 @pytest.mark.atcu
 @pytest.mark.regression
 class TestStatusUpdateLogPage:
+    @pytest.mark.regression
+    @pytest.mark.ui
     @pytest.mark.smoke
     def test_status_update_log_page_loads(self, page, project_config, report_case):
         status_update_log = AtcuStatusUpdateLogPage(

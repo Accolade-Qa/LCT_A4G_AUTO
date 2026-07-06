@@ -1,6 +1,6 @@
 from playwright.sync_api import expect
-from pages.login_page import LoginPage
-from pages.model_page import DeviceModel
+from pages.common_login_page import LoginPage
+from pages.common_model_page import DeviceModel
 from utils.logger import get_logger
 from config.config import MODEL_URL, CREATE_NEW_MODEL, UPDATE_MODEL
 
@@ -55,6 +55,7 @@ class TestModelPage:
         ), f"Expected URL '{expected_url}', got '{actual_url}'"
         logger.info("Successfully validated Model page navigation")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_go_to_create_model(self, page, project_config, report_case):
         logger.info("Starting validation of Create Model page navigation")
@@ -81,6 +82,7 @@ class TestModelPage:
         ), f"Expected URL '{expected_url}', got '{actual_url}'"
         logger.info("Successfully validated Create Model page navigation")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_go_to_update_model(self, page, project_config, report_case):
         logger.info("Starting validation of Update Model page navigation")
@@ -107,6 +109,8 @@ class TestModelPage:
         ), f"Expected URL '{expected_url}', got '{actual_url}'"
         logger.info("Successfully validated Update Model page navigation")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_nav_list_visibility(self, model_page, project_config, report_case):
         logger.info("Starting validation of Model navigation list visibility")
@@ -123,6 +127,8 @@ class TestModelPage:
         assert is_visible, "Navbar list is not visible"
         logger.info("Successfully validated Model navigation list visibility")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_is_PageTitle_Visible(self, page, report_case):
         logger.info("Starting validation of Model page title visibility")
@@ -142,6 +148,8 @@ class TestModelPage:
         assert is_visible, "Page Title is not visible"
         logger.info("Successfully validated Model page title visibility")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_create_model_visibility(self, page, report_case):
         logger.info("Starting validation of Create Model button visibility")
@@ -161,6 +169,8 @@ class TestModelPage:
         assert is_visible, "Create Model button is not visible or enabled"
         logger.info("Successfully validated Create Model button visibility")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_create_model_click(self, page, report_case):
         logger.info("Starting validation of Create Model button click")
@@ -180,6 +190,8 @@ class TestModelPage:
 
         logger.info("Successfully clicked Create Model button")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_create_model_page_title(self, page, report_case):
         logger.info("Starting validation of Create Model page title")
@@ -204,6 +216,8 @@ class TestModelPage:
         assert actual_title == expected_title, "Create Model Page Title not visible"
         logger.info("Successfully validated Create Model page title")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_submit_button(self, page, report_case):
         logger.info("Starting validation of Create Model Submit button")
@@ -223,6 +237,8 @@ class TestModelPage:
         assert is_enabled, "Submit button is not enabled"
         logger.info("Successfully validated Create Model Submit button")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_model_code(self, page, report_case):
         logger.info("Starting validation of Model Code input")
@@ -247,6 +263,7 @@ class TestModelPage:
         assert actual_value == "NewCode", f"Expected 'NewCode', got '{actual_value}'"
         logger.info("Successfully validated Model Code input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_model_name(self, page, report_case):
         logger.info("Starting validation of Model Name input")
@@ -264,6 +281,7 @@ class TestModelPage:
 
         logger.info("Successfully validated Model Name input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_model_seriel_sequence(self, page, report_case):
         logger.info("Starting validation of Model Serial Sequence input")
@@ -281,6 +299,7 @@ class TestModelPage:
 
         logger.info("Successfully validated Model Serial Sequence input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_hardware_version(self, page, report_case):
         logger.info("Starting validation of Hardware Version input")
@@ -298,6 +317,8 @@ class TestModelPage:
 
         logger.info("Successfully validated Hardware Version input")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_submit_button_click(self, page, report_case):
         logger.info("Starting validation of disabled Submit button state")
@@ -318,6 +339,7 @@ class TestModelPage:
         assert not is_enabled, "Submit button should be disabled"
         logger.info("Successfully validated disabled Submit button state")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_search_model(self, page, report_case):
         logger.info("Starting validation of Model search")
@@ -335,6 +357,7 @@ class TestModelPage:
 
         logger.info("Successfully validated Model search")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_view_icon(self, page, report_case):
         logger.info("Starting validation of Model view icon")
@@ -352,6 +375,7 @@ class TestModelPage:
 
         logger.info("Successfully validated Model view icon")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_update_model_code(self, page, report_case):
         logger.info("Starting validation of Update Model Code input")
@@ -369,6 +393,7 @@ class TestModelPage:
 
         logger.info("Successfully validated Update Model Code input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_update_model_name(self, page, report_case):
         logger.info("Starting validation of Update Model Name input")
@@ -386,6 +411,7 @@ class TestModelPage:
 
         logger.info("Successfully validated Update Model Name input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_update_model_seriel_sequence(self, page, report_case):
         logger.info("Starting validation of Update Model Serial Sequence input")
@@ -408,6 +434,7 @@ class TestModelPage:
 
         logger.info("Successfully validated Update Model Serial Sequence input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_update_hardware_version(self, page, report_case):
         logger.info("Starting validation of Update Hardware Version input")
@@ -425,6 +452,8 @@ class TestModelPage:
 
         logger.info("Successfully validated Update Hardware Version input")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_update_button_click(self, page, report_case):
         logger.info("Starting validation of Update button click")
@@ -442,6 +471,7 @@ class TestModelPage:
 
         logger.info("Successfully validated Update button click")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_search_model_update(self, page, report_case):
         logger.info("Starting validation of updated Model search")
@@ -459,6 +489,8 @@ class TestModelPage:
 
         logger.info("Successfully validated updated Model search")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_get_updated_model_text(self, page, report_case):
         logger.info("Starting validation of updated Model text")
@@ -492,6 +524,7 @@ class TestModelPage:
         ), f"Expected model text {expected_model_text}, got {actual_model_texts}"
         logger.info("Successfully validated updated Model text")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_delete_updated_model(self, page, report_case):
         logger.info("Starting validation of updated Model delete")

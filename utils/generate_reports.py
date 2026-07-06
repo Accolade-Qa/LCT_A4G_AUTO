@@ -57,26 +57,6 @@ HTML_TEMPLATE = """
 <title>Automation Test Report</title>
 <style>
 :root {
-    --bg-body: #0f172a;
-    --bg-card: #1e293b;
-    --border-color: #334155;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --text-title: #ffffff;
-    --logo-text-main: #ffffff;
-    --table-header-bg: #0f172a;
-    --table-row-hover: #1e293b;
-    --status-pass: #4ade80;
-    --status-fail: #f87171;
-    --status-skipped: #fbbf24;
-    --caution-bg: #2d1e10;
-    --caution-border: #451a03;
-    --caution-text: #fde68a;
-    --caution-icon: #f59e0b;
-    --footer-meta: #64748b;
-}
-
-[data-theme="light"] {
     --bg-body: #f8fafc;
     --bg-card: #ffffff;
     --border-color: #e2e8f0;
@@ -94,6 +74,26 @@ HTML_TEMPLATE = """
     --caution-text: #92400e;
     --caution-icon: #d97706;
     --footer-meta: #94a3b8;
+}
+
+[data-theme="dark"] {
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --border-color: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-title: #ffffff;
+    --logo-text-main: #ffffff;
+    --table-header-bg: #0f172a;
+    --table-row-hover: #1e293b;
+    --status-pass: #4ade80;
+    --status-fail: #f87171;
+    --status-skipped: #fbbf24;
+    --caution-bg: #2d1e10;
+    --caution-border: #451a03;
+    --caution-text: #fde68a;
+    --caution-icon: #f59e0b;
+    --footer-meta: #64748b;
 }
 
 body {
@@ -186,6 +186,7 @@ h1 { margin: 0; font-size: 32px; font-weight: 800; color: var(--text-title); }
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card-title { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
 .value { font-size: 36px; font-weight: 700; margin-top: 10px; color: var(--text-title); }
@@ -193,6 +194,29 @@ h1 { margin: 0; font-size: 32px; font-weight: 800; color: var(--text-title); }
 .cards .pass { border-left: 6px solid #22c55e; }
 .cards .fail { border-left: 6px solid #ef4444; }
 .cards .skip { border-left: 6px solid #f59e0b; }
+.card.clickable {
+    cursor: pointer;
+}
+.card.clickable:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+.card.clickable.active-filter {
+    border-color: #3b82f6;
+    box-shadow: 0 0 16px rgba(59, 130, 246, 0.35);
+}
+.card.pass.clickable.active-filter {
+    border-color: #22c55e;
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.35);
+}
+.card.fail.clickable.active-filter {
+    border-color: #ef4444;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+}
+.card.skip.clickable.active-filter {
+    border-color: #f59e0b;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+}
 .charts-top-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
@@ -359,7 +383,7 @@ footer {
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
         </button>
-        <div class="logo-container" style="display: flex; align-items: center; justify-content: center; width: 120px; height: 120px; padding: 8px; overflow: hidden; border-radius: 16px;">
+        <div class="logo-container" style="display: flex; align-items: center; justify-content: center; width: 180px; height: 120px; padding: 8px; overflow: hidden; border-radius: 16px;">
             {% if logo_base64 %}
             <img src="data:image/png;base64,{{ logo_base64 }}" alt="Accolade Logo" style="width: 100%; height: 100%; object-fit: contain;">
             {% else %}
@@ -369,22 +393,22 @@ footer {
     </div>
 </header>
 <div class="cards">
-    <div class="card">
+    <div class="card clickable" id="totalCard">
         <div class="card-title">Total Tests</div>
         <div class="value">{{ total }}</div>
         <div class="small">Overall execution count</div>
     </div>
-    <div class="card pass">
+    <div class="card pass clickable" id="passCard">
         <div class="card-title">Passed</div>
         <div class="value">{{ passed }}</div>
         <div class="small">Successful assertions</div>
     </div>
-    <div class="card fail">
+    <div class="card fail clickable" id="failCard">
         <div class="card-title">Failed</div>
         <div class="value">{{ failed }}</div>
         <div class="small">Requires attention</div>
     </div>
-    <div class="card skip">
+    <div class="card skip clickable" id="skipCard">
         <div class="card-title">Skipped</div>
         <div class="value">{{ skipped }}</div>
         <div class="small">Conditional or blocked tests</div>
@@ -425,7 +449,7 @@ footer {
     <th style="width: 16%;">Message</th>
 </tr>
 {% for t in tests %}
-<tr>
+<tr class="test-row" data-status="{{ t.status }}">
     <td>{{ t.name }}</td>
     <td>{{ t.expected }}</td>
     <td>{{ t.actual }}</td>
@@ -646,8 +670,8 @@ function updateChartTheme(theme) {
 }
 
 themeToggle.addEventListener('click', () => {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     
     document.documentElement.setAttribute('data-theme', newTheme);
     
@@ -664,13 +688,69 @@ themeToggle.addEventListener('click', () => {
 });
 
 // Load preferred theme on startup
-const savedTheme = localStorage.getItem('theme') || 'dark';
-if (savedTheme === 'light') {
+const savedTheme = localStorage.getItem('theme') || 'light';
+if (savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    sunIcon.style.display = 'block';
+    moonIcon.style.display = 'none';
+    window.addEventListener('load', () => updateChartTheme('dark'));
+} else {
     document.documentElement.setAttribute('data-theme', 'light');
     sunIcon.style.display = 'none';
     moonIcon.style.display = 'block';
     window.addEventListener('load', () => updateChartTheme('light'));
 }
+
+// Interactive status filtering
+const filterCards = {
+    total: document.getElementById('totalCard'),
+    pass: document.getElementById('passCard'),
+    fail: document.getElementById('failCard'),
+    skip: document.getElementById('skipCard')
+};
+const testRows = document.querySelectorAll('.test-row');
+let currentActiveFilter = 'total';
+
+function applyStatusFilter(status) {
+    // Remove active filter class from all clickable cards
+    Object.values(filterCards).forEach(card => {
+        if (card) card.classList.remove('active-filter');
+    });
+
+    currentActiveFilter = status;
+    if (filterCards[status]) {
+        filterCards[status].classList.add('active-filter');
+    }
+
+    testRows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        if (status === 'total') {
+            row.style.display = '';
+        } else if (status === 'pass' && (rowStatus === 'pass' || rowStatus === 'passed')) {
+            row.style.display = '';
+        } else if (status === 'fail' && (rowStatus === 'fail' || rowStatus === 'failed')) {
+            row.style.display = '';
+        } else if (status === 'skip' && (rowStatus === 'skip' || rowStatus === 'skipped')) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Smooth scroll to the table container
+    const tableContainer = document.querySelector('.table-container');
+    if (tableContainer) {
+        tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+if (filterCards.total) filterCards.total.addEventListener('click', () => applyStatusFilter('total'));
+if (filterCards.pass) filterCards.pass.addEventListener('click', () => applyStatusFilter('pass'));
+if (filterCards.fail) filterCards.fail.addEventListener('click', () => applyStatusFilter('fail'));
+if (filterCards.skip) filterCards.skip.addEventListener('click', () => applyStatusFilter('skip'));
+
+// Initialize active state
+if (filterCards.total) filterCards.total.classList.add('active-filter');
 </script>
 </body>
 </html>

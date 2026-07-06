@@ -1,5 +1,5 @@
-from .base_page import BasePage
-from ..api.login_api import LoginAPI
+from .common_base_page import BasePage
+from api.login_api import LoginAPI
 from utils.logger import get_logger
 from config.config import (
     API_BASE_URL,

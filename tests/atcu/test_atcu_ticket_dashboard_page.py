@@ -7,6 +7,8 @@ from pages.atcu.atcu_ticket_dashboard_page import AtcuTicketDashboardPage
 @pytest.mark.atcu
 @pytest.mark.regression
 class TestTicketDashboardPage:
+    @pytest.mark.regression
+    @pytest.mark.ui
     @pytest.mark.smoke
     def test_ticket_dashboard_page_loads(self, page, project_config, report_case):
         ticket_dashboard = AtcuTicketDashboardPage(

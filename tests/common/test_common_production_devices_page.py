@@ -1,6 +1,6 @@
 from pathlib import Path
-from pages.login_page import LoginPage
-from pages.production_devices_page import ProductionDevices
+from pages.common_login_page import LoginPage
+from pages.common_production_devices_page import ProductionDevices
 from utils.logger import get_logger
 
 import pytest
@@ -47,6 +47,8 @@ class TestProductionDevices:
         ), f"Expected URL '{expected_url}', got '{actual_url}'"
         logger.info("Successfully validated Production Devices page navigation")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_nav_list_visibility(
         self, production_devices_page, project_config, report_case
@@ -65,6 +67,8 @@ class TestProductionDevices:
         assert is_visible, "Navbar list is not visible"
         logger.info("Successfully validated Production navbar list visibility")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_is_PageTitle_Visible(
         self, production_devices_page, project_config, report_case
@@ -83,6 +87,8 @@ class TestProductionDevices:
         assert is_visible, "Page Title is not visible"
         logger.info("Successfully validated Production page title visibility")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_manual_upload_btn_visibility(self, page, report_case):
         logger.info("Starting validation of Manual Upload button visibility")
@@ -101,6 +107,8 @@ class TestProductionDevices:
         assert is_visible, "Manual Upload button is not visible"
         logger.info("Successfully validated Manual Upload button visibility")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_manual_upload_click(self, page, report_case):
         logger.info("Starting validation of Manual Upload button click")
@@ -119,6 +127,8 @@ class TestProductionDevices:
 
         logger.info("Successfully validated Manual Upload button click")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_create_prod_PageTitle(self, page, report_case):
         logger.info("Starting validation of Create Production page title")
@@ -137,6 +147,8 @@ class TestProductionDevices:
         assert is_visible, "Create production page title is not visible"
         logger.info("Successfully validated Create Production page title")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_new_uid(self, page, report_case):
         logger.info("Starting validation of New UID input")
@@ -153,6 +165,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated New UID input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_imei(self, page, report_case):
         logger.info("Starting validation of New IMEI input")
@@ -169,6 +182,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated New IMEI input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_iccid(self, page, report_case):
         logger.info("Starting validation of New ICCID input")
@@ -185,6 +199,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated New ICCID input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_model_name(self, page, report_case):
         logger.info("Starting validation of New Model Name input")
@@ -201,6 +216,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated New Model Name input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_mobile_no(self, page, report_case):
         logger.info("Starting validation of New Mobile Number input")
@@ -217,6 +233,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated New Mobile Number input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test__new_service_provider(self, page, report_case):
         logger.info("Starting validation of New Service Provider input")
@@ -233,6 +250,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated New Service Provider input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_alt_mob_no(self, page, report_case):
         logger.info("Starting validation of Alternate Mobile Number input")
@@ -249,6 +267,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated Alternate Mobile Number input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_alt_ser_pro(self, page, report_case):
         logger.info("Starting validation of Alternate Service Provider input")
@@ -265,6 +284,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated Alternate Service Provider input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_firmware(self, page, report_case):
         logger.info("Starting validation of New Firmware input")
@@ -281,6 +301,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated New Firmware input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_sim_vendor(self, page, report_case):
         logger.info("Starting validation of New SIM Vendor input")
@@ -297,6 +318,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated New SIM Vendor input")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_boot_exp_date(self, page, report_case):
         logger.info("Starting validation of Boot Expiry Date input")
@@ -313,6 +335,8 @@ class TestProductionDevices:
 
         logger.info("Successfully validated Boot Expiry Date input")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_submit_button(self, page, report_case):
         logger.info("Starting validation of disabled Production Submit button")
@@ -332,6 +356,7 @@ class TestProductionDevices:
         assert not is_enabled, "Submit button should be disabled"
         logger.info("Successfully validated disabled Production Submit button")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_new_device_flow(self, page, report_case):
         logger.info("Starting validation of new device flow")
@@ -348,6 +373,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated new device flow")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_search_device(self, page, report_case):
         logger.info("Starting validation of Production device search")
@@ -364,6 +390,7 @@ class TestProductionDevices:
 
         logger.info("Successfully validated Production device search")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_search_device_2(self, page, report_case):
         logger.info("Starting validation of alternate Production device search")
@@ -380,6 +407,8 @@ class TestProductionDevices:
 
         logger.info("Successfully validated alternate Production device search")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_bulk_upload_btn_enability(self, page, report_case):
         logger.info("Starting validation of Bulk Upload button enablement")
@@ -396,6 +425,8 @@ class TestProductionDevices:
 
         logger.info("Successfully validated Bulk Upload button enablement")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_click_bulk_btn(self, page, report_case):
         logger.info("Starting validation of Bulk Upload button click")
@@ -414,6 +445,8 @@ class TestProductionDevices:
 
         logger.info("Successfully validated Bulk Upload button click")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_btn_enability(self, page, report_case):
         logger.info("Starting validation of Add Production button enablement")
@@ -430,6 +463,8 @@ class TestProductionDevices:
 
         logger.info("Successfully validated Add Production button enablement")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_click_sample_btn(self, page, report_case):
         logger.info("Starting validation of sample file download")
@@ -451,6 +486,7 @@ class TestProductionDevices:
         assert is_downloaded, "Sample file validation failed"
         logger.info("Successfully validated sample file download")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_upload_invalid_file(self, page, report_case):
         logger.info("Starting validation of invalid production file upload")
@@ -477,6 +513,7 @@ class TestProductionDevices:
         assert is_valid, "Add production page title is not visible"
         logger.info("Successfully validated invalid production file upload")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_upload_valid_file(self, page, report_case):
         logger.info("Starting validation of valid production file upload")
@@ -503,6 +540,7 @@ class TestProductionDevices:
         assert is_valid, "Add production page title is not visible"
         logger.info("Successfully validated valid production file upload")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_upload_duplicate_file(self, page, report_case):
         logger.info("Starting validation of duplicate production file upload")
@@ -529,6 +567,7 @@ class TestProductionDevices:
         assert is_valid, "Add production page title is not visible"
         logger.info("Successfully validated duplicate production file upload")
 
+    @pytest.mark.smoke
     @pytest.mark.regression
     def test_search_device_3(self, page, report_case):
         logger.info("Starting validation of repeated Production device search")

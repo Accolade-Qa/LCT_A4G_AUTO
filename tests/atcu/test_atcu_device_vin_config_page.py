@@ -7,6 +7,8 @@ from pages.atcu.atcu_device_vin_config_page import AtcuDeviceVinConfigPage
 @pytest.mark.atcu
 @pytest.mark.regression
 class TestDeviceVinConfigPage:
+    @pytest.mark.regression
+    @pytest.mark.ui
     @pytest.mark.smoke
     def test_device_vin_config_page_loads(self, page, project_config, report_case):
         device_vin_config = AtcuDeviceVinConfigPage(

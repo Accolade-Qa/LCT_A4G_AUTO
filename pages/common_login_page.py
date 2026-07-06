@@ -3,7 +3,7 @@ import re
 import time
 from datetime import datetime
 
-from pages.base_page import BasePage
+from pages.common_base_page import BasePage
 
 
 class LoginPage(BasePage):

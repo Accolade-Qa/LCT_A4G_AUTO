@@ -42,6 +42,7 @@ class TestDeviceDetailsPage:
 
     # ------------------ PAGE VALIDATIONS ------------------
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_device_details_page_title_is_correct(
@@ -57,6 +58,7 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: device_details_page_title")
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_device_details_page_all_elements_are_visible(
@@ -82,6 +84,8 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: device_details_page_elements")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_navigates_correctly_for_device(
         self, device_details_page, report_case
@@ -101,6 +105,8 @@ class TestDeviceDetailsPage:
 
     # ------------------ KPI CARDS ------------------
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_kpi_card_titles_are_correct(
         self, device_details_page, report_case
@@ -131,6 +137,8 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: dashboard_card_title")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_kpi_cards_display_values(
         self, device_details_page, report_case
@@ -151,6 +159,8 @@ class TestDeviceDetailsPage:
 
     # ------------------ COMPONENT TITLES ------------------
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_all_table_component_titles_are_correct(
         self, device_details_page, report_case
@@ -182,6 +192,8 @@ class TestDeviceDetailsPage:
 
     # ------------------ HEADERS ------------------
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_all_section_headers_are_correct(
         self, device_details_page, report_case
@@ -202,6 +214,8 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: all component headers")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_table_headers_are_correct(
         self, device_details_page, report_case
@@ -231,6 +245,8 @@ class TestDeviceDetailsPage:
 
     # ------------------ TABLE DATA ------------------
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_table_displays_device_information(
         self, device_details_page, report_case
@@ -255,6 +271,8 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: login packet table data")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_table_row_count_is_accurate(
         self, device_details_page, report_case
@@ -269,6 +287,8 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: table row count")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_shows_no_data_message_when_empty(
         self, device_details_page, report_case
@@ -310,6 +330,8 @@ class TestDeviceDetailsPage:
 
     # ------------------ PAGINATION ------------------
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_pagination_navigates_forward(
         self, device_details_page, report_case
@@ -332,6 +354,8 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: pagination")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_pagination_navigates_bidirectionally(
         self, device_details_page, report_case
@@ -352,6 +376,8 @@ class TestDeviceDetailsPage:
 
         logger.info("Test passed: bidirectional pagination")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_device_details_page_pagination_handles_last_page_correctly(
         self, device_details_page, report_case

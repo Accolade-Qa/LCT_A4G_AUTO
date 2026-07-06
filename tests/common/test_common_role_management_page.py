@@ -40,6 +40,9 @@ class TestRoleManagementPage:
 
     """" Test for deleting roles from the role management page. """
 
+    @pytest.mark.api
+    @pytest.mark.regression
+    @pytest.mark.smoke
     def test_delete_role_management_roles(self, role_management_page):
         """Test deleting a role permission."""
 
@@ -106,6 +109,7 @@ class TestRoleManagementPage:
 
         logger.info("Delete role management test completed")
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_role_management_page_navigates_correctly(
@@ -124,6 +128,7 @@ class TestRoleManagementPage:
             page.url == ROLE_MANAGEMENT_URL
         ), f"Expected URL to be '{ROLE_MANAGEMENT_URL}', got {page.url}"
 
+    @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
     def test_role_management_page_all_elements_are_visible(
@@ -153,6 +158,8 @@ class TestRoleManagementPage:
 
         logger.info("All Role Management page elements are present and visible")
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_form_creates_administrator_role(
         self, role_management_page, report_case
@@ -188,6 +195,8 @@ class TestRoleManagementPage:
         role_management_page.click_save()
         logger.info("Submitted Administrator role creation form: %s", role_name)
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_form_creates_manager_role_with_group(
         self, role_management_page, report_case
@@ -228,6 +237,8 @@ class TestRoleManagementPage:
         role_management_page.click_save()
         logger.info("Submitted Manager role creation form: %s", role_name)
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_form_creates_manager_role_without_group(
         self, role_management_page, report_case
@@ -247,6 +258,8 @@ class TestRoleManagementPage:
         report_case(expected="Role Group is mandatory", actual=error)
         assert "Role Group is mandatory" in error
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_form_shows_error_when_role_name_empty(
         self, role_management_page, report_case
@@ -262,6 +275,8 @@ class TestRoleManagementPage:
         report_case(expected=" This field is mandatory.", actual=error)
         assert " This field is mandatory." in error
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_form_shows_error_for_invalid_role_name(
         self, role_management_page, report_case
@@ -279,6 +294,8 @@ class TestRoleManagementPage:
         report_case(expected="Please enter a valid User Role.", actual=error)
         assert "Please enter a valid User Role." in error
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_form_allows_selecting_all_permissions(
         self, role_management_page, report_case
@@ -301,6 +318,8 @@ class TestRoleManagementPage:
         report_case(expected="Success", actual=success_message)
         assert "Success" in success_message, "Select all permissions failed"
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_form_role_type_toggle_works(
         self, role_management_page, report_case
@@ -325,6 +344,8 @@ class TestRoleManagementPage:
         )
         assert not admin_group_visible
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_table_search_finds_roles(
         self, role_management_page, report_case
@@ -359,6 +380,8 @@ class TestRoleManagementPage:
         )
         assert role_found, f"Role '{role_name}' not found in search results"
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_table_displays_valid_role_data(
         self, role_management_page, report_case
@@ -392,6 +415,8 @@ class TestRoleManagementPage:
             "Administrator" in first_row_data or "Manager" in first_row_data
         ), f"Unexpected role type in first row: {first_row_data}"
 
+    @pytest.mark.smoke
+    @pytest.mark.ui
     @pytest.mark.regression
     def test_role_management_page_table_pagination_navigates_across_pages(
         self, role_management_page, report_case

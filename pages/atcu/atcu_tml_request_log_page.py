@@ -1,5 +1,5 @@
 from utils.helpers import Helpers
-from pages.base_page import BasePage
+from pages.common_base_page import BasePage
 from api.tml_request_api import TmlRequestApi
 from pages.common_utils import SearchHelper, TableSection, PaginationHelper
 import asyncio

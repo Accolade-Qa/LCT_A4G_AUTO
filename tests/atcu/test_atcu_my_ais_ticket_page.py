@@ -7,6 +7,8 @@ from pages.atcu.atcu_my_ais_ticket_page import AtcuMyAisTicketPage
 @pytest.mark.atcu
 @pytest.mark.regression
 class TestMyAisTicketPage:
+    @pytest.mark.regression
+    @pytest.mark.ui
     @pytest.mark.smoke
     def test_my_ais_ticket_page_loads(self, page, project_config, report_case):
         my_ais_ticket = AtcuMyAisTicketPage(page, project_config["my_ais_ticket_url"])

@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import config.config as config_module
 from config.global_var import get_project_screenshot_path
-from pages.base_page import BasePage
+from pages.common_base_page import BasePage
 
 os.makedirs(get_project_screenshot_path(), exist_ok=True)
 
@@ -283,7 +283,7 @@ def login_page(browser):
     context = _new_context_with_zoom(browser, accept_downloads=True)
     page = context.new_page()
 
-    from pages.login_page import LoginPage
+    from pages.common_login_page import LoginPage
 
     login = LoginPage(page)
     yield login
@@ -303,7 +303,7 @@ def page(browser, project_config):
     page = context.new_page()
     logger.info("New page opened")
 
-    from pages.login_page import LoginPage
+    from pages.common_login_page import LoginPage
 
     login = LoginPage(page)
     login.load(project_config["base_url"])
@@ -388,7 +388,7 @@ def pytest_runtest_makereport(item, call):
 # Page Fixtures
 @pytest.fixture
 def dashboard_page(page, project_config):
-    from pages.dashboard_page import DashboardPage
+    from pages.common_dashboard_page import DashboardPage
 
     dashboard = DashboardPage(page)
     dashboard.go_to_dashboard(project_config["dashboard_url"])
@@ -398,7 +398,7 @@ def dashboard_page(page, project_config):
 
 @pytest.fixture
 def sim_data_details_page(page, project_config):
-    from pages.sim_data_details_page import SimDataDetailsPage
+    from pages.common_sim_data_details_page import SimDataDetailsPage
 
     sim_data_details = SimDataDetailsPage(page)
     sim_data_details.go_to_simbatchpage(project_config["sim_data_details_url"])
@@ -408,7 +408,7 @@ def sim_data_details_page(page, project_config):
 
 @pytest.fixture
 def role_management_page(page, project_config):
-    from pages.role_management_page import RoleManagementPage
+    from pages.common_role_management_page import RoleManagementPage
 
     role_management = RoleManagementPage(page)
     role_management.go_to_rolemanagementpage(project_config["role_management_url"])
@@ -418,7 +418,7 @@ def role_management_page(page, project_config):
 
 @pytest.fixture
 def role_group_page(page, project_config):
-    from pages.role_group_page import RoleGroupPage
+    from pages.common_role_group_page import RoleGroupPage
 
     role_group = RoleGroupPage(page)
     role_group.go_to_role_group_page(project_config["role_group_url"])
@@ -433,8 +433,8 @@ def device_details_page(page, project_config, test_data):
         "imei", "866677075606341"
     )
 
-    from pages.dashboard_page import DashboardPage
-    from pages.device_details_page import DeviceDetailsPage
+    from pages.common_dashboard_page import DashboardPage
+    from pages.common_device_details_page import DeviceDetailsPage
 
     base = BasePage(page)
     dashboard = DashboardPage(page)
@@ -456,8 +456,8 @@ def device_details_page(page, project_config, test_data):
 
 @pytest.fixture
 def ota_page(page, project_config):
-    from pages.ota_page import OtaPage
-    from pages.base_page import BasePage
+    from pages.common_ota_page import OtaPage
+    from pages.common_base_page import BasePage
 
     ota = OtaPage(page)
     base = BasePage(page)
@@ -468,8 +468,8 @@ def ota_page(page, project_config):
 
 @pytest.fixture
 def dispatched_device_page(page, project_config):
-    from pages.dispatched_device_page import DispatchedDevicePage
-    from pages.base_page import BasePage
+    from pages.common_dispatched_device_page import DispatchedDevicePage
+    from pages.common_base_page import BasePage
 
     dispatched_device = DispatchedDevicePage(page)
     base = BasePage(page)
@@ -480,8 +480,8 @@ def dispatched_device_page(page, project_config):
 
 @pytest.fixture
 def govt_server_page(page, project_config):
-    from pages.govt_server_page import GovtServerPage
-    from pages.base_page import BasePage
+    from pages.common_govt_server_page import GovtServerPage
+    from pages.common_base_page import BasePage
 
     govtserver = GovtServerPage(page)
     base = BasePage(page)
@@ -494,8 +494,8 @@ def govt_server_page(page, project_config):
 
 @pytest.fixture
 def profile_page(page, project_config):
-    from pages.profile_page import ProfilePage
-    from pages.base_page import BasePage
+    from pages.common_profile_page import ProfilePage
+    from pages.common_base_page import BasePage
 
     profile = ProfilePage(page)
     base = BasePage(page)
@@ -508,7 +508,7 @@ def profile_page(page, project_config):
 
 @pytest.fixture
 def customer_master(page):
-    from pages.customer_master_page import CustomerMasterPage
+    from pages.common_customer_master_page import CustomerMasterPage
 
     customermaster = CustomerMasterPage(page)
     customermaster.go_to_customer(config_module.CUSTOMER_MASTER_URL)
@@ -517,7 +517,7 @@ def customer_master(page):
 
 @pytest.fixture
 def user_management(page, project_config):
-    from pages.user_management_page import UserManagementPage
+    from pages.common_user_management_page import UserManagementPage
 
     usermanagement = UserManagementPage(page)
     usermanagement.go_to_user(project_config["user_management_url"])
@@ -526,7 +526,7 @@ def user_management(page, project_config):
 
 @pytest.fixture
 def model_page(page, project_config):
-    from pages.model_page import DeviceModel
+    from pages.common_model_page import DeviceModel
 
     model = DeviceModel(page)
     model.go_to_model(project_config["model_url"])
@@ -536,7 +536,7 @@ def model_page(page, project_config):
 
 @pytest.fixture
 def production_devices_page(page, project_config):
-    from pages.production_devices_page import ProductionDevices
+    from pages.common_production_devices_page import ProductionDevices
 
     production = ProductionDevices(page)
     base = BasePage(page)

@@ -1,5 +1,5 @@
 from config.config import USER_MANAGEMENT_URL
-from .base_page import BasePage
+from .common_base_page import BasePage
 from utils.logger import get_logger
 
 # from .common.table_section import TableSection

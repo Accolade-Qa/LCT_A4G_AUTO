@@ -7,6 +7,8 @@ from pages.atcu.atcu_device_state_config_page import AtcuDeviceStateConfigPage
 @pytest.mark.atcu
 @pytest.mark.regression
 class TestDeviceStateConfigPage:
+    @pytest.mark.regression
+    @pytest.mark.ui
     @pytest.mark.smoke
     def test_device_state_config_page_loads(self, page, project_config, report_case):
         device_state_config = AtcuDeviceStateConfigPage(

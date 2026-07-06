@@ -1,7 +1,7 @@
 from utils.logger import get_logger
-from pages.base_page import BasePage
-from pages.customer_master_page import CustomerMasterPage
-from pages.login_page import LoginPage
+from pages.common_base_page import BasePage
+from pages.common_customer_master_page import CustomerMasterPage
+from pages.common_login_page import LoginPage
 from config.config import BASE_URL, CUSTOMER_MASTER_URL, PASSWORD, USERNAME
 
 import pytest
@@ -21,6 +21,8 @@ class TestCustomerMaster:
 
         return CustomerMasterPage(page)
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
     def test_go_to_customer(self, page, report_case):
         logger.info("Starting validation of Customer master page navigation")
         customer_page = self._login_and_dashboard(page)
@@ -44,6 +46,9 @@ class TestCustomerMaster:
         ), f"Expected URL '{CUSTOMER_MASTER_URL}', got '{actual_url}'"
         logger.info("Successfully validated Customer Master page navigation")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_customer_master_nav_list(self, customer_master, report_case, page):
 
         logger.info("Starting Test: Customer master navigation bar validation")
@@ -55,6 +60,9 @@ class TestCustomerMaster:
         report_case(expected=True, actual=is_enabled, result="PASS")
         logger.info("Navigation bar is enabled: Test Passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_customer_master_page_title(self, customer_master, report_case, page):
         logger.info("Starting Test: Customer master page title visibility validation")
         customer_page = self._login_and_dashboard(page)
@@ -69,6 +77,9 @@ class TestCustomerMaster:
 
         logger.info("Page title is visible: Test Passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_customer_master_element_enability(
         self, customer_master, report_case, page
     ):
@@ -83,6 +94,9 @@ class TestCustomerMaster:
 
         logger.info("Elements are enabled: Test Passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_customer_master_add_customer(self, customer_master, report_case, page):
         logger.info(
             "Starting Test: Customer master add customer button functionality validation"
@@ -99,6 +113,9 @@ class TestCustomerMaster:
         report_case(expected=True, actual=visibility)
         logger.info("Add Customer button is clickable and clicked")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_customer_master_click_customer_name(self, customer_master, page):
         logger.info("Starting Test: Customer name field validation")
         customer_page = self._login_and_dashboard(page)
@@ -126,6 +143,9 @@ class TestCustomerMaster:
 
         logger.info("Customer name field validation: Test Passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_customer_master_new_customer(self, customer_master, report_case, page):
         logger.info(
             "Starting Test: Customer master add new customer fuctionality validation"
@@ -146,6 +166,9 @@ class TestCustomerMaster:
 
         logger.info("New customer added successfully: Test Passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_customer_master_search_customer(self, customer_master, report_case, page):
         logger.info("Starting test: Customer search and update functionality")
         customer_page = self._login_and_dashboard(page)
@@ -166,6 +189,9 @@ class TestCustomerMaster:
             "Customer search and update functionality validation successful: Test Passed"
         )
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_customer_master_search_delete_customer(
         self, customer_master, report_case, page
     ):

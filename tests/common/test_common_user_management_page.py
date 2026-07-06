@@ -1,6 +1,6 @@
 from utils.logger import get_logger
-from pages.user_management_page import UserManagementPage
-from pages.login_page import LoginPage
+from pages.common_user_management_page import UserManagementPage
+from pages.common_login_page import LoginPage
 from config.config import (
     BASE_URL,
     USER_MANAGEMENT_URL,
@@ -27,6 +27,8 @@ class TestUserManagementPage:
 
         return UserManagementPage(page)
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
     def test_go_to_user(self, page, report_case):
         logger.info("Starting validation of User Management page navigation")
         user_page = self._login_and_dashboard(page)
@@ -50,6 +52,9 @@ class TestUserManagementPage:
         ), f"Expected URL '{USER_MANAGEMENT_URL}', got '{actual_url}'"
         logger.info("Successfully validated User Management page navigation")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_user_management_nav_list_enability(
         self, user_management, report_case, page
     ):
@@ -62,6 +67,9 @@ class TestUserManagementPage:
         assert enabled, "Navbar list is not enabled"
         logger.info("Navbar list enability test passed successfully")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_user_management_is_PageTitle_Visible(
         self, user_management, report_case, page
     ):
@@ -82,6 +90,9 @@ class TestUserManagementPage:
         ), f"Expected title to be '{expected_title}', got '{actual_title}'"
         logger.info("Page title visibility test passed successfully")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_user_management_element_enability(
         self, user_management, report_case, page
     ):
@@ -96,6 +107,9 @@ class TestUserManagementPage:
         assert ele_enabled, "Elements not enabled"
         logger.info("Element enability test passed successfully")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_user_management_click_add_user(self, user_management, page):
         logger.info("Testinng click add user functionality")
         user_page = self._login_and_dashboard(page)
@@ -103,6 +117,8 @@ class TestUserManagementPage:
         user_management._click_add_user()
         logger.info("Clicked add user button successfully")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
     def test_usermanagement_user_type_drop(self, user_management, report_case, page):
         logger.info("Starting test: User type dropdown validation")
         user_page = self._login_and_dashboard(page)
@@ -124,6 +140,9 @@ class TestUserManagementPage:
         ), f"Expected error message to be 'This field is mandatory.', got '{error_msg['result_drop_text']}'"
         logger.info("User type dropdown validation test passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_first_name_field(self, user_management, report_case, page):
         logger.info("Starting test: First name field validation")
         user_page = self._login_and_dashboard(page)
@@ -162,6 +181,9 @@ class TestUserManagementPage:
         assert actual == data["expected"]
         logger.info("First name field validation test passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_last_name_field(self, user_management, report_case, page):
         logger.info("Starting test: Last name field validation")
         user_page = self._login_and_dashboard(page)
@@ -200,6 +222,9 @@ class TestUserManagementPage:
         assert actual == data["expected"]
         logger.info("Last name field validation test passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_email_field(self, user_management, report_case, page):
         logger.info("Starting test: Email field validation")
         user_page = self._login_and_dashboard(page)
@@ -238,6 +263,9 @@ class TestUserManagementPage:
         assert actual == data["expected"]
         logger.info("Email field validation test passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_mob_no_field(self, user_management, report_case, page):
 
         logger.info("Starting test: Mobile number field validation")
@@ -277,6 +305,9 @@ class TestUserManagementPage:
         assert actual == data["expected"]
         logger.info("Mobile number field validation test passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_country_field(self, user_management, report_case, page):
 
         logger.info("Starting test: Country field validation")
@@ -320,6 +351,9 @@ class TestUserManagementPage:
 
         logger.info("Country field validation test passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_state_field(self, user_management, report_case, page):
 
         logger.info("Starting test: State field validation")
@@ -366,6 +400,9 @@ class TestUserManagementPage:
 
         logger.info("State field validation test passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_usermanagement_status_field(self, user_management, report_case, page):
 
         logger.info("Starting test: User management status field validation")
@@ -401,6 +438,8 @@ class TestUserManagementPage:
 
         logger.info("Status field validation test passed")
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
     def test_usermanagement_new_flow(self, user_management, report_case, page):
         logger.info("Starting test: Test usermanagement new flow.")
         user_page = self._login_and_dashboard(page)
@@ -423,6 +462,8 @@ class TestUserManagementPage:
             toast_text == "Data Fetched Successfully"
         ), f"Expected toast message to be 'Data Fetched Successfully', got '{toast_text}'"
 
+    @pytest.mark.regression
+    @pytest.mark.smoke
     def test_usermanagement_update_flow(self, user_management, report_case, page):
 
         logger.info("Starting Test: Test user management update flow")

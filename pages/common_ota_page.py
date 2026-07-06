@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 
 from config.global_var import DOWNLOADS_PATH
-from pages.base_page import BasePage
+from pages.common_base_page import BasePage
 from pages.common_utils.pagination import PaginationHelper
 from pages.common_utils.pagination import PaginationHelper
 from pages.common_utils.search import SearchHelper

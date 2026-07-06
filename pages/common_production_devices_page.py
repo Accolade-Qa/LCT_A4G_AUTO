@@ -1,5 +1,5 @@
 from playwright.sync_api import expect
-from .base_page import BasePage
+from .common_base_page import BasePage
 import os
 from utils.logger import get_logger
 from config.global_var import PROD_DOWNLOAD_PATH

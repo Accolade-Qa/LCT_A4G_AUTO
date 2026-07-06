@@ -1,5 +1,5 @@
 from config.config import CUSTOMER_MASTER_URL
-from .base_page import BasePage
+from .common_base_page import BasePage
 from utils.logger import get_logger
 from .common_utils.table_section import TableSection
 
