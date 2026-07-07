@@ -17,10 +17,6 @@ model_url: "https://sampark-qa.accoladeelectronics.com/model"
 create_new_model: "https://sampark-qa.accoladeelectronics.com/model-firmware"
 update_model: "https://sampark-qa.accoladeelectronics.com/model-firmware/11"
 api_base_url: "https://sampark-qa.accoladeelectronics.com"
-username: "super.admin@accoladeelectronics.com"
-password: "LWj09BEg"
-api_username: "super.admin@accoladeelectronics.com"
-api_password: "LWj09BEg"
 browser: chromium
 headless: false
 screenshot_on_failure: true

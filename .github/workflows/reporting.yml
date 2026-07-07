@@ -4,22 +4,40 @@ on:
   push:
     branches:
       - master
-
-  # schedule:
-  #   - cron: '30 4 * * 1-5'  # 10:00 AM IST (Mon–Fri)
+      - main
+      - atcu
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Project to run (atcu, lct, sampark, swaraj, trio)'
+        required: false
+      projects:
+        description: 'Comma-separated list of projects, e.g. atcu,lct'
+        required: false
+      marker:
+        description: 'Pytest marker expression, e.g. smoke, regression and not slow'
+        required: false
+      report_dir:
+        description: 'Optional base report directory'
+        required: false
+        default: 'reports'
+  repository_dispatch:
+    types:
+      - run-project-report
 
 env:
-  REPORT_HTML: ${{ github.workspace }}/reports/report.html
-  REPORT_JSON: ${{ github.workspace }}/reports/report.json
-  REPORT_EXCEL: ${{ github.workspace }}/reports/report.xlsx
-  REPORT_JUNIT: ${{ github.workspace }}/reports/report.xml
+  REPORT_DIR: ${{ github.workspace }}/reports
 
 jobs:
-  test-suite:
+  test-and-report:
     runs-on: ubuntu-latest
     env:
       HEADLESS: 'true'
-
+      PROJECT_INPUT: ${{ github.event.inputs.project }}
+      PROJECTS_INPUT: ${{ github.event.inputs.projects }}
+      MARKER_INPUT: ${{ github.event.inputs.marker }}
+      REPORT_DIR_INPUT: ${{ github.event.inputs.report_dir }}
+      TARGET_REPORT_DIR: ${{ github.event.client_payload.report_dir || github.event.inputs.report_dir || 'reports' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,117 +47,108 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install --with-deps
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
-      - name: Create virtual environment
-        run: python -m venv venv
-
-      - name: Install dependencies
+      - name: Ensure Playwright system dependencies
         run: |
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          # install any missing system dependencies Playwright needs
+          npx playwright install-deps || true
 
-      - name: Install Playwright
+      - name: Run tests and generate reports
+        continue-on-error: true
         run: |
-          source venv/bin/activate
-          playwright install
-          npx playwright install-deps
+          EVENT_PROJECT=${{ github.event.client_payload.project || github.event.inputs.project || '' }}
+          EVENT_PROJECTS=${{ github.event.client_payload.projects || github.event.inputs.projects || '' }}
+          EVENT_MARKER=${{ github.event.client_payload.marker || github.event.inputs.marker || '' }}
 
-      - name: Run tests
-        run: |
-          source venv/bin/activate
-          mkdir -p reports
-          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' \
-            python -m pytest \
-            --html=$REPORT_HTML --self-contained-html \
-            --json-report --json-report-file=$REPORT_JSON \
-            --junitxml=$REPORT_JUNIT tests
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          echo "Commit Message: $COMMIT_MSG"
 
-      - name: Upload reports artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports
-          path: reports
+          if [ -z "$EVENT_PROJECT" ] && [ -z "$EVENT_PROJECTS" ] && [ -n "$COMMIT_MSG" ]; then
+            PARSED_PROJECT=$(echo "$COMMIT_MSG" | grep -oP '\[project:\s*\K[^\]]+' || true)
+            PARSED_PROJECTS=$(echo "$COMMIT_MSG" | grep -oP '\[projects:\s*\K[^\]]+' || true)
+            if [ -n "$PARSED_PROJECTS" ]; then
+              EVENT_PROJECTS="$PARSED_PROJECTS"
+            elif [ -n "$PARSED_PROJECT" ]; then
+              EVENT_PROJECT="$PARSED_PROJECT"
+            fi
+          fi
 
-  report-generator:
-    needs: test-suite
-    runs-on: ubuntu-latest
+          if [ -z "$EVENT_MARKER" ] && [ -n "$COMMIT_MSG" ]; then
+            PARSED_MARKER=$(echo "$COMMIT_MSG" | grep -oP '\[marker:\s*\K[^\]]+' || true)
+            PARSED_MARKERS=$(echo "$COMMIT_MSG" | grep -oP '\[markers:\s*\K[^\]]+' || true)
+            if [ -n "$PARSED_MARKERS" ]; then
+              EVENT_MARKER="$PARSED_MARKERS"
+            elif [ -n "$PARSED_MARKER" ]; then
+              EVENT_MARKER="$PARSED_MARKER"
+            fi
+          fi
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+          TARGET_REPORT_DIR=${{ env.TARGET_REPORT_DIR }}
+          ARGS="--report-dir \"$TARGET_REPORT_DIR\""
 
-      - name: Download reports artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: test-reports
-          path: reports
+          if [ -n "$EVENT_PROJECTS" ]; then
+            ARGS="$ARGS --projects \"$EVENT_PROJECTS\""
+          elif [ -n "$EVENT_PROJECT" ]; then
+            ARGS="$ARGS --project $EVENT_PROJECT"
+          fi
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+          if [ -n "$EVENT_MARKER" ]; then
+            ARGS="$ARGS --marker \"$EVENT_MARKER\""
+          fi
 
-      - name: Create virtual environment
-        run: python -m venv venv
+          echo "Executing: python utils/generate_reports.py $ARGS"
+          eval python utils/generate_reports.py $ARGS
 
-      - name: Install dependencies
-        run: |
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Generate Excel report
-        env:
-          RUN_PYTEST: 'false'
-        run: |
-          source venv/bin/activate
-          python utils/generate_reports.py
-
-      - name: Verify reports exist
+      - name: Verify generated reports
         run: |
           echo "Checking for report files..."
-          test -f reports/report.html && echo "✓ HTML report found" || { echo "✗ HTML report missing"; exit 1; }
-          test -f reports/report.xlsx && echo "✓ Excel report found" || { echo "✗ Excel report missing"; exit 1; }
-          echo "All reports verified!"
+          test -f "${{ env.TARGET_REPORT_DIR }}/report.json" && echo "✓ JSON report found" || exit 1
+          test -f "${{ env.TARGET_REPORT_DIR }}/report.html" && echo "✓ HTML report found" || exit 1
+          test -f "${{ env.TARGET_REPORT_DIR }}/report.xlsx" && echo "✓ Excel report found" || exit 1
 
-      # 📧 SIMPLE EMAIL (STABLE)
+      - name: Upload report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-reports
+          path: ${{ env.TARGET_REPORT_DIR }}
+
       - name: Send report email
+        if: always()
         uses: dawidd6/action-send-mail@v4
         with:
+          secure: true
           server_address: smtp.gmail.com
-          server_port: 587
+          server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-
           subject: >
-            ${{ github.ref_name == 'master' && github.event_name == 'push'
-              && format('Master Test Report - Run #{0}', github.run_number)
-              || format('Test Report [{0}] - Run #{1}', github.ref_name, github.run_number) }}
-
+            [CI][Automation] ${{ github.repository }} | ${{ github.ref_name }} | Run #${{ github.run_number }}
           body: |
-            Hello Team,
+            Automation test execution completed.
 
-            The test execution has completed successfully.
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Workflow: ${{ github.workflow }}
+            Run number: #${{ github.run_number }}
+            Report path: ${{ env.TARGET_REPORT_DIR }}
+            Status: ${{ job.status }}
 
-            Execution Details:
-            - Repository: ${{ github.repository }}
-            - Branch: ${{ github.ref_name }}
-            - Trigger: ${{ github.event_name }}
-            - Run Number: ${{ github.run_number }}
-
-            Reports are attached for your review.
+            Attached: report.html, report.xlsx
 
             Regards,
-            Automation Bot
-
+            Automation CI
           to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_FROM }}
-
           attachments: |
-            ${{ env.REPORT_HTML }}
-            ${{ env.REPORT_EXCEL }}
+            ${{ env.TARGET_REPORT_DIR }}/report.html
+            ${{ env.TARGET_REPORT_DIR }}/report.xlsx

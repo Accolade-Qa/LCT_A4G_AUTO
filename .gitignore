@@ -12,6 +12,7 @@ venv/
 ENV/
 .env/
 .env
+config/*.env
 
 # Packaging
 build/

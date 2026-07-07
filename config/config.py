@@ -8,6 +8,10 @@ ROOT = Path(__file__).resolve().parent
 load_dotenv(dotenv_path=ROOT.parent / ".env")
 
 PROJECT = os.getenv("PROJECT", "lct").lower()
+PROJECT_ENV_PATH = ROOT / f"{PROJECT}.env"
+if PROJECT_ENV_PATH.exists():
+    load_dotenv(dotenv_path=PROJECT_ENV_PATH, override=True)
+
 PROJECT_CONFIG_PATH = ROOT / f"{PROJECT}.yaml"
 
 _PROJECT_CONFIG = {}
@@ -25,15 +29,15 @@ def _get(key, default=None):
 
 
 def _get_bool(key, default=False):
+    env_value = os.getenv(key)
+    if env_value is not None:
+        return str(env_value).lower() == "true"
+
     project_value = _PROJECT_CONFIG.get(key.lower())
     if isinstance(project_value, bool):
         return project_value
     if project_value is not None:
         return str(project_value).lower() == "true"
-
-    env_value = os.getenv(key)
-    if env_value is not None:
-        return str(env_value).lower() == "true"
 
     return default
 
@@ -41,8 +45,13 @@ def _get_bool(key, default=False):
 BASE_URL = _get("BASE_URL")
 USERNAME = _get("USERNAME", _get("APP_USERNAME"))
 PASSWORD = _get("PASSWORD", _get("APP_PASSWORD"))
+TICKET_BASE_URL = _get(
+    "TICKET_BASE_URL", "https://aepl-tcu4g-qa.accoladeelectronics.com:6109"
+)
+TICKET_USERNAME = _get("TICKET_USERNAME", _get("APP_USERNAME"))
+TICKET_PASSWORD = _get("TICKET_PASSWORD", _get("APP_PASSWORD"))
 BROWSER = _get("BROWSER", "chromium")
-HEADLESS = _get_bool("HEADLESS", False)
+HEADLESS = _get_bool("HEADLESS", True)
 SCREENSHOT_ON_FAILURE = _get_bool("SCREENSHOT_ON_FAILURE", True)
 LOG_LEVEL = _get("LOG_LEVEL", "INFO")
 VIDEO_RECORDING = _get_bool("VIDEO_RECORDING", False)
@@ -139,6 +148,42 @@ CREATE_NEW_MODEL = _get(
 UPDATE_MODEL = _get(
     "UPDATE_MODEL",
     "http://lct-a4g-qa.accoladeelectronics.com/model-firmware/11",
+)
+TICKET_DASHBOARD_URL = _get(
+    "TICKET_DASHBOARD_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/ticket-dashboard",
+)
+MY_AIS_TICKET_URL = _get(
+    "MY_AIS_TICKET_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/my-ais-ticket",
+)
+FOTA_URL = _get(
+    "FOTA_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/fota",
+)
+TML_REQUEST_LOG_URL = _get(
+    "TML_REQUEST_LOG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/tml-request-log",
+)
+AEPL_RESPONSE_LOG_URL = _get(
+    "AEPL_RESPONSE_LOG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/aepl-response-log",
+)
+STATUS_UPDATE_LOG_URL = _get(
+    "STATUS_UPDATE_LOG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/status-update-log",
+)
+DEVICE_STATE_CONFIG_URL = _get(
+    "DEVICE_STATE_CONFIG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/device-state-config",
+)
+DEVICE_VIN_CONFIG_URL = _get(
+    "DEVICE_VIN_CONFIG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/device-vin-config",
+)
+DEVICE_ACTIVITY_LOG_URL = _get(
+    "DEVICE_ACTIVITY_LOG_URL",
+    "http://lct-a4g-qa.accoladeelectronics.com/device-activity-log",
 )
 
 # Expected permission counts per project (can be overridden in project YAML)

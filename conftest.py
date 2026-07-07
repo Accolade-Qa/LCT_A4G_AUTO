@@ -3,7 +3,6 @@ import json
 import os
 import sys
 from pathlib import Path
-from config.config import CUSTOMER_MASTER_URL
 
 import pytest
 from playwright.sync_api import sync_playwright
@@ -11,10 +10,10 @@ from playwright.sync_api import sync_playwright
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import config.config as config_module
-from config.global_var import SCREENSHOT_PATH
-from pages.base_page import BasePage
+from config.global_var import get_project_screenshot_path
+from pages.common_base_page import BasePage
 
-os.makedirs(SCREENSHOT_PATH, exist_ok=True)
+os.makedirs(get_project_screenshot_path(), exist_ok=True)
 
 # Path to cached authenticated storage state to avoid UI login every test
 STORAGE_STATE_PATH = os.path.join(
@@ -24,6 +23,8 @@ STORAGE_STATE_PATH = os.path.join(
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+VALID_PROJECTS = ("atcu", "lct", "sampark", "swaraj", "trio")
 
 ZOOM_SCRIPT = """
 () => {
@@ -60,17 +61,33 @@ def playwright_instance():
 
 # Browser
 @pytest.fixture(scope="session")
-def browser(playwright_instance):
+def browser(playwright_instance, request):
     browser_type = getattr(playwright_instance, config_module.BROWSER)
 
+    cli_headless = request.config.getoption("--headless")
+    effective_headless = True if cli_headless else config_module.HEADLESS
+
+    launch_args = []
+    if effective_headless:
+        launch_args = [
+            "--disable-gpu",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--window-size=1920,1080",
+        ]
+    else:
+        launch_args = ["--start-maximized"]
+
     browser = browser_type.launch(
-        headless=config_module.HEADLESS,
-        args=["--start-maximized", "--kiosk"],
+        headless=effective_headless,
+        args=launch_args,
     )
     logger.info(
-        "Launched browser instance (%s) headless=%s in fullscreen mode",
+        "Launched browser instance (%s) headless=%s args=%s",
         config_module.BROWSER,
-        config_module.HEADLESS,
+        effective_headless,
+        launch_args,
     )
 
     yield browser
@@ -100,12 +117,60 @@ def pytest_addoption(parser):
         default=os.getenv("PROJECT", "lct"),
         help="Project name to select the configuration",
     )
+    parser.addoption(
+        "--headless",
+        action="store_true",
+        default=False,
+        help="Run browser in headless mode",
+    )
 
 
 def pytest_configure(config):
     project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower()
+    if project not in VALID_PROJECTS:
+        raise pytest.UsageError(
+            f"Invalid project '{project}'. Must be one of: {', '.join(VALID_PROJECTS)}"
+        )
+
     os.environ["PROJECT"] = project
     importlib.reload(config_module)
+
+    required_configs = ("BASE_URL", "USERNAME", "PASSWORD", "BROWSER")
+    missing = [key for key in required_configs if not getattr(config_module, key, None)]
+    if missing:
+        raise ValueError(
+            f"Missing required config values for project '{project}': "
+            f"{', '.join(missing)}. Check config/{project}.yaml"
+        )
+
+    logger.info("=" * 60)
+    logger.info("PYTEST STARTUP - Project Configuration")
+    logger.info("=" * 60)
+    logger.info("PROJECT: %s", project)
+    logger.info("BASE_URL: %s", config_module.BASE_URL)
+    logger.info(
+        "BROWSER: %s (headless=%s)", config_module.BROWSER, config_module.HEADLESS
+    )
+    logger.info("=" * 60)
+
+
+def pytest_collection_modifyitems(config, items):
+    current_project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower()
+    project_markers = set(VALID_PROJECTS)
+
+    for item in items:
+        item_markers = {marker.name for marker in item.iter_markers()}
+        test_projects = item_markers & project_markers
+
+        if test_projects and current_project not in test_projects:
+            item.add_marker(
+                pytest.mark.skip(
+                    reason=(
+                        f"Test marked for {', '.join(sorted(test_projects))}, "
+                        f"running {current_project}"
+                    )
+                )
+            )
 
 
 @pytest.fixture(scope="session")
@@ -130,9 +195,19 @@ def project_config():
         "government_servers_url": config_module.GOVERNMENT_SERVERS_URL,
         "dispatched_device_url": config_module.DISPATCHED_DEVICE_URL,
         "profile_url": config_module.PROFILE_URL,
+        "customer_master_url": config_module.CUSTOMER_MASTER_URL,
         "model_url": config_module.MODEL_URL,
         "create_new_model": config_module.CREATE_NEW_MODEL,
         "update_model": config_module.UPDATE_MODEL,
+        "ticket_dashboard_url": config_module.TICKET_DASHBOARD_URL,
+        "my_ais_ticket_url": config_module.MY_AIS_TICKET_URL,
+        "fota_url": config_module.FOTA_URL,
+        "tml_request_log_url": config_module.TML_REQUEST_LOG_URL,
+        "aepl_response_log_url": config_module.AEPL_RESPONSE_LOG_URL,
+        "status_update_log_url": config_module.STATUS_UPDATE_LOG_URL,
+        "device_state_config_url": config_module.DEVICE_STATE_CONFIG_URL,
+        "device_vin_config_url": config_module.DEVICE_VIN_CONFIG_URL,
+        "device_activity_log_url": config_module.DEVICE_ACTIVITY_LOG_URL,
         "api_base_url": config_module.API_BASE_URL,
         "page_title": config_module.PAGE_TITLE,
         "imei": config_module.IMEI,
@@ -150,11 +225,57 @@ def project_config():
 @pytest.fixture(scope="session")
 def test_data(project_config):
     project = project_config["project"]
-    path = Path(__file__).parent / "test_data" / project / "login.json"
-    if path.exists():
-        with path.open("r", encoding="utf-8") as json_file:
-            return json.load(json_file)
-    return {}
+    test_data_root = Path(__file__).parent / "test_data"
+    data_files = (
+        "login.json",
+        "device_data.json",
+        "user_data.json",
+        "customer_data.json",
+    )
+
+    combined_data = {}
+    for data_file in data_files:
+        data_path = test_data_root / project / data_file
+        if not data_path.exists():
+            data_path = test_data_root / "common" / data_file
+
+        if data_path.exists():
+            with data_path.open("r", encoding="utf-8") as json_file:
+                file_data = json.load(json_file)
+            data_key = data_file.replace(".json", "")
+            combined_data[data_key] = file_data
+
+            if data_file == "login.json" and isinstance(file_data, dict):
+                combined_data.update(file_data)
+
+    logger.info(
+        "Loaded test data for project %s: %s",
+        project,
+        ", ".join(sorted(combined_data.keys())) or "none",
+    )
+    return combined_data
+
+
+@pytest.fixture(scope="session", autouse=True)
+def validate_project_config(project_config):
+    required_keys = (
+        "base_url",
+        "username",
+        "password",
+        "browser",
+        "api_base_url",
+        "api_username",
+        "api_password",
+    )
+    missing_keys = [key for key in required_keys if not project_config.get(key)]
+
+    if missing_keys:
+        raise ValueError(
+            f"Missing required config keys for project "
+            f"'{project_config['project']}': {', '.join(missing_keys)}"
+        )
+
+    logger.info("Project config validation passed for %s", project_config["project"])
 
 
 @pytest.fixture
@@ -162,7 +283,7 @@ def login_page(browser):
     context = _new_context_with_zoom(browser, accept_downloads=True)
     page = context.new_page()
 
-    from pages.login_page import LoginPage
+    from pages.common_login_page import LoginPage
 
     login = LoginPage(page)
     yield login
@@ -182,7 +303,7 @@ def page(browser, project_config):
     page = context.new_page()
     logger.info("New page opened")
 
-    from pages.login_page import LoginPage
+    from pages.common_login_page import LoginPage
 
     login = LoginPage(page)
     login.load(project_config["base_url"])
@@ -248,13 +369,26 @@ def pytest_runtest_makereport(item, call):
         page = item.funcargs.get("page")
         if page:
             logger.warning("Test %s failed, capturing screenshot", item.name)
-            page.screenshot(path=f"{SCREENSHOT_PATH}/{item.name}.png", full_page=True)
+            screenshot_path = get_project_screenshot_path()
+            os.makedirs(screenshot_path, exist_ok=True)
+            safe_nodeid = item.nodeid
+            safe_nodeid = (
+                safe_nodeid.replace("::", "__").replace("/", "_").replace("\\", "_")
+            )
+            safe_nodeid = safe_nodeid.replace(" ", "_")
+            import re
+
+            safe_nodeid = re.sub(r'[<>:"\\|?*]+', "_", safe_nodeid)
+            page.screenshot(
+                path=os.path.join(screenshot_path, f"{safe_nodeid}.png"),
+                full_page=True,
+            )
 
 
 # Page Fixtures
 @pytest.fixture
 def dashboard_page(page, project_config):
-    from pages.dashboard_page import DashboardPage
+    from pages.common_dashboard_page import DashboardPage
 
     dashboard = DashboardPage(page)
     dashboard.go_to_dashboard(project_config["dashboard_url"])
@@ -264,7 +398,7 @@ def dashboard_page(page, project_config):
 
 @pytest.fixture
 def sim_data_details_page(page, project_config):
-    from pages.sim_data_details_page import SimDataDetailsPage
+    from pages.common_sim_data_details_page import SimDataDetailsPage
 
     sim_data_details = SimDataDetailsPage(page)
     sim_data_details.go_to_simbatchpage(project_config["sim_data_details_url"])
@@ -274,7 +408,7 @@ def sim_data_details_page(page, project_config):
 
 @pytest.fixture
 def role_management_page(page, project_config):
-    from pages.role_management_page import RoleManagementPage
+    from pages.common_role_management_page import RoleManagementPage
 
     role_management = RoleManagementPage(page)
     role_management.go_to_rolemanagementpage(project_config["role_management_url"])
@@ -284,7 +418,7 @@ def role_management_page(page, project_config):
 
 @pytest.fixture
 def role_group_page(page, project_config):
-    from pages.role_group_page import RoleGroupPage
+    from pages.common_role_group_page import RoleGroupPage
 
     role_group = RoleGroupPage(page)
     role_group.go_to_role_group_page(project_config["role_group_url"])
@@ -299,8 +433,8 @@ def device_details_page(page, project_config, test_data):
         "imei", "866677075606341"
     )
 
-    from pages.dashboard_page import DashboardPage
-    from pages.device_details_page import DeviceDetailsPage
+    from pages.common_dashboard_page import DashboardPage
+    from pages.common_device_details_page import DeviceDetailsPage
 
     base = BasePage(page)
     dashboard = DashboardPage(page)
@@ -322,8 +456,8 @@ def device_details_page(page, project_config, test_data):
 
 @pytest.fixture
 def ota_page(page, project_config):
-    from pages.ota_page import OtaPage
-    from pages.base_page import BasePage
+    from pages.common_ota_page import OtaPage
+    from pages.common_base_page import BasePage
 
     ota = OtaPage(page)
     base = BasePage(page)
@@ -334,8 +468,8 @@ def ota_page(page, project_config):
 
 @pytest.fixture
 def dispatched_device_page(page, project_config):
-    from pages.dispatched_device_page import DispatchedDevicePage
-    from pages.base_page import BasePage
+    from pages.common_dispatched_device_page import DispatchedDevicePage
+    from pages.common_base_page import BasePage
 
     dispatched_device = DispatchedDevicePage(page)
     base = BasePage(page)
@@ -346,8 +480,8 @@ def dispatched_device_page(page, project_config):
 
 @pytest.fixture
 def govt_server_page(page, project_config):
-    from pages.govt_server_page import GovtServerPage
-    from pages.base_page import BasePage
+    from pages.common_govt_server_page import GovtServerPage
+    from pages.common_base_page import BasePage
 
     govtserver = GovtServerPage(page)
     base = BasePage(page)
@@ -360,8 +494,8 @@ def govt_server_page(page, project_config):
 
 @pytest.fixture
 def profile_page(page, project_config):
-    from pages.profile_page import ProfilePage
-    from pages.base_page import BasePage
+    from pages.common_profile_page import ProfilePage
+    from pages.common_base_page import BasePage
 
     profile = ProfilePage(page)
     base = BasePage(page)
@@ -374,16 +508,16 @@ def profile_page(page, project_config):
 
 @pytest.fixture
 def customer_master(page):
-    from pages.customer_master_page import CustomerMasterPage
+    from pages.common_customer_master_page import CustomerMasterPage
 
     customermaster = CustomerMasterPage(page)
-    customermaster.go_to_customer(CUSTOMER_MASTER_URL)
+    customermaster.go_to_customer(config_module.CUSTOMER_MASTER_URL)
     return customermaster
 
 
 @pytest.fixture
 def user_management(page, project_config):
-    from pages.user_management_page import UserManagementPage
+    from pages.common_user_management_page import UserManagementPage
 
     usermanagement = UserManagementPage(page)
     usermanagement.go_to_user(project_config["user_management_url"])
@@ -392,7 +526,7 @@ def user_management(page, project_config):
 
 @pytest.fixture
 def model_page(page, project_config):
-    from pages.model_page import DeviceModel
+    from pages.common_model_page import DeviceModel
 
     model = DeviceModel(page)
     model.go_to_model(project_config["model_url"])
@@ -402,13 +536,24 @@ def model_page(page, project_config):
 
 @pytest.fixture
 def production_devices_page(page, project_config):
-    from pages.production_devices_page import ProductionDevices
+    from pages.common_production_devices_page import ProductionDevices
 
     production = ProductionDevices(page)
     base = BasePage(page)
     base.navigate_to(project_config["production_page_url"])
     logger.info("Production devices page fixture ready")
     return production
+
+
+@pytest.fixture
+def tml_request_log_page(page, project_config):
+    from pages.atcu.atcu_tml_request_log_page import AtcuTmlRequestLogPage
+
+    tml_request_log = AtcuTmlRequestLogPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["tml_request_log_url"])
+    logger.info("TML Request Log page fixture ready")
+    return tml_request_log
 
 
 # API Fixtures
@@ -424,34 +569,34 @@ def api_context(project_config):
 
 @pytest.fixture
 def sim_batch_api(page, api_context):
-    from pages.api.sim_batch_api import SIMBatchAPI
+    from api.sim_batch_api import SIMBatchAPI
 
     return SIMBatchAPI
 
 
 @pytest.fixture
 def customer_api(page, api_context):
-    from pages.api.customer_api import CustomerAPI
+    from api.customer_api import CustomerAPI
 
     return CustomerAPI
 
 
 @pytest.fixture
 def device_dashboard_api(page, api_context):
-    from pages.api.device_dashboard_api import DeviceDashboardAPI
+    from api.device_dashboard_api import DeviceDashboardAPI
 
     return DeviceDashboardAPI
 
 
 @pytest.fixture
 def login_api_fixture(page, api_context):
-    from pages.api.login_api import LoginAPI
+    from api.login_api import LoginAPI
 
     return LoginAPI
 
 
 @pytest.fixture
 def govt_server_api(page, api_context):
-    from pages.api.government_server_api import GovtServerAPI
+    from api.government_server_api import GovtServerAPI
 
     return GovtServerAPI

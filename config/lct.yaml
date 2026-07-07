@@ -17,10 +17,6 @@ model_url: "http://lct-a4g-qa.accoladeelectronics.com/model"
 create_new_model: "http://lct-a4g-qa.accoladeelectronics.com/model-firmware"
 update_model: "http://lct-a4g-qa.accoladeelectronics.com/model-firmware/11"
 api_base_url: "http://lct-a4g-qa.accoladeelectronics.com:9090"
-username: "suraj.bhalerao@accoladeelectronics.com"
-password: "8SI514X@"
-api_username: "suraj.bhalerao@accoladeelectronics.com"
-api_password: "8SI514X@"
 browser: chromium
 headless: false
 screenshot_on_failure: true

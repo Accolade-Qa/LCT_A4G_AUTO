@@ -17,10 +17,6 @@ model_url: "http://swaraj-qa.example.com/model"
 create_new_model: "http://swaraj-qa.example.com/model-firmware"
 update_model: "http://swaraj-qa.example.com/model-firmware/11"
 api_base_url: "http://swaraj-qa.example.com:9090"
-username: "swaraj_user@example.com"
-password: "ChangeMe123"
-api_username: "swaraj_user@example.com"
-api_password: "ChangeMe123"
 browser: chromium
 headless: false
 screenshot_on_failure: true
