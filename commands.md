@@ -133,6 +133,32 @@ pytest -m regression --html=reports/report.html --self-contained-html
 pytest -m regression -v --log-cli-level=DEBUG
 ```
 
+```bash
+# Generate custom dashboard report for a specific project
+.\.venv\Scripts\python utils\generate_reports.py -p atcu
+
+# Generate custom dashboard report for a different project
+.\.venv\Scripts\python utils\generate_reports.py -p lct
+
+# Generate custom dashboard reports for multiple projects
+.\.venv\Scripts\python utils\generate_reports.py --projects atcu,lct
+
+# Generate report with multiple test markers (comma-separated, space-separated, or quoted)
+.\.venv\Scripts\python utils\generate_reports.py --project lct --markers smoke, ui
+.\.venv\Scripts\python utils\generate_reports.py --project lct --markers "smoke, ui"
+.\.venv\Scripts\python utils\generate_reports.py --project lct --markers smoke ui
+
+# Trigger GitHub Actions workflow with multiple markers
+python trigger_project_report.py --owner Accolade-Qa --repo LCT_A4G_AUTO --token YOUR_TOKEN --project lct --marker smoke, ui
+python trigger_project_report.py --owner Accolade-Qa --repo LCT_A4G_AUTO --token YOUR_TOKEN --project lct --marker "smoke or ui"
+
+# Generate report from existing JSON without running pytest
+.\.venv\Scripts\python utils\generate_reports.py --project atcu --skip-pytest
+
+# Generate report into a custom directory
+.\.venv\Scripts\python utils\generate_reports.py --project atcu --report-dir reports
+```
+
 ## Browser & Display Options
 
 ```bash
@@ -239,3 +265,62 @@ If you're new to this repo:
    ```bash
    pytest -m smoke -v
    ```
+
+
+## Running All Projects
+
+   PowerShell — run sequentially (sets `PROJECT` per run):
+   ```powershell
+   $projects = 'lct','sampark','swaraj','trio'
+   foreach ($p in $projects) {
+      $env:PROJECT = $p
+      python -m pytest tests -q --project $p
+   }
+   ```
+
+   PowerShell — run in parallel using background jobs:
+   ```powershell
+   $projects = 'lct','sampark','swaraj','trio'
+   $jobs = @()
+   foreach ($p in $projects) {
+      $jobs += Start-Job -ScriptBlock { param($proj) python -m pytest tests -q --project $proj } -ArgumentList $p
+   }
+   Wait-Job -Job $jobs
+   $jobs | Receive-Job
+   ```
+
+   PowerShell — run with CPU affinity (use the provided runner):
+   ```powershell
+   # Launch one pytest process per project and bind to cores
+   PowerShell -ExecutionPolicy Bypass -File run-parallel-projects.ps1
+   ```
+
+   Bash (Linux / WSL) — sequential:
+   ```bash
+   for p in lct sampark swaraj trio; do
+      PROJECT=$p python -m pytest tests -q --project $p || exit 1
+   done
+   ```
+
+   Bash — parallel with background processes (logs per project):
+   ```bash
+   for p in lct sampark swaraj trio; do
+      PROJECT=$p python -m pytest tests -q --project $p > tests_$p.log 2>&1 &
+   done
+   wait
+   ```
+
+   Notes:
+   - The `run-parallel-projects.ps1` script uses `start /affinity` to set CPU affinity per process. If you prefer `taskset` on Linux/WSL, I can add a bash runner.
+   - Tune project list and pytest options (`-n auto`, markers, verbosity) to your CI needs.
+
+
+## setting the virtual enviroment by command 
+```bash
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& d:\AEPL_AUTOMATION\LCT_A4G_AUTO\.venv\Scripts\Activate.ps1)
+```
+
+## Remove the __pycache__ folders from all folders
+```bash
+   Get-ChildItem -Path . -Filter "__pycache__" -Recurse -Directory | Remove-Item -Force -Recurse
+```

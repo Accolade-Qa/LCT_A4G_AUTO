@@ -77,6 +77,24 @@ VIDEO_RECORDING=false
 
 Additional browser launch arguments can be injected in `conftest.py` via the `args` list for custom debugging or CI requirements.
 
+## Multi-project support
+
+The framework supports environment-specific configuration through `config/<project>.yaml` and `test_data/<project>/`.
+
+Run the suite for a specific project with:
+```bash
+pytest --project=lct
+pytest --project=sampark
+pytest --project=swaraj
+pytest --project=trio
+```
+
+A `PROJECT` environment variable may also be used before running tests:
+```bash
+set PROJECT=lct
+pytest
+```
+
 ## Project layout
 
 ```
