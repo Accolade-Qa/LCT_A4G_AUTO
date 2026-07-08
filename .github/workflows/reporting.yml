@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
-      - main
-      - atcu
+      - dev
+      - suraj
   workflow_dispatch:
     inputs:
       project:
@@ -122,7 +122,7 @@ jobs:
           name: automation-reports
           path: ${{ env.TARGET_REPORT_DIR }}
 
-      - name: Send report email
+      - name: Send Execution Report Email
         if: always()
         uses: dawidd6/action-send-mail@v4
         with:
@@ -131,22 +131,29 @@ jobs:
           server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: >
-            [CI][Automation] ${{ github.repository }} | ${{ github.ref_name }} | Run #${{ github.run_number }}
+          subject: >-
+            [CI/CD Notice] Test Execution Report: ${{ github.repository }} | Branch: ${{ github.ref_name }} (Run #${{ github.run_number }})
           body: |
-            Automation test execution completed.
+            Dear Team,
 
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Workflow: ${{ github.workflow }}
-            Run number: #${{ github.run_number }}
-            Report path: ${{ env.TARGET_REPORT_DIR }}
-            Status: ${{ job.status }}
+            Please find below the automated test execution summary for the latest continuous integration run.
 
-            Attached: report.html, report.xlsx
+            Execution Details:
+            --------------------------------------------------
+            Repository:      ${{ github.repository }}
+            Branch/Ref:      ${{ github.ref_name }}
+            Workflow:        ${{ github.workflow }}
+            Run Number:      #${{ github.run_number }}
+            Job Status:      ${{ env.JOB_STATUS_PROFESSIONAL }}
 
-            Regards,
-            Automation CI
+            The comprehensive analysis files have been generated and successfully attached to this transmission:
+            - Execution Overview (HTML)
+            - Detailed Test Metrics (XLSX)
+
+            For full logs and historical data, please review the workflow run directly on GitHub.
+
+            Sincerely,
+            Automated CI/CD Notification System
           to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_FROM }}
           attachments: |
