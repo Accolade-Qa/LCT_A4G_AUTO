@@ -111,9 +111,38 @@ jobs:
       - name: Verify generated reports
         run: |
           echo "Checking for report files..."
-          test -f "${{ env.TARGET_REPORT_DIR }}/report.json" && echo "✓ JSON report found" || exit 1
-          test -f "${{ env.TARGET_REPORT_DIR }}/report.html" && echo "✓ HTML report found" || exit 1
-          test -f "${{ env.TARGET_REPORT_DIR }}/report.xlsx" && echo "✓ Excel report found" || exit 1
+          REPORT_FILES=$(find "${{ env.TARGET_REPORT_DIR }}" -type f \( -name 'report.json' -o -name 'report.html' -o -name 'report.xlsx' \) | sort)
+          echo "$REPORT_FILES"
+          if [ -z "$REPORT_FILES" ]; then
+            echo "No generated report files found"
+            exit 1
+          fi
+
+      - name: Resolve report attachments
+        id: report_attachments
+        if: always()
+        shell: bash
+        run: |
+          set -e
+          BASE_DIR="${{ env.TARGET_REPORT_DIR }}"
+          if [ ! -d "$BASE_DIR" ]; then
+            echo "Report directory not found: $BASE_DIR"
+            exit 0
+          fi
+
+          mapfile -t ATTACHMENTS < <(find "$BASE_DIR" -type f \( -name 'report.html' -o -name 'report.xlsx' \) | sort)
+          if [ ${#ATTACHMENTS[@]} -eq 0 ]; then
+            echo "No report attachments found"
+            exit 0
+          fi
+
+          printf '%s\n' "${ATTACHMENTS[@]}" > attachment_paths.txt
+          echo "attachments<<EOF" >> "$GITHUB_OUTPUT"
+          cat attachment_paths.txt >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+          echo "Resolved report attachments:"
+          cat attachment_paths.txt
 
       - name: Upload report artifacts
         if: always()
@@ -156,6 +185,4 @@ jobs:
             Automated CI/CD Notification System
           to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_FROM }}
-          attachments: |
-            ${{ env.TARGET_REPORT_DIR }}/report.html
-            ${{ env.TARGET_REPORT_DIR }}/report.xlsx
+          attachments: ${{ steps.report_attachments.outputs.attachments }}
