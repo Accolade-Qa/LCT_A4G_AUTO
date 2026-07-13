@@ -9,11 +9,43 @@ from config.global_var import (
 )
 
 
-def _ensure_log_dir():
-    """Create logs directory if not present."""
-    logs_path = get_project_logs_path()
-    if not os.path.isdir(logs_path):
-        os.makedirs(logs_path, exist_ok=True)
+def _ensure_log_dir(log_file_path: Path):
+    """Create logs directory if not present before the first log write."""
+    log_dir = log_file_path.parent
+    if not log_dir.is_dir():
+        log_dir.mkdir(parents=True, exist_ok=True)
+
+
+class _LazyFileHandler(logging.FileHandler):
+    def __init__(self, filename, mode="a", encoding=None, delay=True):
+        super().__init__(filename, mode=mode, encoding=encoding, delay=delay)
+        self._dir_ensured = False
+
+    def emit(self, record):
+        if not self._dir_ensured:
+            _ensure_log_dir(Path(self.baseFilename))
+            self._dir_ensured = True
+        return super().emit(record)
+
+
+def enable_file_logging():
+    """Activate lazy file logging for loggers created in this process."""
+    global _FILE_LOGGING_ENABLED, _FILE_HANDLER
+
+    if _FILE_LOGGING_ENABLED:
+        return
+
+    _FILE_LOGGING_ENABLED = True
+    if _FILE_HANDLER is None:
+        _FILE_HANDLER = _LazyFileHandler(
+            _get_log_file_path(), encoding="utf-8", delay=True
+        )
+        _FILE_HANDLER.setLevel(logging.DEBUG)
+        _FILE_HANDLER.setFormatter(_FORMATTER)
+
+    for logger in list(logging.root.manager.loggerDict.values()):
+        if isinstance(logger, logging.Logger) and _FILE_HANDLER not in logger.handlers:
+            logger.addHandler(_FILE_HANDLER)
 
 
 def _suite_log_name() -> str:
@@ -27,6 +59,7 @@ def _suite_log_name() -> str:
 _LOG_FILE_PATH: Path | None = None
 _FILE_HANDLER: logging.FileHandler | None = None
 _CONSOLE_HANDLER: logging.StreamHandler | None = None
+_FILE_LOGGING_ENABLED = False
 _FORMATTER = logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s")
 
 
@@ -35,7 +68,6 @@ def _get_log_file_path() -> Path:
     global _LOG_FILE_PATH
 
     if _LOG_FILE_PATH is None:
-        _ensure_log_dir()
         _LOG_FILE_PATH = Path(get_project_logs_path()) / _suite_log_name()
 
     return _LOG_FILE_PATH
@@ -59,19 +91,21 @@ def get_logger(name: str) -> logging.Logger:
     global _FILE_HANDLER, _CONSOLE_HANDLER
 
     # File handler is delayed so imports/collection do not create empty log files.
-    if _FILE_HANDLER is None:
-        _FILE_HANDLER = logging.FileHandler(
-            _get_log_file_path(), encoding="utf-8", delay=True
-        )
-        _FILE_HANDLER.setLevel(logging.DEBUG)
-        _FILE_HANDLER.setFormatter(_FORMATTER)
+    if _FILE_LOGGING_ENABLED:
+        if _FILE_HANDLER is None:
+            _FILE_HANDLER = _LazyFileHandler(
+                _get_log_file_path(), encoding="utf-8", delay=True
+            )
+            _FILE_HANDLER.setLevel(logging.DEBUG)
+            _FILE_HANDLER.setFormatter(_FORMATTER)
+        if _FILE_HANDLER not in logger.handlers:
+            logger.addHandler(_FILE_HANDLER)
 
     if _CONSOLE_HANDLER is None:
         _CONSOLE_HANDLER = logging.StreamHandler()
         _CONSOLE_HANDLER.setLevel(logging.INFO)
         _CONSOLE_HANDLER.setFormatter(_FORMATTER)
 
-    logger.addHandler(_FILE_HANDLER)
     logger.addHandler(_CONSOLE_HANDLER)
 
     return logger

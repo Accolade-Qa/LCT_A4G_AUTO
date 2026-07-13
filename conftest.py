@@ -13,7 +13,7 @@ import config.config as config_module
 from config.global_var import get_project_screenshot_path
 from pages.common_base_page import BasePage
 
-os.makedirs(get_project_screenshot_path(), exist_ok=True)
+# Screenshot directories are created lazily when a failure screenshot is captured.
 
 # Path to cached authenticated storage state to avoid UI login every test
 STORAGE_STATE_PATH = os.path.join(
