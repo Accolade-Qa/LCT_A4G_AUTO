@@ -173,7 +173,6 @@ jobs:
             Branch/Ref:      ${{ github.ref_name }}
             Workflow:        ${{ github.workflow }}
             Run Number:      #${{ github.run_number }}
-            Job Status:      ${{ env.JOB_STATUS_PROFESSIONAL }}
 
             The comprehensive analysis files have been generated and successfully attached to this transmission:
             - Execution Overview (HTML)
