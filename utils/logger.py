@@ -28,7 +28,7 @@ class _LazyFileHandler(logging.FileHandler):
         return super().emit(record)
 
 
-def enable_file_logging():
+def enable_file_logging(project: str | None = None):
     """Activate lazy file logging for loggers created in this process."""
     global _FILE_LOGGING_ENABLED, _FILE_HANDLER
 
@@ -37,9 +37,9 @@ def enable_file_logging():
 
     _FILE_LOGGING_ENABLED = True
     if _FILE_HANDLER is None:
-        _FILE_HANDLER = _LazyFileHandler(
-            _get_log_file_path(), encoding="utf-8", delay=True
-        )
+        log_path = _get_log_file_path(project=project)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        _FILE_HANDLER = _LazyFileHandler(log_path, encoding="utf-8", delay=True)
         _FILE_HANDLER.setLevel(logging.DEBUG)
         _FILE_HANDLER.setFormatter(_FORMATTER)
 
@@ -48,27 +48,29 @@ def enable_file_logging():
             logger.addHandler(_FILE_HANDLER)
 
 
-def _suite_log_name() -> str:
+def _suite_log_name(project: str | None = None) -> str:
     """Generate suite log file name."""
     suite_name = os.getenv("SUITE_NAME", "lct")
-    project = get_current_project()
+    project_name = project or get_current_project() or "lct"
     run_id = get_artifact_run_id()
-    return f"{project}_{suite_name}_{run_id}.log"
+    return f"{project_name}_{suite_name}_{run_id}.log"
 
 
 _LOG_FILE_PATH: Path | None = None
+_LOG_FILE_PROJECT: str | None = None
 _FILE_HANDLER: logging.FileHandler | None = None
 _CONSOLE_HANDLER: logging.StreamHandler | None = None
 _FILE_LOGGING_ENABLED = False
 _FORMATTER = logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s")
 
 
-def _get_log_file_path() -> Path:
+def _get_log_file_path(project: str | None = None) -> Path:
     """Return single log file path for entire execution."""
-    global _LOG_FILE_PATH
+    global _LOG_FILE_PATH, _LOG_FILE_PROJECT
 
-    if _LOG_FILE_PATH is None:
-        _LOG_FILE_PATH = Path(get_project_logs_path()) / _suite_log_name()
+    if _LOG_FILE_PATH is None or (_LOG_FILE_PROJECT is not None and project is not None and project != _LOG_FILE_PROJECT):
+        _LOG_FILE_PROJECT = project
+        _LOG_FILE_PATH = Path(get_project_logs_path(project=project)) / _suite_log_name(project=project)
 
     return _LOG_FILE_PATH
 

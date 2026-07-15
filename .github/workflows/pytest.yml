@@ -2,7 +2,7 @@ name: Python Playwright Test Suite
 
 on:
   push:
-    branches: [master,dev,suraj]
+    branches: [master]
   pull_request:
 
 jobs:

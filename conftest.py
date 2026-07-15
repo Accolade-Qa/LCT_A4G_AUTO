@@ -10,7 +10,7 @@ from playwright.sync_api import sync_playwright
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import config.config as config_module
-from config.global_var import get_project_screenshot_path
+from config.global_var import get_project_logs_path, get_project_screenshot_path
 from pages.common_base_page import BasePage
 
 # Screenshot directories are created lazily when a failure screenshot is captured.
@@ -20,7 +20,7 @@ STORAGE_STATE_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "storage_state.json"
 )
 
-from utils.logger import get_logger
+from utils.logger import enable_file_logging, get_logger
 
 logger = get_logger(__name__)
 
@@ -134,6 +134,12 @@ def pytest_configure(config):
 
     os.environ["PROJECT"] = project
     importlib.reload(config_module)
+
+    enable_file_logging(project)
+    os.makedirs(get_project_logs_path(project=project), exist_ok=True)
+    os.makedirs(get_project_screenshot_path(project=project), exist_ok=True)
+
+    logger.info("Artifact directories prepared for project %s", project)
 
     required_configs = ("BASE_URL", "USERNAME", "PASSWORD", "BROWSER")
     missing = [key for key in required_configs if not getattr(config_module, key, None)]

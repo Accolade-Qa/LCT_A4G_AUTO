@@ -1015,7 +1015,19 @@ def run_pytest(json_path, project_name=None, markers=None):
     else:
         print("Running pytest...")
 
-    result = subprocess.run(cmd, cwd=ROOT)
+    env = os.environ.copy()
+    env.setdefault("PROJECT", project_name or "lct")
+    env.setdefault("PYTEST_ADDOPTS", "")
+    env["PYTEST_ADDOPTS"] = f"{env['PYTEST_ADDOPTS']} --json-report --json-report-file={json_path}".strip()
+
+    result = subprocess.run(cmd, cwd=ROOT, env=env)
+
+    if not json_path.exists() or json_path.stat().st_size == 0:
+        fallback = {"tests": []}
+        with json_path.open("w", encoding="utf-8") as handle:
+            json.dump(fallback, handle, indent=2)
+        print(f"Warning: pytest did not produce a usable JSON report; wrote fallback at {json_path}")
+
     return result.returncode
 
 
