@@ -126,16 +126,6 @@ class TableSection:
         return table_data
 
     def get_row_data(self, row_index: int) -> dict[str, str]:
-        """
-        Returns data of a specific row index
-
-        Example:
-        {
-            "ICCID": "12345",
-            "Status": "Active"
-        }
-        """
-
         table = self.wait_for_table()
         headers = self.get_headers()
 

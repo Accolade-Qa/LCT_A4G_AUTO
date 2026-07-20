@@ -97,20 +97,21 @@ class AtcuTmlRequestLogPage(BasePage):
         logger.info("Fetching payload values from the TML Request Log API")
 
         tml_request_api = TmlRequestApi()
-        payload, VIN, UIN, ICCID, ticket_number = tml_request_api.post_tml_request_log(
+        payload, VIN, UIN, ICCID, ticket_number, data = tml_request_api.post_tml_request_log(
             self.page
         )
 
         logger.debug(
-            "Retrieved payload from API: %s, VIN: %s, UIN: %s, ICCID: %s, Ticket Number: %s",
+            "Retrieved payload from API: %s, VIN: %s, UIN: %s, ICCID: %s, Ticket Number: %s, Data: %s",
             payload,
             VIN,
             UIN,
             ICCID,
             ticket_number,
+            data,
         )
 
-        return payload, VIN, UIN, ICCID, ticket_number
+        return payload, VIN, UIN, ICCID, ticket_number, data
 
     def validate_fota_batch_addition(self):
 

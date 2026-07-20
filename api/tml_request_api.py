@@ -63,8 +63,7 @@ class TmlRequestApi:
         page=None,
         api_base_url=TICKET_BASE_URL,
     ):
-        state_name = Helpers.generate_random_state_name()
-        state_code = Helpers.generate_random_state_abbreviation()
+        state_name, state_code = Helpers.generate_random_indian_state_data()
         payload = [
             {
                 "VIN_NO": f"ACCDEV07241580{Helpers.generate_random_number(3)}",
@@ -166,6 +165,7 @@ class TmlRequestApi:
                 UIN,
                 ICCID,
                 ticket_number,
+                data
             )
 
         except Exception as e:

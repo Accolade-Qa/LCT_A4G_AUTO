@@ -93,6 +93,7 @@ class TestTmlRequestLogPage:
             expected_uin,
             expected_iccid,
             ticket_number,
+            _ ,
         ) = tml_request_log_page.get_tml_request_payload_by_api()
 
         # API payload is returned as list[dict]
@@ -182,6 +183,7 @@ class TestTmlRequestLogPage:
         (
             _,
             expected_vin,
+            _,
             _,
             _,
             _,
@@ -370,6 +372,7 @@ class TestTmlRequestLogPage:
             _,
             _,
             ticket_number,
+            _,
         ) = tml_request_log_page.get_tml_request_payload_by_api()
 
         expected_payload = (
