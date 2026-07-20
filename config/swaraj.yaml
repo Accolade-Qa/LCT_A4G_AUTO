@@ -25,5 +25,11 @@ video_recording: false
 invalid_username: ABCD
 invalid_password: "12345"
 imei: "866677075606341"
+login_user: "admin"
+valid_uid: "ACONSBA102500006341"
+valid_uin: "ACONSBA102500006341"
+command_to_search: "ABC"
+vin: "VIN001"
+iccid: "89916450244842405755"
 expected_permission_count: 16
 customer_master_url: "http://swaraj-qa.example.com/customer-master"

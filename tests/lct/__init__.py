@@ -1,1 +1,0 @@
-# LCT project-specific tests

@@ -7,10 +7,16 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import sync_playwright
 
+from pages.atcu.atcu_aepl_response_log_page import AtcuAeplResponseLogPage
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import config.config as config_module
-from config.global_var import get_project_logs_path, get_project_screenshot_path
+from config.global_var import (
+    get_project_logs_path,
+    get_project_screenshot_path,
+    prepare_project_artifact_dirs,
+)
 from pages.common_base_page import BasePage
 
 # Screenshot directories are created lazily when a failure screenshot is captured.
@@ -135,11 +141,17 @@ def pytest_configure(config):
     os.environ["PROJECT"] = project
     importlib.reload(config_module)
 
+    artifact_dirs = prepare_project_artifact_dirs(project=project)
     enable_file_logging(project)
     os.makedirs(get_project_logs_path(project=project), exist_ok=True)
     os.makedirs(get_project_screenshot_path(project=project), exist_ok=True)
 
-    logger.info("Artifact directories prepared for project %s", project)
+    logger.info(
+        "Artifact directories prepared for project %s at %s and %s",
+        project,
+        artifact_dirs["logs_dir"],
+        artifact_dirs["screenshots_dir"],
+    )
 
     required_configs = ("BASE_URL", "USERNAME", "PASSWORD", "BROWSER")
     missing = [key for key in required_configs if not getattr(config_module, key, None)]
@@ -225,40 +237,32 @@ def project_config():
         "api_username": config_module.API_USERNAME,
         "api_password": config_module.API_PASSWORD,
         "customer": config_module.CUSTOMER,
+        "login_user": config_module.LOGIN_USER,
+        "valid_uid": config_module.VALID_UID,
+        "valid_uin": config_module.VALID_UIN,
+        "command_to_search": config_module.COMMAND_TO_SEARCH,
+        "vin": config_module.VIN,
+        "iccid": config_module.ICCID,
     }
 
 
 @pytest.fixture(scope="session")
 def test_data(project_config):
     project = project_config["project"]
-    test_data_root = Path(__file__).parent / "test_data"
-    data_files = (
-        "login.json",
-        "device_data.json",
-        "user_data.json",
-        "customer_data.json",
-    )
+    combined_data = {
+        "login": {
+            "username": project_config.get("username"),
+            "password": project_config.get("password"),
+            "login_user": project_config.get("login_user"),
+            "valid_uid": project_config.get("valid_uid"),
+            "valid_uin": project_config.get("valid_uin"),
+            "command_to_search": project_config.get("command_to_search"),
+            "vin": project_config.get("vin"),
+            "iccid": project_config.get("iccid"),
+        }
+    }
 
-    combined_data = {}
-    for data_file in data_files:
-        data_path = test_data_root / project / data_file
-        if not data_path.exists():
-            data_path = test_data_root / "common" / data_file
-
-        if data_path.exists():
-            with data_path.open("r", encoding="utf-8") as json_file:
-                file_data = json.load(json_file)
-            data_key = data_file.replace(".json", "")
-            combined_data[data_key] = file_data
-
-            if data_file == "login.json" and isinstance(file_data, dict):
-                combined_data.update(file_data)
-
-    logger.info(
-        "Loaded test data for project %s: %s",
-        project,
-        ", ".join(sorted(combined_data.keys())) or "none",
-    )
+    logger.info("Loaded test data for project %s", project)
     return combined_data
 
 
@@ -560,6 +564,16 @@ def tml_request_log_page(page, project_config):
     base.navigate_to(project_config["tml_request_log_url"])
     logger.info("TML Request Log page fixture ready")
     return tml_request_log
+
+@pytest.fixture
+def aepl_response_log_page(page, project_config):
+    from pages.atcu.atcu_aepl_response_log_page import AtcuAeplResponseLogPage
+
+    aepl_response_log = AtcuAeplResponseLogPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["aepl_response_log_url"])
+    logger.info("AEPL Response Log page fixture ready")
+    return aepl_response_log
 
 
 # API Fixtures

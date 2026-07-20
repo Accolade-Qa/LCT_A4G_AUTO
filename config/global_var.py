@@ -59,3 +59,21 @@ def get_project_screenshot_path(project=None, run_id=None):
         project or get_current_project(),
         run_id or get_artifact_run_id(),
     )
+
+
+def prepare_project_artifact_dirs(project=None, run_id=None):
+    project_name = (project or get_current_project() or "lct").lower()
+    resolved_run_id = run_id or get_artifact_run_id()
+
+    logs_dir = os.path.join(LOGS_PATH, project_name, resolved_run_id)
+    screenshot_dir = os.path.join(SCREENSHOT_PATH, project_name, resolved_run_id)
+
+    os.makedirs(logs_dir, exist_ok=True)
+    os.makedirs(screenshot_dir, exist_ok=True)
+
+    return {
+        "project": project_name,
+        "run_id": resolved_run_id,
+        "logs_dir": logs_dir,
+        "screenshots_dir": screenshot_dir,
+    }

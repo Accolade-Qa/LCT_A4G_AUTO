@@ -3,6 +3,7 @@ from pages.common_base_page import BasePage
 from api.tml_request_api import TmlRequestApi
 from pages.common_utils import SearchHelper, TableSection, PaginationHelper
 import asyncio
+import threading
 import aiohttp
 
 
@@ -19,7 +20,7 @@ class AtcuTmlRequestLogPage(BasePage):
 
     def __init__(self, page):
         super().__init__(page)
-        logger.debug("Initialized OtaPage")
+        logger.debug("Initialized AtcuTmlRequestLogPage")
 
     def get_title(self):
         return super().get_title()
@@ -264,7 +265,7 @@ class AtcuTmlRequestLogPage(BasePage):
 
             payloads.append(
                 {
-                    "VIN_NO": f"ACCDEV07241580{Helpers.generate_random_number(3)}",
+                    "VIN_NO": f"MAT00007241580{Helpers.generate_random_number(3)}",
                     "ICCID": "89916420534724851291",
                     "UIN_NO": "ACON4NA082300092233",
                     "DEVICE_IMEI": "861564061380138",
@@ -390,7 +391,26 @@ class AtcuTmlRequestLogPage(BasePage):
 
                 return await asyncio.gather(*tasks)
 
-        results = asyncio.run(execute())
+        result_holder = {}
+
+        def run_in_thread():
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                result_holder["value"] = loop.run_until_complete(execute())
+            finally:
+                loop.close()
+                asyncio.set_event_loop(None)
+
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            results = asyncio.run(execute())
+        else:
+            thread = threading.Thread(target=run_in_thread)
+            thread.start()
+            thread.join()
+            results = result_holder.get("value")
 
         tickets = []
         failed_requests = []
@@ -418,3 +438,50 @@ class AtcuTmlRequestLogPage(BasePage):
             "failed_requests": failed_requests,
             "duplicates": duplicates,
         }
+
+    def get_table_data(self):
+        """
+        Returns all rows of the TML Request Log table as a list of dictionaries.
+        Each dictionary represents a row with column headers as keys.
+        """
+
+        logger.info("Fetching all rows from the TML Request Log table")
+
+        table = TableSection(self.page)
+        table_data = table.get_table_data()
+
+        logger.debug("Retrieved %s row(s) from the table", len(table_data))
+
+        first_row = table_data[0] if table_data else {}
+        sent_by_in_key = first_row.get("SENT_BY", "").strip() if first_row else None
+        logger.info("First row SENT_BY value: %s", sent_by_in_key)
+
+        institutional_sale_from_payload = first_row.get("PAYLOAD", "")
+        if isinstance(institutional_sale_from_payload, str):
+            try:
+                import json
+
+                payload_dict = json.loads(institutional_sale_from_payload)
+                institutional_sale_from_payload = payload_dict.get(
+                    "InstitutionalSales", ""
+                ).strip()
+            except json.JSONDecodeError:
+                logger.error(
+                    "Failed to decode PAYLOAD JSON for the first row: %s",
+                    institutional_sale_from_payload,
+                )
+                institutional_sale_from_payload = None
+
+        if not sent_by_in_key:
+            if institutional_sale_from_payload:
+                sent_by_in_key = (
+                    "Institutional Sales"
+                    if institutional_sale_from_payload.upper() == "Y"
+                    else "Generate Tickets API"
+                )
+            else:
+                sent_by_in_key = "Generate Tickets API"
+
+        logger.info("First row INSTITUTIONAL_SALE_FROM value: %s", institutional_sale_from_payload)
+
+        return sent_by_in_key, institutional_sale_from_payload

@@ -315,9 +315,14 @@ If you're new to this repo:
    - Tune project list and pytest options (`-n auto`, markers, verbosity) to your CI needs.
 
 
-## setting the virtual enviroment by command 
+## activate the virtual enviroment by command  
 ```bash
 (Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& d:\AEPL_AUTOMATION\LCT_A4G_AUTO\.venv\Scripts\Activate.ps1)
+```
+
+## deactivate virtual envirometn 
+```bash
+if (Get-Command deactivate -ErrorAction SilentlyContinue) { deactivate }
 ```
 
 ## Remove the __pycache__ folders from all folders

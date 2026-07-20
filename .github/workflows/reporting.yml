@@ -101,6 +101,8 @@ jobs:
 
           if [ -n "$EVENT_MARKER" ]; then
             ARGS="$ARGS --marker \"$EVENT_MARKER\""
+          elif [ -n "$CI" ]; then
+            ARGS="$ARGS --marker smoke"
           fi
 
           echo "Executing: python utils/generate_reports.py $ARGS"

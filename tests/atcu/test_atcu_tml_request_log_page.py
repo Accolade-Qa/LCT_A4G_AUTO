@@ -6,7 +6,6 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-@pytest.mark.log
 @pytest.mark.atcu
 @pytest.mark.regression
 class TestTmlRequestLogPage:
@@ -263,6 +262,40 @@ class TestTmlRequestLogPage:
         )
 
         logger.info("TML Request Log table headers validated successfully.")
+
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_tml_request_log_page_table_data(
+        self,
+        tml_request_log_page,
+        report_case,
+    ):
+        logger.info("Validating TML Request Log page table data")
+
+        sent_by, institutional_sale = tml_request_log_page.get_table_data()
+
+        logger.debug("SENT_BY: %s", sent_by)
+        logger.debug("INSTITUTIONAL_SALE_FROM: %s", institutional_sale)
+
+        if institutional_sale == "Y":
+            expected_sent_by = "Institutional Sales"
+
+        else:
+            expected_sent_by = "Generate Tickets API"
+    
+
+        report_case(
+            expected=f"SENT_BY should be '{expected_sent_by}' based on INSTITUTIONAL_SALE_FROM value '{institutional_sale}'",
+            actual=f"SENT_BY={sent_by}, INSTITUTIONAL_SALE_FROM={institutional_sale}",
+        )
+
+        assert (
+            sent_by == expected_sent_by
+        ), f"SENT_BY value does not match. Expected: {expected_sent_by}, Actual: {sent_by}"
+
+        logger.info("TML Request Log table data validated successfully.")
+
 
     # test that the pagination is working as expected
     @pytest.mark.regression

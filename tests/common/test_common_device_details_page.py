@@ -97,6 +97,7 @@ class TestDeviceDetailsPage:
         report_case(
             expected="Page loaded=True, title=Device Details",
             actual=f"Page loaded={page_loaded}, title={title}",
+            message="Navigation to device details page should be successful",
         )
         assert page_loaded
         assert title == "Device Details"

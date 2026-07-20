@@ -54,3 +54,5 @@ test_data/
 graphify-out/
 
 jmx/
+
+secret.txt

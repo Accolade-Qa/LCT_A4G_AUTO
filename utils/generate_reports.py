@@ -15,6 +15,8 @@ from jinja2 import Template
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill
 
+from config.global_var import prepare_project_artifact_dirs
+
 # ================= CONFIG =================
 ROOT = Path.cwd()
 
@@ -1282,6 +1284,38 @@ def _style_excel(excel_path, project_name=None):
 
 
 # ================= MAIN =================
+def _resolve_project_name(cli_project=None):
+    if cli_project:
+        return cli_project.strip()
+
+    env_project = os.getenv("PROJECT") or os.getenv("PYTEST_PROJECT")
+    if env_project:
+        return env_project.strip()
+
+    return None
+
+
+def _resolve_markers(cli_markers=None):
+    if cli_markers:
+        cleaned = []
+        for item in cli_markers:
+            parts = item.split(",")
+            for p in parts:
+                p_clean = p.strip()
+                if p_clean:
+                    cleaned.append(p_clean)
+        raw_joined = " ".join(cli_markers).lower()
+        has_logical = any(w in raw_joined for w in [" or ", " and ", " not "])
+        if has_logical:
+            return " ".join(cleaned)
+        return " or ".join(cleaned)
+
+    if os.getenv("CI"):
+        return "smoke"
+
+    return None
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--project", help="Project name to run.")
@@ -1311,6 +1345,8 @@ def _run_report_for_target(project_name, base_report_dir, skip_pytest, markers=N
         import importlib
         import config.config as config_module
         importlib.reload(config_module)
+
+    prepare_project_artifact_dirs(project=project_name)
 
     report_paths = _resolve_report_paths(project_name, base_report_dir)
     report_dir = report_paths["report_dir"]
@@ -1375,26 +1411,15 @@ def main():
     project_names = []
     if args.projects:
         project_names = [p.strip() for p in args.projects.split(",") if p.strip()]
-    if args.project:
-        project_names.append(args.project)
+
+    cli_project = _resolve_project_name(args.project)
+    if cli_project:
+        project_names.append(cli_project)
+
     if not project_names:
         project_names = [None]
 
-    marker_expr = None
-    if args.markers:
-        cleaned = []
-        for item in args.markers:
-            parts = item.split(",")
-            for p in parts:
-                p_clean = p.strip()
-                if p_clean:
-                    cleaned.append(p_clean)
-        raw_joined = " ".join(args.markers).lower()
-        has_logical = any(w in raw_joined for w in [" or ", " and ", " not "])
-        if has_logical:
-            marker_expr = " ".join(cleaned)
-        else:
-            marker_expr = " or ".join(cleaned)
+    marker_expr = _resolve_markers(args.markers)
 
     overall_exit_code = 0
     for project_name in project_names:

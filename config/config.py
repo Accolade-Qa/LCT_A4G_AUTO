@@ -12,7 +12,7 @@ PROJECT_ENV_PATH = ROOT / f"{PROJECT}.env"
 if PROJECT_ENV_PATH.exists():
     load_dotenv(dotenv_path=PROJECT_ENV_PATH, override=True)
 
-PROJECT_CONFIG_PATH = ROOT / f"{PROJECT}.yaml"
+PROJECT_CONFIG_PATH = ROOT / f"{PROJECT}.yaml" 
 
 _PROJECT_CONFIG = {}
 if PROJECT_CONFIG_PATH.exists():
@@ -45,6 +45,12 @@ def _get_bool(key, default=False):
 BASE_URL = _get("BASE_URL")
 USERNAME = _get("USERNAME", _get("APP_USERNAME"))
 PASSWORD = _get("PASSWORD", _get("APP_PASSWORD"))
+LOGIN_USER = _get("LOGIN_USER", USERNAME)
+VALID_UID = _get("VALID_UID")
+VALID_UIN = _get("VALID_UIN")
+COMMAND_TO_SEARCH = _get("COMMAND_TO_SEARCH")
+VIN = _get("VIN")
+ICCID = _get("ICCID")
 TICKET_BASE_URL = _get(
     "TICKET_BASE_URL", "https://aepl-tcu4g-qa.accoladeelectronics.com:6109"
 )

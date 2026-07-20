@@ -13,3 +13,4 @@ jinja2
 streamlit
 faker
 PyYAML
+aiohttp
