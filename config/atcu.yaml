@@ -21,7 +21,7 @@ ticket_dashboard_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/ticket-dash
 my_ais_ticket_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/my-ais-ticket"
 fota_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/fota"
 tml_request_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/ais140-api-req-logs"
-aepl_response_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/aepl-response-log"
+aepl_response_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/ais140-api-res-logs"
 status_update_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/status-update-log"
 device_state_config_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-state-config"
 device_vin_config_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-vin-config"

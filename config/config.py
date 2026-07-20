@@ -169,15 +169,15 @@ FOTA_URL = _get(
 )
 TML_REQUEST_LOG_URL = _get(
     "TML_REQUEST_LOG_URL",
-    "http://lct-a4g-qa.accoladeelectronics.com/tml-request-log",
+    "https://aepl-tcu4g-qa.accoladeelectronics.com/ais140-api-req-logs",
 )
 AEPL_RESPONSE_LOG_URL = _get(
     "AEPL_RESPONSE_LOG_URL",
-    "http://lct-a4g-qa.accoladeelectronics.com/aepl-response-log",
+    "https://aepl-tcu4g-qa.accoladeelectronics.com/ais140-api-res-logs",
 )
 STATUS_UPDATE_LOG_URL = _get(
     "STATUS_UPDATE_LOG_URL",
-    "http://lct-a4g-qa.accoladeelectronics.com/status-update-log",
+    "https://aepl-tcu4g-qa.accoladeelectronics.com/ais140-tml-api-logs",
 )
 DEVICE_STATE_CONFIG_URL = _get(
     "DEVICE_STATE_CONFIG_URL",

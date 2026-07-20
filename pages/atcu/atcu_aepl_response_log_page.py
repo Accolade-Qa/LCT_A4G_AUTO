@@ -7,17 +7,14 @@ from pages.common_base_page import BasePage
 logger = get_logger(__name__)
 
 class AtcuAeplResponseLogPage(BasePage):
-    """
-    this page should mainly for validating the ticket response,
-    and validate the data exactly on the ui.
-    """
-
     def __init__(self, page):
         super().__init__(page)
         logger.debug("Initialized AtcuAeplResponseLogPage")
 
     def get_title(self):
-        return super().get_title()
+        title = self.page.locator(".page-title").text_content()
+        logger.debug("AEPL Response Log page title retrieved: %s", title)
+        return title
 
     def is_page_loaded(self):
         try:
