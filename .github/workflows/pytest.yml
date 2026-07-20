@@ -4,7 +4,11 @@ on:
   push:
     branches: [master]
   pull_request:
+    branches: [master]
 
+  schedule:
+    - cron: '30 19 * * 0-4'   # Runs at 19:30 UTC (1:00 AM IST), Sunday through Thursday
+    
 jobs:
   test:
     runs-on: ubuntu-latest

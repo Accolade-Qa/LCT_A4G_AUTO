@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - master
+
+  schedule:
+    - cron: '30 19 * * 0-4'   # Runs at 19:30 UTC (1:00 AM IST), Sunday through Thursday
+
   workflow_dispatch:
     inputs:
       project:
