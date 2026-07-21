@@ -122,11 +122,7 @@ class AtcuAeplResponseLogPage(BasePage):
         expected_vin = expected_data.get("VIN_NO")
         expected_uin = expected_data.get("UIN_NO")
         expected_iccid = expected_data.get("ICCID")
-        search_terms = [
-            term
-            for term in [expected_ticket, expected_vin, expected_iccid, expected_uin]
-            if term
-        ]
+        search_terms = expected_vin
 
         for attempt in range(max_attempts):
             if attempt > 0:

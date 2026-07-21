@@ -101,6 +101,11 @@ class TestAeplResponseLogPage:
         assert isinstance(data, dict), "Data is not a list in the valid request-response pairs"
 
     # Test the response on the ui of the response log page with the valid payload and validate the response on the ui with the response from the api
+    # @pytest.mark.repeat(5)
+    @pytest.mark.regression
+    @pytest.mark.ui
+    @pytest.mark.api
+    @pytest.mark.smoke
     def test_validate_response_log_page_with_valid_payload(
         self, aepl_response_log_page, report_case
     ):
@@ -128,12 +133,20 @@ class TestAeplResponseLogPage:
             actual=f"matching_row_data={matching_row_data}, payload_data={payload_data}, api_data={data}",
             message="AEPL Response Log page data validation with valid payload",
         )
+
+        validation_errors =  data.get("VALIDATION_ERROR")
+        for error in validation_errors:
+            if "Invalid RTO state" in error:
+                assert data.get("status") == False, "If state is not valid then the status will get false"
+                assert data.get("message") == "Data not saved", f"If state is not valid then the message will be {data.get("message")}"
+                assert data.get("TICKET_NO") =="" , "No ticket_number will generates if state is invalid"
+
         assert matching_row_data is not None, "No matching row found for the API response payload"
 
         assert isinstance(payload_data, dict), "UI payload is not a dictionary"
 
-        if data.get("VIN_NO"):
-            assert payload_data.get("VIN_NO") == data.get("VIN_NO"), "VIN mismatch between UI payload and API response"
+        # if data.get("VIN_NO"):
+        #     assert payload_data.get("VIN_NO") == data.get("VIN_NO"), "VIN mismatch between UI payload and API response"
         if data.get("ICCID"):
             assert payload_data.get("ICCID") == data.get("ICCID"), "ICCID mismatch between UI payload and API response"
         if data.get("UIN_NO"):

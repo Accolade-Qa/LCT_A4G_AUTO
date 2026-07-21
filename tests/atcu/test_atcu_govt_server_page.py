@@ -1,10 +1,11 @@
 from playwright.sync_api import expect
 from pages.common_utils.pagination import PaginationHelper
 from pages.common_utils.search import SearchHelper
-from utils.logger import get_logger
 from pages.common_utils.table_section import TableSection
 from api.government_server_api import GovtServerAPI
+from utils.helpers import Helpers
 from config.config import GOVERNMENT_SERVERS_URL
+from utils.logger import get_logger
 
 import os
 import pytest
@@ -767,6 +768,8 @@ class TestGovtServerPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
+    @pytest.mark.repeat(20)
+    @pytest.mark.parametrize("state_name, state_code"[{Helpers.generate_random_indian_state_data()}])
     def test_govt_server_page_validate_success_message_on_valid_form_submission(
         self, govt_server_page, report_case
     ):
