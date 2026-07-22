@@ -49,7 +49,7 @@ class RoleGroupPage:
 
     def click_add_group(self):
         logger.info("Clicking Add New Group button")
-        self.page.get_by_text("Add Group open_in_new", exact=True).click()
+        self.page.get_by_text("Add Group", exact=True).click()
 
     def click_save(self):
         logger.info("Clicking Save button")

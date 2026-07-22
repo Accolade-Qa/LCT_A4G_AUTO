@@ -41,7 +41,7 @@ class GovtServerPage(BasePage):
 
     def is_add_govt_server_button_visible_and_enabled(self):
         """Check if the 'Add Government Server' button is visible and enabled"""
-        button_locator = self.page.get_by_text("Add Government Server open_in_new")
+        button_locator = self.page.get_by_text("Add Government Server")
         is_visible = button_locator.is_visible()
         is_enabled = button_locator.is_enabled()
         logger.debug(
@@ -53,7 +53,7 @@ class GovtServerPage(BasePage):
 
     def click_add_govt_server_button(self):
         """Click the 'Add Government Server' button"""
-        button_locator = self.page.get_by_text("Add Government Server open_in_new")
+        button_locator = self.page.get_by_text("Add Government Server")
         if button_locator.is_visible() and button_locator.is_enabled():
             button_locator.click()
             self.page.wait_for_url("**/govt-servers-add")
@@ -1079,7 +1079,7 @@ class GovtServerPage(BasePage):
     def is_add_firmware_button_visible_and_enabled(self):
         """Check if the 'Add Firmware' button is visible and enabled on Firmware Master page"""
 
-        button_locator = self.page.get_by_text("Add Firmware open_in_new")
+        button_locator = self.page.get_by_text("Add Firmware")
 
         is_visible = button_locator.is_visible()
         is_enabled = button_locator.is_enabled()
@@ -1109,7 +1109,7 @@ class GovtServerPage(BasePage):
 
     def click_add_firmware_button(self):
         """Click the 'Add Firmware' button and wait for the form to appear."""
-        button_locator = self.page.get_by_text("Add Firmware open_in_new")
+        button_locator = self.page.get_by_text("Add Firmware")
 
         if button_locator.is_visible() and button_locator.is_enabled():
             button_locator.click()

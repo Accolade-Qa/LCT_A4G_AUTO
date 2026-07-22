@@ -104,7 +104,7 @@ class TestCustomerMaster:
         customer_page = self._login_and_dashboard(page)
         customer_page.go_to_customer(CUSTOMER_MASTER_URL)
         visibility = customer_master.page.get_by_text(
-            "Add Customer open_in_new", exact=True
+            "Add Customer", exact=True
         ).is_visible()
         click = customer_master._click_add_customer()
         logger.info("Verifying Add Customer button is clickable")

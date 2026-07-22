@@ -40,7 +40,7 @@ class RoleManagementPage:
 
     def click_add_role(self):
         logger.info("Clicking Add New Role button")
-        self.page.get_by_text("Add Role open_in_new", exact=True).click()
+        self.page.get_by_text("Add Role", exact=True).click()
 
     def enter_role_name(self, role_name):
         logger.info("Entering role name: %s", role_name)

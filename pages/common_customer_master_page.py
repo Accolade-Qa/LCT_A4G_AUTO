@@ -14,7 +14,7 @@ class CustomerMasterPage(BasePage):
         self.nav_bar_locator = page.locator("ul.nav-list")
         self.page_title_locator = page.get_by_text("Customer Management", exact=True)
         self.add_customer_locator = page.get_by_text(
-            "Add Customer open_in_new", exact=True
+            "Add Customer", exact=True
         )
         self.search_field_locator = page.get_by_placeholder(
             "Search and Press Enter", exact=True

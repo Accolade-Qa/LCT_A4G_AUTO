@@ -331,12 +331,42 @@ def page(browser, project_config):
     context.close()
 
 
+def clean_error_message(err_str: str) -> str:
+    """Consistently sanitize error strings to remove raw exception/stack trace verbosity."""
+    if not err_str:
+        return ""
+    # If the string doesn't look like an exception/traceback/error, return it directly
+    lower_str = err_str.lower()
+    if "traceback" not in lower_str and "exception" not in lower_str and "error" not in lower_str:
+        return err_str.strip()
+
+    lines = err_str.strip().splitlines()
+    if not lines:
+        return ""
+
+    # Look for standard pytest/python assertion formats
+    for line in lines:
+        line_strip = line.strip()
+        if line_strip.startswith("E   assert ") or line_strip.startswith("E   AssertionError"):
+            return line_strip[4:].strip()
+        if line_strip.startswith("E "):
+            return line_strip[2:].strip()
+
+    # Fallback to the last line containing exception/assertion info
+    last_line = lines[-1].strip()
+    if last_line.startswith("E "):
+        return last_line[2:].strip()
+    return last_line
+
+
 @pytest.fixture
 def report_case(record_property):
     def _report_case(expected="", actual="", result="", message=""):
         # Always record properties, even if empty, to ensure they're in the report
-        record_property("expected", str(expected) if expected != "" else "")
-        record_property("actual", str(actual) if actual != "" else "")
+        clean_expected = clean_error_message(str(expected)) if expected != "" else ""
+        clean_actual = clean_error_message(str(actual)) if actual != "" else ""
+        record_property("expected", clean_expected)
+        record_property("actual", clean_actual)
 
         if message:
             record_property("result", result)
@@ -367,8 +397,8 @@ def pytest_runtest_makereport(item, call):
         elif report.skipped:
             actual = "Test skipped"
         else:
-            # For failed tests, use the failure reason
-            actual = str(report.longrepr) if report.longrepr else "Test failed"
+            # For failed tests, use the cleaned failure reason (no full stack trace)
+            actual = clean_error_message(str(report.longrepr)) if report.longrepr else "Test failed"
 
         # 🔹 Only add default properties if they weren't explicitly set by report_case
         if "expected" not in existing_properties and expected:

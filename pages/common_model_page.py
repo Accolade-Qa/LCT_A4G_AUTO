@@ -62,7 +62,7 @@ class DeviceModel(BasePage):
     def _create_model_visibility(self):
         logger.debug("Checking create model button visibility")
         model_button_locator = self.page.get_by_text(
-            "Add Device Model open_in_new", exact=True
+            "Add Device Model", exact=True
         )
         logger.debug("Waiting for create model button to be visible")
         model_button_locator.wait_for(state="visible")
@@ -76,7 +76,7 @@ class DeviceModel(BasePage):
         logger.info("Clicking create model button")
         logger.debug("Getting add device model button locator")
         model_button_locator = self.page.get_by_text(
-            "Add Device Model open_in_new", exact=True
+            "Add Device Model", exact=True
         )
         logger.debug("Waiting for model button to be visible")
         model_button_locator.wait_for(state="visible")
@@ -105,7 +105,7 @@ class DeviceModel(BasePage):
     def _submit_button(self):
 
         model_button_locator = self.page.get_by_text(
-            "Add Device Model open_in_new", exact=True
+            "Add Device Model", exact=True
         )
         model_button_locator.click()
 
@@ -121,7 +121,7 @@ class DeviceModel(BasePage):
 
     def _model_code(self, code):
         model_button_locator = self.page.get_by_text(
-            "Add Device Model open_in_new", exact=True
+            "Add Device Model", exact=True
         )
         model_button_locator.click()
         logger.info("Filling model code: %s", code)
@@ -193,7 +193,7 @@ class DeviceModel(BasePage):
     def _submit_button_click(self):
 
         model_button_locator = self.page.get_by_text(
-            "Add Device Model open_in_new", exact=True
+            "Add Device Model", exact=True
         )
         model_button_locator.click()
         logger.info("Clicking submit button")
@@ -214,7 +214,7 @@ class DeviceModel(BasePage):
 
     def _search_model(self, model):
         model_button_locator = self.page.get_by_text(
-            "Add Device Model open_in_new", exact=True
+            "Add Device Model", exact=True
         )
         model_button_locator.click()
         logger.info("Searching for model: %s", model)

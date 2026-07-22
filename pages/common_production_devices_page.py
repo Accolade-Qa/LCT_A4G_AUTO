@@ -24,7 +24,7 @@ class ProductionDevices(BasePage):
         self.boot_exp_locator = page.get_by_role("button", name="Open calendar")
         self.submit_button_locator = page.get_by_text("Submit check_circle")
         self.update_button_locator = page.get_by_text("Update edit", exact=True)
-        self.bulk_btn_locator = page.get_by_text("Bulk Upload open_in_new", exact=True)
+        self.bulk_btn_locator = page.get_by_text("Bulk Upload", exact=True)
         self.sam_btn_locator = page.locator("button.primary-button")
         self.up_btn_locator = page.locator("input[type='text']")
         self.add_submit_btn_locator = page.get_by_text(
@@ -70,7 +70,7 @@ class ProductionDevices(BasePage):
 
     def _manual_upload_btn_visibility(self):
         manual_btn_locator = self.page.get_by_text(
-            "Manual Upload open_in_new", exact=True
+            "Manual Upload", exact=True
         )
         manual_btn_locator.wait_for(state="visible")
         self.highlight(manual_btn_locator)
@@ -79,7 +79,7 @@ class ProductionDevices(BasePage):
 
     def _manual_upload_click(self):
         manual_btn_locator = self.page.get_by_text(
-            "Manual Upload open_in_new", exact=True
+            "Manual Upload", exact=True
         )
         manual_btn_locator.wait_for(state="visible")
         self.highlight(manual_btn_locator)
@@ -301,7 +301,7 @@ class ProductionDevices(BasePage):
         self.page.get_by_text("delete", exact=True).click()
 
     def _bulk_upload_btn_enability(self):
-        bulk_btn_locator = self.page.get_by_text("Bulk Upload open_in_new", exact=True)
+        bulk_btn_locator = self.page.get_by_text("Bulk Upload", exact=True)
         bulk_btn_locator.wait_for(state="visible")
         self.highlight(bulk_btn_locator)
         return bulk_btn_locator.is_enabled()

@@ -17,12 +17,12 @@ class OtaPage(BasePage):
     BUTTON_LOCATOR = "//button"
     TABLE_LOCATOR = "div.component-body"
     SEARCH_BOX_LOCATOR = "Search and Press Enter"
-    OTA_MASTER_BUTTON_TEXT = "OTA Master open_in_new"
+    OTA_MASTER_BUTTON_TEXT = "OTA Master"
     OTA_MASTER_PAGE_TITLE = "span:has-text('OTA Master')"
     OTA_BATCH_URL_SUFFIX = "/ota-batch-page"
     OTA_MASTER_URL_SUFFIX = "/ota-master"
     OTA_MASTER_URL_PATTERN = "**/ota-master*"
-    ADD_OTA_COMMAND_BUTTON = "Add OTA Command open_in_new"
+    ADD_OTA_COMMAND_BUTTON = "Add OTA Command"
     ADD_OTA_COMMAND_PAGE_TITLE = "h6:has-text('Add OTA Command')"
 
     # Add OTA Command Form Locators
@@ -37,7 +37,7 @@ class OtaPage(BasePage):
 
     # Manual OTA Page Locators
     SELECT_OTA_TYPE_DROPDOWN = ".dropdown-label floating"
-    MANUAL_OTA_BUTTON = "Manual OTA open_in_new"
+    MANUAL_OTA_BUTTON = "Manual OTA"
     MANUAL_OTA_URL_PATTERN = "**/manual-ota*"
     IMEI_INPUT_FIELD = "input[formcontrolname='imei']"
     SEARCH_DEVICE_TITLE = "h6:has-text('Search Device')"
@@ -297,17 +297,17 @@ class OtaPage(BasePage):
     def go_to_manual_ota_page(self) -> None:
         logger.debug("Navigating to Manual OTA page")
 
-        self.page.get_by_text("Manual OTA open_in_new").click()
+        self.page.get_by_text("Manual OTA").click()
         self.page.wait_for_url("**/manual-ota*")
 
     def is_manual_ota_button_visible(self) -> bool:
         logger.debug("Checking visibility of Manual OTA button")
-        manual_ota_button = self.page.get_by_text("Manual OTA open_in_new")
+        manual_ota_button = self.page.get_by_text("Manual OTA")
         return manual_ota_button.is_visible()
 
     def click_manual_ota_button(self) -> None:
         logger.debug("Clicking Manual OTA button")
-        manual_ota_button = self.page.get_by_text("Manual OTA open_in_new")
+        manual_ota_button = self.page.get_by_text("Manual OTA")
         manual_ota_button.wait_for(state="visible")
         manual_ota_button.click()
 
