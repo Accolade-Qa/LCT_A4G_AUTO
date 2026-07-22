@@ -9,7 +9,7 @@ logger = get_logger(__name__)
 
 @pytest.mark.atcu
 @pytest.mark.regression
-@pytest.mark.repeat(3)
+# @pytest.mark.repeat(3) used to run on repeat all tests i.e. 9 tests * 3 = 27 total tests,, another use --count=3 in terminal while running.
 class TestAeplResponseLogPage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
