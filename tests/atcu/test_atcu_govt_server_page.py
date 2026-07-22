@@ -828,7 +828,7 @@ class TestGovtServerPage:
     @pytest.mark.api
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_govt_server_page_validating_all_api_of_firmwares(
+    def test_govt_server_firmware_api_endpoints_validation(
         self, govt_server_page, report_case
     ):
         logger.info("Starting validation of firmware APIs")

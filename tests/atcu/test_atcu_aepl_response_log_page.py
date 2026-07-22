@@ -83,7 +83,7 @@ class TestAeplResponseLogPage:
     @pytest.mark.ui
     @pytest.mark.api
     @pytest.mark.smoke
-    def test_is_request_response_valid(self, aepl_response_log_page, report_case):
+    def test_aepl_response_log_api_payload_integrity(self, aepl_response_log_page, report_case):
         logger.info("Validating AEPL Response Log request-response pairs")
         payload, VIN, UIN, ICCID, ticket_number, data = (
             aepl_response_log_page.get_valid_request_response_by_api()
@@ -195,7 +195,7 @@ class TestAeplResponseLogPage:
     @pytest.mark.ui
     @pytest.mark.api
     @pytest.mark.smoke
-    def test_validate_table_headers_and_data_as_expected(
+    def test_validate_response_log_table_data_against_api_response(
         self, aepl_response_log_page, report_case
     ):
         logger.info("Validating AEPL Response Log table data with API response")

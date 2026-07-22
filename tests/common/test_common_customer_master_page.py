@@ -23,7 +23,7 @@ class TestCustomerMaster:
 
     @pytest.mark.regression
     @pytest.mark.smoke
-    def test_go_to_customer(self, page, report_case):
+    def test_customer_master_page_navigation(self, page, report_case):
         logger.info("Starting validation of Customer master page navigation")
         customer_page = self._login_and_dashboard(page)
         customer_page.go_to_customer(CUSTOMER_MASTER_URL)

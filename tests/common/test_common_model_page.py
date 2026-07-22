@@ -35,7 +35,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_go_to_model(self, model_page, project_config, report_case):
+    def test_model_management_page_navigation(self, model_page, project_config, report_case):
         logger.info("Starting validation of Model page navigation")
 
         expected_url = project_config["model_url"]
@@ -57,7 +57,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_go_to_create_model(self, page, project_config, report_case):
+    def test_model_management_go_to_create_model(self, page, project_config, report_case):
         logger.info("Starting validation of Create Model page navigation")
         self._login_and_dashboard(page, project_config)
         model_page = DeviceModel(page)
@@ -84,7 +84,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_go_to_update_model(self, page, project_config, report_case):
+    def test_model_management_go_to_update_model(self, page, project_config, report_case):
         logger.info("Starting validation of Update Model page navigation")
         self._login_and_dashboard(page, project_config)
         model_page = DeviceModel(page)
@@ -112,7 +112,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_nav_list_visibility(self, model_page, project_config, report_case):
+    def test_model_management_nav_list_visibility(self, model_page, project_config, report_case):
         logger.info("Starting validation of Model navigation list visibility")
 
         is_visible = model_page._nav_list_visibility()
@@ -130,7 +130,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_is_PageTitle_Visible(self, page, report_case):
+    def test_model_management_page_title_visibility(self, page, report_case):
         logger.info("Starting validation of Model page title visibility")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -151,7 +151,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_create_model_visibility(self, page, report_case):
+    def test_create_model_form_visibility(self, page, report_case):
         logger.info("Starting validation of Create Model button visibility")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -172,7 +172,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_create_model_click(self, page, report_case):
+    def test_create_model_btn_click(self, page, report_case):
         logger.info("Starting validation of Create Model button click")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -193,7 +193,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_create_model_page_title(self, page, report_case):
+    def test_create_model_page_title_visibility(self, page, report_case):
         logger.info("Starting validation of Create Model page title")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -219,7 +219,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_submit_button(self, page, report_case):
+    def test_create_model_submit_button_state(self, page, report_case):
         logger.info("Starting validation of Create Model Submit button")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -240,7 +240,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_model_code(self, page, report_case):
+    def test_create_model_code_field_validation(self, page, report_case):
         logger.info("Starting validation of Model Code input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -265,7 +265,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_model_name(self, page, report_case):
+    def test_create_model_name_field_validation(self, page, report_case):
         logger.info("Starting validation of Model Name input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -283,7 +283,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_model_seriel_sequence(self, page, report_case):
+    def test_create_model_serial_sequence_field_validation(self, page, report_case):
         logger.info("Starting validation of Model Serial Sequence input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -301,7 +301,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_hardware_version(self, page, report_case):
+    def test_create_model_hardware_version_field_validation(self, page, report_case):
         logger.info("Starting validation of Hardware Version input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -320,7 +320,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_submit_button_click(self, page, report_case):
+    def test_create_model_submit_button_click(self, page, report_case):
         logger.info("Starting validation of disabled Submit button state")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -341,7 +341,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_search_model(self, page, report_case):
+    def test_model_management_search_model(self, page, report_case):
         logger.info("Starting validation of Model search")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -359,7 +359,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_view_icon(self, page, report_case):
+    def test_model_view_icon_clickability(self, page, report_case):
         logger.info("Starting validation of Model view icon")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -377,7 +377,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_update_model_code(self, page, report_case):
+    def test_update_model_code_field_validation(self, page, report_case):
         logger.info("Starting validation of Update Model Code input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -395,7 +395,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_update_model_name(self, page, report_case):
+    def test_update_model_name_field_validation(self, page, report_case):
         logger.info("Starting validation of Update Model Name input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -413,7 +413,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_update_model_seriel_sequence(self, page, report_case):
+    def test_update_model_serial_sequence_field_validation(self, page, report_case):
         logger.info("Starting validation of Update Model Serial Sequence input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -436,7 +436,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_update_hardware_version(self, page, report_case):
+    def test_update_model_hardware_version_field_validation(self, page, report_case):
         logger.info("Starting validation of Update Hardware Version input")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -455,7 +455,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_update_button_click(self, page, report_case):
+    def test_update_model_submit_button_click(self, page, report_case):
         logger.info("Starting validation of Update button click")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -473,7 +473,7 @@ class TestModelPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_search_model_update(self, page, report_case):
+    def test_model_management_search_updated_model(self, page, report_case):
         logger.info("Starting validation of updated Model search")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)
@@ -492,7 +492,7 @@ class TestModelPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_get_updated_model_text(self, page, report_case):
+    def test_model_management_verify_updated_model_details(self, page, report_case):
         logger.info("Starting validation of updated Model text")
         self._login_and_dashboard(page)
         model_page = DeviceModel(page)

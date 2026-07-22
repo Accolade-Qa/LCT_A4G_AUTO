@@ -2,6 +2,7 @@ from pathlib import Path
 from pages.common_login_page import LoginPage
 from pages.common_production_devices_page import ProductionDevices
 from utils.logger import get_logger
+from config.config import CREATE_PRODUCTION_URL, ADD_PRODUCTION_URL, PRODUCTION_PAGE_URL
 
 import pytest
 
@@ -25,7 +26,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_go_to_prod(self, production_devices_page, project_config, report_case):
+    def test_production_devices_page_navigation(self, production_devices_page, project_config, report_case):
         logger.info("Starting validation of Production Devices page navigation")
 
         expected_url = project_config["production_page_url"]
@@ -50,7 +51,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_nav_list_visibility(
+    def test_production_devices_nav_list_visibility(
         self, production_devices_page, project_config, report_case
     ):
         logger.info("Starting validation of Production navbar list visibility")
@@ -70,7 +71,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_is_PageTitle_Visible(
+    def test_production_devices_page_title_visibility(
         self, production_devices_page, project_config, report_case
     ):
         logger.info("Starting validation of Production page title visibility")
@@ -90,7 +91,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_manual_upload_btn_visibility(self, page, report_case):
+    def test_production_devices_manual_upload_btn_visibility(self, page, report_case):
         logger.info("Starting validation of Manual Upload button visibility")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(PRODUCTION_PAGE_URL)
@@ -110,7 +111,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_manual_upload_click(self, page, report_case):
+    def test_production_devices_manual_upload_btn_click_navigates_to_create_production(self, page, report_case):
         logger.info("Starting validation of Manual Upload button click")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(PRODUCTION_PAGE_URL)
@@ -130,7 +131,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_create_prod_PageTitle(self, page, report_case):
+    def test_create_production_page_title_visibility(self, page, report_case):
         logger.info("Starting validation of Create Production page title")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -150,7 +151,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_new_uid(self, page, report_case):
+    def test_create_production_new_uid_field_validation(self, page, report_case):
         logger.info("Starting validation of New UID input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -167,7 +168,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_imei(self, page, report_case):
+    def test_create_production_new_imei_field_validation(self, page, report_case):
         logger.info("Starting validation of New IMEI input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -184,7 +185,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_iccid(self, page, report_case):
+    def test_create_production_new_iccid_field_validation(self, page, report_case):
         logger.info("Starting validation of New ICCID input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -201,7 +202,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_model_name(self, page, report_case):
+    def test_create_production_new_model_name_field_validation(self, page, report_case):
         logger.info("Starting validation of New Model Name input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -218,7 +219,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_mobile_no(self, page, report_case):
+    def test_create_production_new_mobile_no_field_validation(self, page, report_case):
         logger.info("Starting validation of New Mobile Number input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -235,7 +236,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test__new_service_provider(self, page, report_case):
+    def test_create_production_new_service_provider_field_validation(self, page, report_case):
         logger.info("Starting validation of New Service Provider input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -252,7 +253,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_alt_mob_no(self, page, report_case):
+    def test_create_production_new_alt_mobile_no_field_validation(self, page, report_case):
         logger.info("Starting validation of Alternate Mobile Number input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -269,7 +270,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_alt_ser_pro(self, page, report_case):
+    def test_create_production_new_alt_service_provider_field_validation(self, page, report_case):
         logger.info("Starting validation of Alternate Service Provider input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -286,7 +287,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_firmware(self, page, report_case):
+    def test_create_production_new_firmware_field_validation(self, page, report_case):
         logger.info("Starting validation of New Firmware input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -303,7 +304,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_sim_vendor(self, page, report_case):
+    def test_create_production_new_sim_vendor_field_validation(self, page, report_case):
         logger.info("Starting validation of New SIM Vendor input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -320,7 +321,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_boot_exp_date(self, page, report_case):
+    def test_create_production_new_boot_exp_date_field_validation(self, page, report_case):
         logger.info("Starting validation of Boot Expiry Date input")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -338,7 +339,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_submit_button(self, page, report_case):
+    def test_create_production_submit_button_state_transitions(self, page, report_case):
         logger.info("Starting validation of disabled Production Submit button")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -358,7 +359,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_new_device_flow(self, page, report_case):
+    def test_create_production_complete_new_device_flow(self, page, report_case):
         logger.info("Starting validation of new device flow")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(CREATE_PRODUCTION_URL)
@@ -375,7 +376,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_search_device(self, page, report_case):
+    def test_production_devices_search_by_imei(self, page, report_case):
         logger.info("Starting validation of Production device search")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(PRODUCTION_PAGE_URL)
@@ -392,7 +393,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_search_device_2(self, page, report_case):
+    def test_production_devices_search_by_uid(self, page, report_case):
         logger.info("Starting validation of alternate Production device search")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(PRODUCTION_PAGE_URL)
@@ -410,7 +411,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_bulk_upload_btn_enability(self, page, report_case):
+    def test_production_devices_bulk_upload_btn_visibility_and_state(self, page, report_case):
         logger.info("Starting validation of Bulk Upload button enablement")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(PRODUCTION_PAGE_URL)
@@ -428,7 +429,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_click_bulk_btn(self, page, report_case):
+    def test_production_devices_click_bulk_upload_navigates_to_add_devices(self, page, report_case):
         logger.info("Starting validation of Bulk Upload button click")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(PRODUCTION_PAGE_URL)
@@ -448,7 +449,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_btn_enability(self, page, report_case):
+    def test_add_devices_form_submit_button_disabled_by_default(self, page, report_case):
         logger.info("Starting validation of Add Production button enablement")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(ADD_PRODUCTION_URL)
@@ -466,7 +467,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_click_sample_btn(self, page, report_case):
+    def test_add_devices_form_download_sample_file(self, page, report_case):
         logger.info("Starting validation of sample file download")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(ADD_PRODUCTION_URL)
@@ -488,7 +489,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_upload_invalid_file(self, page, report_case):
+    def test_add_devices_form_upload_invalid_file_shows_error(self, page, report_case):
         logger.info("Starting validation of invalid production file upload")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(ADD_PRODUCTION_URL)
@@ -515,7 +516,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_upload_valid_file(self, page, report_case):
+    def test_add_devices_form_upload_valid_file_succeeds(self, page, report_case):
         logger.info("Starting validation of valid production file upload")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(ADD_PRODUCTION_URL)
@@ -542,7 +543,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_upload_duplicate_file(self, page, report_case):
+    def test_add_devices_form_upload_duplicate_file_shows_error(self, page, report_case):
         logger.info("Starting validation of duplicate production file upload")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(ADD_PRODUCTION_URL)
@@ -569,7 +570,7 @@ class TestProductionDevices:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_search_device_3(self, page, report_case):
+    def test_production_devices_search_by_iccid(self, page, report_case):
         logger.info("Starting validation of repeated Production device search")
         production_page = self._login_and_dashboard(page)
         production_page.go_to_prod(PRODUCTION_PAGE_URL)
