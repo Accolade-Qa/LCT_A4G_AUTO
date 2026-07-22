@@ -329,3 +329,37 @@ if (Get-Command deactivate -ErrorAction SilentlyContinue) { deactivate }
 ```bash
    Get-ChildItem -Path . -Filter "__pycache__" -Recurse -Directory | Remove-Item -Force -Recurse
 ```
+
+## Local Security & Static Analysis
+
+### Python Security Linter (Bandit)
+
+```bash
+# Install Bandit
+pip install bandit
+
+# Scan all Python files recursively in the current directory
+bandit -r .
+
+# Scan excluding virtual environments and tests
+bandit -r . -x .venv,tests
+
+# Export scan results to HTML report
+bandit -r . -f html -o bandit_report.html
+```
+
+### Git Secrets Scanner (Gitleaks)
+
+```powershell
+# Install Gitleaks on Windows using winget
+winget install Gitleaks.Gitleaks
+
+# Scan the current state of your workspace
+gitleaks detect --source . --verbose
+
+# Scan your entire commit history for leaks
+gitleaks detect --source . --log-opts="--all" --verbose
+
+# Generate scan report in JSON format
+gitleaks detect --source . --report-path leaks_report.json
+```

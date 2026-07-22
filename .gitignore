@@ -57,3 +57,5 @@ graphify-out/
 jmx/
 
 secret.txt
+bandit_report.html
+email_body.html

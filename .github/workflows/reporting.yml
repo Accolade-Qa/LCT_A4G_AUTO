@@ -29,8 +29,20 @@ on:
 
 env:
   REPORT_DIR: ${{ github.workspace }}/reports
-
 jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   test-and-report:
     runs-on: ubuntu-latest
     env:
@@ -148,6 +160,16 @@ jobs:
           echo "Resolved report attachments:"
           cat attachment_paths.txt
 
+      - name: Generate Dynamic Email Body
+        if: always()
+        run: |
+          python utils/prepare_email_metadata.py \
+            --report-dir "${{ env.TARGET_REPORT_DIR }}" \
+            --actor "${{ github.triggering_actor || github.actor }}" \
+            --run-number "${{ github.run_number }}" \
+            --ref "${{ github.ref_name }}" \
+            --sha "${{ github.sha }}"
+
       - name: Upload report artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -166,26 +188,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: >-
             [CI/CD Notice] Test Execution Report: ${{ github.repository }} | Branch: ${{ github.ref_name }} (Run #${{ github.run_number }})
-          body: |
-            Dear Team,
-
-            Please find below the automated test execution summary for the latest continuous integration run.
-
-            Execution Details:
-            --------------------------------------------------
-            Repository:      ${{ github.repository }}
-            Branch/Ref:      ${{ github.ref_name }}
-            Workflow:        ${{ github.workflow }}
-            Run Number:      #${{ github.run_number }}
-
-            The comprehensive analysis files have been generated and successfully attached to this transmission:
-            - Execution Overview (HTML)
-            - Detailed Test Metrics (XLSX)
-
-            For full logs and historical data, please review the workflow run directly on GitHub.
-
-            Sincerely,
-            Automated CI/CD Notification System
+          html_body: file://email_body.html
           to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_FROM }}
           attachments: ${{ steps.report_attachments.outputs.attachments }}
