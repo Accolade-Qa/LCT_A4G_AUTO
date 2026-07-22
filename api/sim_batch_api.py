@@ -2,7 +2,7 @@ import json
 
 from utils.logger import get_logger
 from .api_client import APIClient
-from test_data.device_data import DeviceData
+from test_data.lct.device_data import DeviceData
 
 logger = get_logger(__name__)
 

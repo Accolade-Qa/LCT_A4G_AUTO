@@ -132,6 +132,9 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    if config.getoption("collectonly", default=False):
+        return
+
     project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower()
     if project not in VALID_PROJECTS:
         raise pytest.UsageError(

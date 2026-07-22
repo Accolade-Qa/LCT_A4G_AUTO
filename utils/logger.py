@@ -50,10 +50,9 @@ def enable_file_logging(project: str | None = None):
 
 def _suite_log_name(project: str | None = None) -> str:
     """Generate suite log file name."""
-    suite_name = os.getenv("SUITE_NAME", "lct")
     project_name = project or get_current_project() or "lct"
     run_id = get_artifact_run_id()
-    return f"{project_name}_{suite_name}_{run_id}.log"
+    return f"{project_name}_{run_id}.log"
 
 
 _LOG_FILE_PATH: Path | None = None

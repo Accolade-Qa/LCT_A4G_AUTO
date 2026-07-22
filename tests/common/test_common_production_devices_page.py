@@ -6,7 +6,7 @@ from config.config import CREATE_PRODUCTION_URL, ADD_PRODUCTION_URL, PRODUCTION_
 
 import pytest
 
-TEST_DATA_DIR_PROD = Path(__file__).resolve().parents[1] / "test_data"
+TEST_DATA_DIR_PROD = Path(__file__).resolve().parents[1] / "test_data" / "lct"
 logger = get_logger(__name__)
 
 

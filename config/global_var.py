@@ -10,7 +10,7 @@ else:
 
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 CONFIG_PATH = os.path.join(ROOT_DIR, "Config")
-DATA_FILES_PATH = os.path.join(ROOT_DIR, "test_data")
+DATA_FILES_PATH = os.path.join(ROOT_DIR, "test_data", "lct")
 SCREENSHOT_PATH = os.path.join(ROOT_DIR, f"Artifacts{path_divider}Screenshots")
 LOGS_PATH = os.path.join(ROOT_DIR, f"Artifacts{path_divider}Logs")
 VIDEO_DIR = os.path.join(ROOT_DIR, f"Artifacts{path_divider}Videos")

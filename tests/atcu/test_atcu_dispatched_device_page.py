@@ -2,7 +2,7 @@ from random import randint
 from pages.common_utils.table_section import TableSection
 from pages.common_utils.pagination import PaginationHelper
 from pages.common_utils.search import SearchHelper
-from test_data.device_data import DeviceData
+from test_data.atcu.device_data import DeviceData
 from utils.logger import get_logger
 from pages.common_base_page import BasePage
 from api.customer_api import CustomerAPI

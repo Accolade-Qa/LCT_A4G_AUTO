@@ -5,7 +5,7 @@ sim_data_details_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/sensorise-s
 role_management_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/user-role"
 role_group_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/role-group"
 device_details_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-details"
-ota_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/ota-batch-page"
+ota_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/Ota-batch-list"
 production_page_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/production-device-page"
 create_production_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/create-production-device"
 add_production_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/add-production-device"
