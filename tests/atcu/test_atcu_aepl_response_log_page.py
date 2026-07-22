@@ -1,5 +1,7 @@
 import pytest
 from pages.common_utils import TableSection
+from pages.common_utils import SearchHelper
+from pages.common_utils import PaginationHelper
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -7,6 +9,7 @@ logger = get_logger(__name__)
 
 @pytest.mark.atcu
 @pytest.mark.regression
+@pytest.mark.repeat(3)
 class TestAeplResponseLogPage:
     @pytest.fixture(autouse=True)
     def log_test_case(self, request):
@@ -119,9 +122,7 @@ class TestAeplResponseLogPage:
     def test_validate_response_log_page_with_valid_payload(
         self, aepl_response_log_page, report_case
     ):
-        logger.info(
-            "Validating AEPL Response Log page payload with API response"
-        )
+        logger.info("Validating AEPL Response Log page payload with API response")
 
         _, VIN, UIN, ICCID, ticket_number, data = (
             aepl_response_log_page.get_valid_request_response_by_api()
@@ -157,9 +158,7 @@ class TestAeplResponseLogPage:
 
         logger.info("UI response log row fetched: %s", row)
 
-        payload_data = aepl_response_log_page._normalize_payload_value(
-            row["PAYLOAD"]
-        )
+        payload_data = aepl_response_log_page._normalize_payload_value(row["PAYLOAD"])
 
         logger.info(
             "Payload extracted from UI: %s",
@@ -186,9 +185,7 @@ class TestAeplResponseLogPage:
             payload_data["VIN_NO"] == data["VIN_NO"]
         ), "VIN mismatch between UI payload and API response"
 
-        logger.info(
-            "AEPL Response Log payload validation completed successfully"
-        )
+        logger.info("AEPL Response Log payload validation completed successfully")
 
     # Test the column data:
     # sent to - ['Generate Tickets API', 'Institutional Sale']
@@ -201,9 +198,7 @@ class TestAeplResponseLogPage:
     def test_validate_table_headers_and_data_as_expected(
         self, aepl_response_log_page, report_case
     ):
-        logger.info(
-            "Validating AEPL Response Log table data with API response"
-        )
+        logger.info("Validating AEPL Response Log table data with API response")
 
         (
             _,
@@ -231,15 +226,11 @@ class TestAeplResponseLogPage:
             message="AEPL API data validation",
         )
 
-        logger.info(
-            "Reloading AEPL Response Log page to get latest table data"
-        )
+        logger.info("Reloading AEPL Response Log page to get latest table data")
 
         aepl_response_log_page.page.reload(wait_until="networkidle")
 
-        ui_data = TableSection(
-            aepl_response_log_page.page
-        ).get_row_data(0)
+        ui_data = TableSection(aepl_response_log_page.page).get_row_data(0)
 
         logger.info(
             "UI table row data fetched: %s",
@@ -268,14 +259,202 @@ class TestAeplResponseLogPage:
             ICCID == ui_data["ICCID NO."]
         ), "ICCID mismatch between API response and UI table"
 
-        logger.info(
-            "AEPL Response Log table data validation completed successfully"
-        )
+        logger.info("AEPL Response Log table data validation completed successfully")
 
     # Validate the Search functionality on the response log page with the valid payload and validate the response on the ui with the response from the api
+    @pytest.mark.regression
+    @pytest.mark.ui
+    @pytest.mark.critical
+    def test_search_functionality_on_the_aepl_response_page(
+        self, aepl_response_log_page, report_case
+    ):
+        # take help of helper search from pages/common_utils/search.py
+        logger.info("Validating search functionality on the AEPL Response Log page")
+
+        search_helper = SearchHelper(aepl_response_log_page.page)
+
+        result = search_helper.run_search("ACCDEV07241580731")
+
+        if result["success"]:
+            logger.info(
+                "Search executed successfully with results found: %d",
+                result["results_found"],
+            )
+            report_case(
+                expected="Search should return results",
+                actual=f"Results found: {result['results_found']}",
+                message="AEPL Response Log search functionality validation",
+            )
+
+        if not result["success"]:
+            logger.error("Search failed with error: %s", result["error"])
+            report_case(
+                expected="Search should execute successfully",
+                actual=f"Error: {result['error']}",
+                message="AEPL Response Log search functionality validation",
+            )
+            assert False, f"Search failed with error: {result['error']}"
+
+        if result["error"]:
+            logger.error("Search encountered an error: %s", result["error"])
+            report_case(
+                expected="Search should not encounter errors",
+                actual=f"Error: {result['error']}",
+                message="AEPL Response Log search functionality validation",
+            )
+            assert False, f"Search encountered an error: {result['error']}"
 
     # Validate the table headers on response log page
+    @pytest.mark.regression
+    @pytest.mark.ui
+    def test_validate_table_headers_on_response_log_page(
+        self, aepl_response_log_page, report_case
+    ):
+        logger.info("Validating table headers on the AEPL Response Log page")
+
+        expected_headers = [
+            "VIN NO.",
+            "ICCID NO.",
+            "UIN NO.",
+            "SENT TO",
+            "RESPONSE",
+            "PAYLOAD",
+            "SENT AT",
+        ]
+
+        actual_headers = TableSection(aepl_response_log_page.page).get_headers()
+
+        logger.info("Actual table headers fetched: %s", actual_headers)
+
+        report_case(
+            expected="Table headers should match expected headers",
+            actual=f"Actual headers: {actual_headers}",
+            message="AEPL Response Log table headers validation",
+        )
+
+        assert (
+            actual_headers == expected_headers
+        ), f"Table headers mismatch. Expected: {expected_headers}, Actual: {actual_headers}"
 
     # Validate the table data first row response's each data with the response from the api
+    @pytest.mark.regression
+    @pytest.mark.ui
+    def test_table_data_first_row_response_with_api(
+        self, aepl_response_log_page, report_case
+    ):
+        logger.info(
+            "Validating first row of table data on the AEPL Response Log page with API response"
+        )
+
+        _, VIN, UIN, ICCID, _, data = (
+            aepl_response_log_page.get_valid_request_response_by_api()
+        )
+
+        logger.info("API response received: VIN=%s, UIN=%s, ICCID=%s,", VIN, UIN, ICCID)
+
+        report_case(
+            expected="Valid payload response should be fetched from AEPL Response Log API",
+            actual=(f"VIN={VIN}, UIN={UIN}, ICCID={ICCID}, data={data}"),
+            message="AEPL Response Log API response validation",
+        )
+
+        assert data is not None, "API response data is None"
+        assert isinstance(data, dict), "API response data is not a dictionary"
+
+        logger.info("Reloading AEPL Response Log page to fetch latest entry")
+
+        aepl_response_log_page.page.reload(wait_until="networkidle")
+
+        table = TableSection(aepl_response_log_page.page)
+        row = table.get_row_data(0)
+
+        logger.info("UI response log row fetched: %s", row)
+
+        payload_data = aepl_response_log_page._normalize_payload_value(row["PAYLOAD"])
+
+        logger.info(
+            "Payload extracted from UI: %s",
+            payload_data,
+        )
+
+        report_case(
+            expected="UI payload should match API response payload",
+            actual=f"UI payload={payload_data}, API payload={data}",
+            message="AEPL Response Log UI payload validation",
+        )
+
+        assert isinstance(payload_data, dict), "UI payload is not a dictionary"
+
+        assert (
+            payload_data["ICCID"] == data["ICCID"]
+        ), "ICCID mismatch between UI payload and API response"
+
+        assert (
+            payload_data["UIN_NO"] == data["UIN_NO"]
+        ), "UIN mismatch between UI payload and API response"
+
+        assert (
+            payload_data["VIN_NO"] == data["VIN_NO"]
+        ), "VIN mismatch between UI payload and API response"
+
+        assert (
+            row["SENT TO"] == "Generate Tickets API"
+            or row["SENT TO"] == "Institutional Sale"
+        ), "SENT TO value mismatch between UI payload and API response"
+
+        assert (
+            row["SENT AT"] is not None and len(row["SENT AT"]) > 0
+        ), "SENT AT value is empty or None in the UI payload"
+
+        logger.info(
+            "AEPL Response Log first row table data validation completed successfully"
+        )
 
     # Validate the pagination on the response log page with the valid payload and validate the response on the ui with the response from the api
+    @pytest.mark.regression
+    @pytest.mark.ui
+    def test_check_pagination_functionality_on_the_page_aepl_response_page(
+        self, aepl_response_log_page, report_case
+    ):
+        logger.info("Validating pagination functionality on the AEPL Response Log page")
+
+        table_section = TableSection(aepl_response_log_page.page)
+
+        # Get the initial row count
+        initial_row_count = table_section.get_row_count()
+        logger.info("Initial row count: %d", initial_row_count)
+
+        pagination = PaginationHelper(aepl_response_log_page.page)
+
+        result = pagination.verify()
+
+        if result["success"]:
+            logger.info(
+                "Pagination executed successfully with pages visited: %s",
+                result["pages_visited"],
+            )
+            report_case(
+                expected="Pagination should execute successfully",
+                actual=f"Pages visited: {result['pages_visited']}",
+                message="AEPL Response Log pagination functionality validation",
+            )
+
+        if result["error"]:
+            logger.error("Pagination encountered an error: %s", result["error"])
+            report_case(
+                expected="Pagination should not encounter errors",
+                actual=f"Error: {result['error']}",
+                message="AEPL Response Log pagination functionality validation",
+            )
+            assert False, f"Pagination encountered an error: {result['error']}"
+
+        if result["total_pages"] > 0:
+            logger.info(
+                "Pagination count on response page should be greater than 0, total pages %s",
+                result["total_pages"],
+            )
+            report_case(
+                expected="Pagination count on response page should be greater than 0",
+                actual=f"Total pages: {result['total_pages']}",
+                message="AEPL Response Log pagination functionality validation",
+            )

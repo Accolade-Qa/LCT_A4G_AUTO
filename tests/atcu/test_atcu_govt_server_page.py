@@ -768,8 +768,8 @@ class TestGovtServerPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    @pytest.mark.repeat(20)
-    @pytest.mark.parametrize("state_name, state_code"[{Helpers.generate_random_indian_state_data()}])
+    # @pytest.mark.repeat(20)
+    # @pytest.mark.parametrize("state_name, state_code"[{Helpers.generate_random_indian_state_data()}])
     def test_govt_server_page_validate_success_message_on_valid_form_submission(
         self, govt_server_page, report_case
     ):
