@@ -1,15 +1,15 @@
-import importlib
-import json
 import os
 import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import importlib
+import json
 from pathlib import Path
 
 import pytest
 from playwright.sync_api import sync_playwright
 
 from pages.atcu.atcu_aepl_response_log_page import AtcuAeplResponseLogPage
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import config.config as config_module
 from config.global_var import (

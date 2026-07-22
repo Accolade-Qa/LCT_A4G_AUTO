@@ -1021,6 +1021,7 @@ def run_pytest(json_path, project_name=None, markers=None):
     env.setdefault("PROJECT", project_name or "lct")
     env.setdefault("PYTEST_ADDOPTS", "")
     env["PYTEST_ADDOPTS"] = f"{env['PYTEST_ADDOPTS']} --json-report --json-report-file={json_path}".strip()
+    env["PYTHONPATH"] = f"{ROOT}{os.pathsep}{env.get('PYTHONPATH', '')}"
 
     result = subprocess.run(cmd, cwd=ROOT, env=env)
 
