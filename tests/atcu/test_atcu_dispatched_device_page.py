@@ -58,8 +58,8 @@ class TestDispatchedDevicePage:
 
         report_case(
             expected=DISPATCHED_DEVICE_URL,
-            actual=actual_url,
-        )
+            actual=actual_url
+        , message="Validate Dispatched device page URL is correct")
 
         logger.info("Comparing expected and actual page URLs")
 
@@ -95,8 +95,8 @@ class TestDispatchedDevicePage:
 
         report_case(
             expected=expected_title,
-            actual=actual_title,
-        )
+            actual=actual_title
+        , message="Validate Dispatched device page title is correct")
 
         logger.info("Comparing expected and actual page titles")
 
@@ -192,8 +192,8 @@ class TestDispatchedDevicePage:
 
         report_case(
             expected=expected_title,
-            actual=actual_title,
-        )
+            actual=actual_title
+        , message="Validate Dispatched device page component title is correct")
 
         logger.info("Comparing expected and actual component titles")
 
@@ -240,8 +240,8 @@ class TestDispatchedDevicePage:
 
         report_case(
             expected=expected_headers,
-            actual=actual_headers,
-        )
+            actual=actual_headers
+        , message="Validate Dispatched device page table headers are correct")
 
         logger.info("Comparing expected and actual table headers")
 
@@ -270,7 +270,7 @@ class TestDispatchedDevicePage:
             table_data,
         )
 
-        report_case(expected="Valid table data", actual=table_data)
+        report_case(expected="Valid table data", actual=table_data, message="Validate Dispatched device page table data contains valid device information")
 
         logger.info("Validating table data structure")
         assert isinstance(
@@ -398,8 +398,8 @@ class TestDispatchedDevicePage:
 
         report_case(
             expected=expected_has_no_data,
-            actual=actual_has_no_data,
-        )
+            actual=actual_has_no_data
+        , message="Validate Dispatched device page shows no data message when table is empty")
 
         logger.debug(
             "Validating actual_has_no_data type | value=%s | type=%s",
@@ -654,8 +654,8 @@ class TestDispatchedDevicePage:
 
         report_case(
             expected="Pagination works correctly across pages",
-            actual=result,
-        )
+            actual=result
+        , message="Validate Dispatched device page pagination navigates across pages")
 
         assert result[
             "success"

@@ -47,8 +47,8 @@ class TestTmlRequestLogPage:
 
         report_case(
             expected="TML Request Log page should load successfully",
-            actual=f"page_loaded={is_loaded}",
-        )
+            actual=f"page_loaded={is_loaded}"
+        , message="Validate TML request log page loaded")
 
         assert is_loaded, "TML Request Log page is not loaded"
 
@@ -67,8 +67,8 @@ class TestTmlRequestLogPage:
 
         report_case(
             expected="TML Request Log page title should be correct",
-            actual=f"page_title={title}",
-        )
+            actual=f"page_title={title}"
+        , message="Validate TML request log page title")
 
         assert (
             title == "AIS140 Ticket TML Request Logs"
@@ -153,8 +153,8 @@ class TestTmlRequestLogPage:
 
         report_case(
             expected="Latest UI payload should match the API request payload",
-            actual=f"ui_payload_count={len(ui_payloads)}, ticket_number={ticket_number}",
-        )
+            actual=f"ui_payload_count={len(ui_payloads)}, ticket_number={ticket_number}"
+        , message="Validate TML request log page payload validation on ui")
 
         assert ui_payloads, "No payloads found in the TML Request Log table."
 
@@ -202,8 +202,8 @@ class TestTmlRequestLogPage:
             actual=(
                 f"success={search_result['success']}, "
                 f"results_found={search_result['results_found']}"
-            ),
-        )
+            )
+        , message="Validate TML request log page search")
 
         assert search_result[
             "success"
@@ -247,8 +247,8 @@ class TestTmlRequestLogPage:
 
         report_case(
             expected=f"Table headers should match: {expected_headers}",
-            actual=f"headers={actual_headers}",
-        )
+            actual=f"headers={actual_headers}"
+        , message="Validate TML request log page table headers")
 
         # Validate the number of headers
         assert len(actual_headers) == len(expected_headers), (
@@ -289,8 +289,8 @@ class TestTmlRequestLogPage:
 
         report_case(
             expected=f"SENT_BY should be '{expected_sent_by}' based on INSTITUTIONAL_SALE_FROM value '{institutional_sale}'",
-            actual=f"SENT_BY={sent_by}, INSTITUTIONAL_SALE_FROM={institutional_sale}",
-        )
+            actual=f"SENT_BY={sent_by}, INSTITUTIONAL_SALE_FROM={institutional_sale}"
+        , message="Validate TML request log page table data")
 
         assert (
             sent_by == expected_sent_by
@@ -327,8 +327,8 @@ class TestTmlRequestLogPage:
                 f"pages_visited={pagination_result['pages_visited']}, "
                 f"total_pages={pagination_result['total_pages']}, "
                 f"error={pagination_result['error']}"
-            ),
-        )
+            )
+        , message="Validate TML request log page pagination")
 
         # Pagination verification should succeed
         assert pagination_result[
@@ -411,8 +411,8 @@ class TestTmlRequestLogPage:
                 f"state={state_name}, "
                 f"conditions_met={conditions_met}, "
                 f"batch_added={batch_added}"
-            ),
-        )
+            )
+        , message="Validate TML request log page FOTA batch addition")
 
         if conditions_met:
             assert batch_added, f"Auto FOTA batch not created for state '{state_name}'."
@@ -445,8 +445,8 @@ class TestTmlRequestLogPage:
                 f"Generated={len(result['tickets'])}, "
                 f"Failed={len(result['failed_requests'])}, "
                 f"Duplicates={len(result['duplicates'])}"
-            ),
-        )
+            )
+        , message="Validate Concurrent multiple ticket generation uniqueness")
 
         assert not result[
             "failed_requests"

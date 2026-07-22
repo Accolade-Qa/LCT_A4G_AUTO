@@ -122,7 +122,7 @@ class TestRoleGroupPage:
             "Group Management",
             title,
         )
-        report_case(expected="Group Management", actual=title)
+        report_case(expected="Group Management", actual=title, message="Validate Role group page title is correct")
         assert (
             title == "Group Management"
         ), f"Expected page title 'Group Management', but got '{title}'"
@@ -143,8 +143,8 @@ class TestRoleGroupPage:
             actual=(
                 f"Page loaded={page_loaded}, Add Group visible={add_group_visible}, "
                 f"table visible={table_visible}, search visible={search_visible}"
-            ),
-        )
+            )
+        , message="Validate Role group page all elements are visible")
         assert page_loaded, "Role Group page did not load correctly"
 
         assert add_group_visible, "Add Group button is not visible"
@@ -178,8 +178,8 @@ class TestRoleGroupPage:
         logger.debug("Add Group component title: %s", component_title)
         report_case(
             expected="URL ends with /role-group and component title is Add Group",
-            actual=f"URL={role_group_page.page.url}, component title={component_title}",
-        )
+            actual=f"URL={role_group_page.page.url}, component title={component_title}"
+        , message="Validate Role group page add button navigates to form")
         assert component_title == "Add Group", "Add Group page did not load correctly"
 
     @pytest.mark.smoke
@@ -242,8 +242,8 @@ class TestRoleGroupPage:
                 "valid_error": None,
                 "success_message": "Success",
             },
-            actual=results,
-        )
+            actual=results
+        , message="Validate Role group page form shows validation errors for invalid input")
         assert "Success" in success_message, "Expected success message not found"
 
     @pytest.mark.smoke
@@ -301,8 +301,8 @@ class TestRoleGroupPage:
         logger.debug("Role Group table row count: %s", row_count)
         report_case(
             expected="Role Group table should be visible and data state valid",
-            actual=f"row_count={row_count}",
-        )
+            actual=f"row_count={row_count}"
+        , message="Validate Role group page table displays valid group data")
 
         if row_count == 0:
             logger.warning("Table is empty")
@@ -365,14 +365,14 @@ class TestRoleGroupPage:
             logger.info("Pagination elements are present")
             report_case(
                 expected="Pagination input and next button visible",
-                actual="Pagination elements are visible",
-            )
+                actual="Pagination elements are visible"
+            , message="Validate Role group page table pagination navigates across pages")
         else:
             logger.info("No pagination elements found, assuming single page")
             report_case(
                 expected="Pagination visible when multiple pages exist",
-                actual="No pagination elements found; assuming single page",
-            )
+                actual="No pagination elements found; assuming single page"
+            , message="Validate Role group page table pagination navigates across pages")
 
     @pytest.mark.smoke
     @pytest.mark.ui
@@ -417,7 +417,7 @@ class TestRoleGroupPage:
         logger.debug("Role Group table headers: %s", headers)
 
         expected_headers = ["GROUP NAME", "CREATED AT", "ACTION"]
-        report_case(expected=expected_headers, actual=headers)
+        report_case(expected=expected_headers, actual=headers, message="Validate Role group page table headers are correct")
 
         for header in expected_headers:
             assert header in headers, f"{header} not found in table headers"
@@ -447,8 +447,8 @@ class TestRoleGroupPage:
             assert date_obj <= today, f"Future date found: {created_at}"
         report_case(
             expected=f"All Created At dates should be <= {today.date()}",
-            actual=created_dates,
-        )
+            actual=created_dates
+        , message="Validate Role group page created at timestamps are not future dates")
 
     @pytest.mark.smoke
     @pytest.mark.ui
@@ -472,7 +472,7 @@ class TestRoleGroupPage:
             dates.append(date_obj)
 
         # ✅ Check ascending order (oldest first)
-        report_case(expected=sorted(dates), actual=dates)
+        report_case(expected=sorted(dates), actual=dates, message="Validate Role group page created at column is sorted correctly")
         assert dates == sorted(dates), "Dates are not sorted in ascending order"
 
     @pytest.mark.smoke
@@ -513,5 +513,5 @@ class TestRoleGroupPage:
                 assert False, f"Invalid date value: {created_at}"
         report_case(
             expected="All Created At values should match dd/mm/yyyy format",
-            actual=created_dates,
-        )
+            actual=created_dates
+        , message="Validate Role group page created at column has correct date format")

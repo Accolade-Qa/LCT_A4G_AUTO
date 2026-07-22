@@ -122,7 +122,7 @@ class TestRoleManagementPage:
             ROLE_MANAGEMENT_URL,
             page.url,
         )
-        report_case(expected=ROLE_MANAGEMENT_URL, actual=page.url)
+        report_case(expected=ROLE_MANAGEMENT_URL, actual=page.url, message="Validate Role management page navigates correctly")
 
         assert (
             page.url == ROLE_MANAGEMENT_URL
@@ -145,8 +145,8 @@ class TestRoleManagementPage:
             actual=(
                 f"Page loaded={page_loaded}, Add Role visible={add_role_visible}, "
                 f"table visible={table_visible}, search visible={search_visible}"
-            ),
-        )
+            )
+        , message="Validate Role management page all elements are visible")
 
         assert page_loaded, "Role Management page did not load correctly"
 
@@ -177,8 +177,8 @@ class TestRoleManagementPage:
         role_group_visible = role_management_page.is_role_group_visible()
         report_case(
             expected="Role Group visible=False for Administrator role",
-            actual=f"Role name={role_name}, role group visible={role_group_visible}",
-        )
+            actual=f"Role name={role_name}, role group visible={role_group_visible}"
+        , message="Validate Role management page form creates administrator role")
         assert (
             not role_group_visible
         ), "Role Group should NOT be visible for Administrator"
@@ -215,8 +215,8 @@ class TestRoleManagementPage:
         role_group_visible = role_management_page.is_role_group_visible()
         report_case(
             expected="Role Group visible=True for Manager role",
-            actual=f"Role name={role_name}, role group visible={role_group_visible}",
-        )
+            actual=f"Role name={role_name}, role group visible={role_group_visible}"
+        , message="Validate Role management page form creates manager role with group")
         assert role_group_visible, "Role Group should be visible for Manager"
 
         role_management_page.select_permission("Dashboard", "select_all")
@@ -255,7 +255,7 @@ class TestRoleManagementPage:
 
         error = role_management_page.get_error_message()
         logger.debug("Role group mandatory error text: %s", error)
-        report_case(expected="Role Group is mandatory", actual=error)
+        report_case(expected="Role Group is mandatory", actual=error, message="Validate Role management page form creates manager role without group")
         assert "Role Group is mandatory" in error
 
     @pytest.mark.smoke
@@ -272,7 +272,7 @@ class TestRoleManagementPage:
 
         error = role_management_page.get_input_box_error_message()
         logger.debug("Role name required error text: %s", error)
-        report_case(expected=" This field is mandatory.", actual=error)
+        report_case(expected=" This field is mandatory.", actual=error, message="Validate Role management page form shows error when role name empty")
         assert " This field is mandatory." in error
 
     @pytest.mark.smoke
@@ -291,7 +291,7 @@ class TestRoleManagementPage:
 
         error = role_management_page.get_input_box_error_message()
         logger.debug("Invalid role name error text: %s", error)
-        report_case(expected="Please enter a valid User Role.", actual=error)
+        report_case(expected="Please enter a valid User Role.", actual=error, message="Validate Role management page form shows error for invalid role name")
         assert "Please enter a valid User Role." in error
 
     @pytest.mark.smoke
@@ -315,7 +315,7 @@ class TestRoleManagementPage:
 
         success_message = role_management_page.get_success_message()
         logger.debug("Select all permissions success message: %s", success_message)
-        report_case(expected="Success", actual=success_message)
+        report_case(expected="Success", actual=success_message, message="Validate Role management page form allows selecting all permissions")
         assert "Success" in success_message, "Select all permissions failed"
 
     @pytest.mark.smoke
@@ -340,8 +340,8 @@ class TestRoleManagementPage:
             actual=(
                 f"Manager role group visible={manager_group_visible}, "
                 f"Administrator role group visible={admin_group_visible}"
-            ),
-        )
+            )
+        , message="Validate Role management page form role type toggle works")
         assert not admin_group_visible
 
     @pytest.mark.smoke
@@ -376,8 +376,8 @@ class TestRoleManagementPage:
         role_found = role_management_page.is_role_in_table(role_name)
         report_case(
             expected=f"Role '{role_name}' should be found in search results",
-            actual=f"success_message={success_message}, role_found={role_found}",
-        )
+            actual=f"success_message={success_message}, role_found={role_found}"
+        , message="Validate Role management page table search finds roles")
         assert role_found, f"Role '{role_name}' not found in search results"
 
     @pytest.mark.smoke
@@ -399,7 +399,7 @@ class TestRoleManagementPage:
             logger.warning("No roles found in the table to validate data")
             report_case(
                 expected="No data message should be visible", actual="Row count=0"
-            )
+            , message="Validate Role management page table displays valid role data")
             assert table_section.has_no_data()
             return
 
@@ -408,8 +408,8 @@ class TestRoleManagementPage:
         logger.debug("Role Management first row data: %s", first_row_data)
         report_case(
             expected="First row should contain Administrator or Manager role type",
-            actual=first_row_data,
-        )
+            actual=first_row_data
+        , message="Validate Role management page table displays valid role data")
 
         assert (
             "Administrator" in first_row_data or "Manager" in first_row_data

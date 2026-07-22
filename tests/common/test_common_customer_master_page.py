@@ -57,7 +57,7 @@ class TestCustomerMaster:
         is_enabled = customer_master._nav_list_enability()
         logger.info("Verifying navigation bar is enabled")
         assert is_enabled
-        report_case(expected=True, actual=is_enabled, result="PASS")
+        report_case(expected=True, actual=is_enabled, result="PASS", message="Validate Customer master nav list")
         logger.info("Navigation bar is enabled: Test Passed")
 
     @pytest.mark.regression
@@ -73,7 +73,7 @@ class TestCustomerMaster:
         assert is_visible
         base = BasePage(customer_master.page)
 
-        report_case(expected=expected_title, actual=base.get_title(), result="PASS")
+        report_case(expected=expected_title, actual=base.get_title(), result="PASS", message="Validate Customer master page title")
 
         logger.info("Page title is visible: Test Passed")
 
@@ -90,7 +90,7 @@ class TestCustomerMaster:
         logger.info("Verifying elements are enabled")
         assert is_enabled
 
-        report_case(expected=True, actual=is_enabled, result="PASS")
+        report_case(expected=True, actual=is_enabled, result="PASS", message="Validate Customer master element enability")
 
         logger.info("Elements are enabled: Test Passed")
 
@@ -110,7 +110,7 @@ class TestCustomerMaster:
         logger.info("Verifying Add Customer button is clickable")
         assert click is None
 
-        report_case(expected=True, actual=visibility)
+        report_case(expected=True, actual=visibility, message="Validate Customer master add customer")
         logger.info("Add Customer button is clickable and clicked")
 
     @pytest.mark.regression
@@ -162,7 +162,7 @@ class TestCustomerMaster:
 
         report_case(
             expected="Data Saved Successfully!!", actual=toast_text, result="PASS"
-        )
+        , message="Validate Customer master new customer")
 
         logger.info("New customer added successfully: Test Passed")
 
@@ -183,7 +183,7 @@ class TestCustomerMaster:
 
         report_case(
             expected="Data Saved Successfully!!", actual=toast_text, result="PASS"
-        )
+        , message="Validate Customer master search customer")
 
         logger.info(
             "Customer search and update functionality validation successful: Test Passed"
@@ -208,7 +208,7 @@ class TestCustomerMaster:
 
         report_case(
             expected=" Data Deleted Successfully!!", actual=toast_text, result="PASS"
-        )
+        , message="Validate Customer master search delete customer")
 
         logger.info(
             "Customer search and delete functionality validation sucessful: Test Passed"

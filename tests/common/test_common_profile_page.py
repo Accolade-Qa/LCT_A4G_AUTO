@@ -48,8 +48,8 @@ class TestProfilePage:
             logger.debug("Login data fetched from profile page: %s", login_data)
             report_case(
                 expected="Login data with all required fields and 16 permissions",
-                actual=str(login_data),
-            )
+                actual=str(login_data)
+            , message="Validate Profile page login data for validation")
 
             # login data should not be none
             assert login_data is not None, "Login data should not be None"
@@ -127,7 +127,7 @@ class TestProfilePage:
             logger.debug(
                 "Page title check | expected=%s | actual=%s", "User Profile", title
             )
-            report_case(expected="User Profile", actual=title)
+            report_case(expected="User Profile", actual=title, message="Validate Profile page validate page title")
             assert (
                 title == "User Profile"
             ), f"Expected page title to be 'User Profile' but got '{title}'"
@@ -152,7 +152,7 @@ class TestProfilePage:
                 "User Details",
                 component_title,
             )
-            report_case(expected="User Details", actual=component_title)
+            report_case(expected="User Details", actual=component_title, message="Validate Profile page validate component title")
             assert (
                 component_title == "User Details"
             ), f"Expected component title to be 'User Details' but got '{component_title}'"
@@ -221,8 +221,8 @@ class TestProfilePage:
             )
             report_case(
                 expected="admin and user_role readonly; others editable",
-                actual=f"readonly_fields={readonly_fields_status}, editable_fields={editable_fields_status}",
-            )
+                actual=f"readonly_fields={readonly_fields_status}, editable_fields={editable_fields_status}"
+            , message="Validate Profile page validate admin and role input fields not editable")
             logger.info("Profile page input fields non-editable validation test passed")
 
         except AssertionError as e:
@@ -294,7 +294,7 @@ class TestProfilePage:
                 },
             }
             logger.debug("Field values comparison: %s", field_values_comparison)
-            report_case(expected=str(user_data), actual=str(field_values_comparison))
+            report_case(expected=str(user_data), actual=str(field_values_comparison), message="Validate Profile page validate input fields values with actual data")
 
             # Validate each input field value against API data
             admin_name_value = user_data.get("adminName")
@@ -399,7 +399,7 @@ class TestProfilePage:
                 expected_status,
                 actual_status,
             )
-            report_case(expected=expected_status, actual=actual_status)
+            report_case(expected=expected_status, actual=actual_status, message="Validate Profile page validate buttons are visible and enabled")
 
             # Validate Save button is visible and enabled
             assert update_visible, "Expected 'Save' button to be visible"
@@ -458,7 +458,7 @@ class TestProfilePage:
             )
             report_case(
                 expected="User Details Updated Successfully!!", actual=message_text
-            )
+            , message="Validate Profile page click update button without changes")
 
             assert "User Details Updated Successfully!!" in message_text, (
                 f"Expected success message to contain "
@@ -525,8 +525,8 @@ class TestProfilePage:
             )
             report_case(
                 expected=f"State updated to {new_state}; User Details Updated Successfully!!",
-                actual=message_text,
-            )
+                actual=message_text
+            , message="Validate Profile page update state and validate update message")
 
             assert "User Details Updated Successfully!!" in message_text, (
                 f"Expected success message to contain "

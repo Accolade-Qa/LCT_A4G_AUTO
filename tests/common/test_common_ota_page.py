@@ -27,7 +27,7 @@ class TestOtaPage:
     def log_test_case(self, request, report_case):
         test_name = request.node.name
         expected = (request.node.function.__doc__ or test_name).strip()
-        report_case(expected=expected)
+        report_case(expected=expected, message="Validate Log test case")
         logger.info("Starting OTA test: %s", test_name)
         logger.debug("Executing test node: %s", request.node.nodeid)
         yield

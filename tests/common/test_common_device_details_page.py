@@ -52,7 +52,7 @@ class TestDeviceDetailsPage:
 
         title = device_details_page.get_title()
         logger.debug("Page title: %s", title)
-        report_case(expected="Device Details", actual=title)
+        report_case(expected="Device Details", actual=title, message="Validate Device details page title is correct")
 
         assert title == "Device Details"
 
@@ -76,8 +76,8 @@ class TestDeviceDetailsPage:
             actual=(
                 f"Page loaded={page_loaded}, buttons visible={buttons_visible}, "
                 f"KPI cards visible={kpi_visible}"
-            ),
-        )
+            )
+        , message="Validate Device details page all elements are visible")
         assert page_loaded
         assert buttons_visible
         assert kpi_visible
@@ -134,7 +134,7 @@ class TestDeviceDetailsPage:
                 actual_title,
             )
             assert actual_title == title, f"Card {i} title mismatch"
-        report_case(expected=expected_titles, actual=actual_titles)
+        report_case(expected=expected_titles, actual=actual_titles, message="Validate Device details page KPI card titles are correct")
 
         logger.info("Test passed: dashboard_card_title")
 
@@ -154,7 +154,7 @@ class TestDeviceDetailsPage:
             values.append(value)
             logger.debug("Validating KPI card value at index %s | value=%s", i, value)
             assert value.strip() != "", f"Card {i} has empty value"
-        report_case(expected="All KPI card values should be non-empty", actual=values)
+        report_case(expected="All KPI card values should be non-empty", actual=values, message="Validate Device details page KPI cards display values")
 
         logger.info("Test passed: kpi_cards_have_values")
 
@@ -187,7 +187,7 @@ class TestDeviceDetailsPage:
                 actual,
             )
             assert actual == expected, f"Component {i} title mismatch"
-        report_case(expected=expected_titles, actual=actual_titles)
+        report_case(expected=expected_titles, actual=actual_titles, message="Validate Device details page all table component titles are correct")
 
         logger.info("Test passed: component titles")
 
@@ -205,8 +205,8 @@ class TestDeviceDetailsPage:
         logger.debug("Collected component headers: %s", headers)
         report_case(
             expected="30 headers including IMEI Number, ICCID Number, UIN No, VIN No",
-            actual=f"{len(headers)} headers: {headers}",
-        )
+            actual=f"{len(headers)} headers: {headers}"
+        , message="Validate Device details page all section headers are correct")
 
         assert len(headers) == 30
 
@@ -238,7 +238,7 @@ class TestDeviceDetailsPage:
             expected_headers,
             actual_headers,
         )
-        report_case(expected=expected_headers, actual=actual_headers)
+        report_case(expected=expected_headers, actual=actual_headers, message="Validate Device details page table headers are correct")
 
         assert actual_headers == expected_headers
 
@@ -258,8 +258,8 @@ class TestDeviceDetailsPage:
         logger.debug("Login packet table row count: %s", len(actual_data))
         report_case(
             expected="Login packet table should have data and each row should be a list",
-            actual=f"Rows={len(actual_data)}, row types={[type(row).__name__ for row in actual_data]}",
-        )
+            actual=f"Rows={len(actual_data)}, row types={[type(row).__name__ for row in actual_data]}"
+        , message="Validate Device details page table displays device information")
 
         assert len(actual_data) > 0, "Login packet table should have data"
         assert all(
@@ -282,7 +282,7 @@ class TestDeviceDetailsPage:
 
         rows = device_details_page.get_device_details_table_data()
         logger.debug("Device details table rows fetched: %s", len(rows))
-        report_case(expected="Row count should be greater than 0", actual=len(rows))
+        report_case(expected="Row count should be greater than 0", actual=len(rows), message="Validate Device details page table row count is accurate")
 
         assert len(rows) > 0
 
@@ -300,8 +300,8 @@ class TestDeviceDetailsPage:
         has_no_data = device_details_page.table_section.has_no_data()
         report_case(
             expected="Current table state should be captured",
-            actual=f"No data state={has_no_data}",
-        )
+            actual=f"No data state={has_no_data}"
+        , message="Validate Device details page shows no data message when empty")
 
         # # Assertion
         # assert (
@@ -396,7 +396,7 @@ class TestDeviceDetailsPage:
         is_disabled = next_btn.is_disabled()
         report_case(
             expected="Next button disabled=True on last page", actual=is_disabled
-        )
+        , message="Validate Device details page pagination handles last page correctly")
         assert is_disabled, "Next button should be disabled on last page"
 
         logger.info("Test passed: last page behavior")

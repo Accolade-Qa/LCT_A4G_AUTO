@@ -62,7 +62,7 @@ class TestUserManagementPage:
         user_page = self._login_and_dashboard(page)
         user_page.go_to_user(USER_MANAGEMENT_URL)
         enabled = user_management._nav_list_enability()
-        report_case(expected=False, actual=enabled)
+        report_case(expected=False, actual=enabled, message="Validate User management nav list enability")
         logger.info("Navbar list enability result: %s", enabled)
         assert enabled, "Navbar list is not enabled"
         logger.info("Navbar list enability test passed successfully")
@@ -84,7 +84,7 @@ class TestUserManagementPage:
             actual_title,
         )
 
-        report_case(expected=expected_title, actual=actual_title)
+        report_case(expected=expected_title, actual=actual_title, message="Validate User management is PageTitle Visible")
         assert (
             actual_title == expected_title
         ), f"Expected title to be '{expected_title}', got '{actual_title}'"
@@ -101,7 +101,7 @@ class TestUserManagementPage:
         user_page.go_to_user(USER_MANAGEMENT_URL)
         ele_enabled = user_management._element_enability()
 
-        report_case(expected=True, actual=ele_enabled)
+        report_case(expected=True, actual=ele_enabled, message="Validate User management element enability")
         logger.info("Element enability result: %s", ele_enabled)
 
         assert ele_enabled, "Elements not enabled"

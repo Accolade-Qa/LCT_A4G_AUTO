@@ -56,7 +56,7 @@ class TestDashboardPage:
             expected_url,
             actual_url,
         )
-        report_case(expected=expected_url, actual=actual_url)
+        report_case(expected=expected_url, actual=actual_url, message="Validate Dashboard page navigates to correct URL")
 
         assert actual_url == expected_url, f"Expected {expected_url}, got {actual_url}"
 
@@ -72,7 +72,7 @@ class TestDashboardPage:
             "Device Dashboard",
             actual_title,
         )
-        report_case(expected="Device Dashboard", actual=actual_title)
+        report_case(expected="Device Dashboard", actual=actual_title, message="Validate Dashboard page title is correct")
 
         assert actual_title == "Device Dashboard", "Dashboard title is incorrect"
 
@@ -90,8 +90,8 @@ class TestDashboardPage:
             actual=(
                 f"Cards visible={cards_visible}, card count={cards_count}, "
                 f"graph visible={graph_visible}, table visible={table_visible}"
-            ),
-        )
+            )
+        , message="Validate Dashboard page all elements are visible")
         assert cards_visible, "Dashboard cards are not visible"
         assert cards_count == 4, "Expected 4 cards on the dashboard"
         assert graph_visible, "Dashboard graph is not visible"
@@ -104,7 +104,7 @@ class TestDashboardPage:
     def test_dashboard_page_cards_are_visible(self, dashboard_page, report_case):
         logger.info("Confirming dashboard cards are visible")
         cards_visible = dashboard_page._is_cards_visible()
-        report_case(expected=True, actual=cards_visible)
+        report_case(expected=True, actual=cards_visible, message="Validate Dashboard page cards are visible")
         assert cards_visible, "Dashboard cards are not visible"
 
     @pytest.mark.ui
@@ -119,7 +119,7 @@ class TestDashboardPage:
             expected_cards_count,
             actual_cards_count,
         )
-        report_case(expected=expected_cards_count, actual=actual_cards_count)
+        report_case(expected=expected_cards_count, actual=actual_cards_count, message="Validate Dashboard page displays four cards")
 
         assert (
             actual_cards_count == expected_cards_count
@@ -152,7 +152,7 @@ class TestDashboardPage:
                 actual_title,
             )
             assert actual_title == title, f"Expected '{title}', got '{actual_title}'"
-        report_case(expected=expected_title, actual=actual_titles)
+        report_case(expected=expected_title, actual=actual_titles, message="Validate Dashboard page card titles are correct")
 
     @pytest.mark.api
     @pytest.mark.smoke
@@ -178,11 +178,11 @@ class TestDashboardPage:
             assert (
                 actual_count == expected_count
             ), f"For '{title}', expected count '{expected_count}', got '{actual_count}'"
-        report_case(expected=api_results, actual=actual_results)
+        report_case(expected=api_results, actual=actual_results, message="Validate Dashboard page card counts match API data")
 
         logger.info("Checking graph visibility on dashboard")
         graph_visible = dashboard_page._is_graph_visible()
-        report_case(expected=True, actual=graph_visible)
+        report_case(expected=True, actual=graph_visible, message="Validate Dashboard page card counts match API data")
         assert graph_visible, "Dashboard graph is not visible"
 
     @pytest.mark.smoke
@@ -204,7 +204,7 @@ class TestDashboardPage:
             assert (
                 actual_graph_title == title
             ), f"Expected graph title '{title}', got '{actual_graph_title}'"
-        report_case(expected=expected_graph_title, actual=actual_graph_titles)
+        report_case(expected=expected_graph_title, actual=actual_graph_titles, message="Validate Dashboard page graph title is correct")
 
     @pytest.mark.smoke
     @pytest.mark.ui
@@ -212,7 +212,7 @@ class TestDashboardPage:
     def test_dashboard_page_table_is_visible(self, dashboard_page, report_case):
         logger.info("Verifying table visibility")
         table_visible = dashboard_page._is_table_visible()
-        report_case(expected=True, actual=table_visible)
+        report_case(expected=True, actual=table_visible, message="Validate Dashboard page table is visible")
         assert table_visible, "Dashboard table is not visible"
 
     @pytest.mark.smoke
@@ -241,7 +241,7 @@ class TestDashboardPage:
             assert (
                 actual_table_title == title
             ), f"Expected table title '{title}', got '{actual_table_title}'"
-        report_case(expected=expected_table_title, actual=actual_table_titles)
+        report_case(expected=expected_table_title, actual=actual_table_titles, message="Validate Dashboard page card and graph clicks update table title")
 
     @pytest.mark.smoke
     @pytest.mark.ui
@@ -301,7 +301,7 @@ class TestDashboardPage:
             expected_headers,
             actual_headers,
         )
-        report_case(expected=expected_headers, actual=actual_headers)
+        report_case(expected=expected_headers, actual=actual_headers, message="Validate Dashboard page table headers are correct")
         assert (
             actual_headers == expected_headers
         ), f"Expected table headers {expected_headers}, got {actual_headers}"
@@ -317,7 +317,7 @@ class TestDashboardPage:
         logger.debug("Dashboard pagination result: %s", result)
         report_case(
             expected="Pagination success=True and pages visited in order", actual=result
-        )
+        , message="Validate Dashboard page pagination navigates across pages")
         assert result["success"], f"Pagination failed: {result['error']}"
         # assert result["total_pages"] > 1, "Pagination did not move beyond first page"
         assert result["pages_visited"] == sorted(

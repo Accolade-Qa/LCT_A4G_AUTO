@@ -52,7 +52,7 @@ class TestSimBatchDataDetailsPage:
             SIM_DATA_DETAILS_URL,
             page.url,
         )
-        report_case(expected=SIM_DATA_DETAILS_URL, actual=page.url)
+        report_case(expected=SIM_DATA_DETAILS_URL, actual=page.url, message="Validate SIM batch page navigates correctly")
         assert (
             page.url == SIM_DATA_DETAILS_URL
         ), f"Expected URL to be '{SIM_DATA_DETAILS_URL}', got {page.url}"
@@ -70,7 +70,7 @@ class TestSimBatchDataDetailsPage:
             expected_title,
             actual_title,
         )
-        report_case(expected=expected_title, actual=actual_title)
+        report_case(expected=expected_title, actual=actual_title, message="Validate SIM batch page title is correct")
         assert (
             actual_title == expected_title
         ), f"Expected title to be '{expected_title}', got '{actual_title}'"
@@ -97,8 +97,8 @@ class TestSimBatchDataDetailsPage:
         )
         report_case(
             expected="Manual Upload and Download Sample buttons should be visible with correct text",
-            actual=f"Manual='{manual_button_text}', Download='{download_button_text}'",
-        )
+            actual=f"Manual='{manual_button_text}', Download='{download_button_text}'"
+        , message="Validate SIM batch page manual upload and download buttons are visible")
         assert (
             "Manual Upload" in manual_button_text
         ), "Manual Upload button text mismatch"
@@ -120,7 +120,7 @@ class TestSimBatchDataDetailsPage:
             expected_instruction,
             actual_instruction,
         )
-        report_case(expected=expected_instruction, actual=actual_instruction)
+        report_case(expected=expected_instruction, actual=actual_instruction, message="Validate SIM batch page manual upload form shows instructions")
         assert (
             actual_instruction == expected_instruction
         ), "Upload instruction text mismatch"
@@ -135,7 +135,7 @@ class TestSimBatchDataDetailsPage:
     ):
         logger.info("Verifying submit button is disabled before upload")
         is_disabled = sim_data_details_page.is_submit_button_disabled()
-        report_case(expected=True, actual=is_disabled)
+        report_case(expected=True, actual=is_disabled, message="Validate SIM batch page submit button is disabled initially")
         assert is_disabled, "Submit button should be disabled before upload"
 
     @pytest.mark.smoke
@@ -149,8 +149,8 @@ class TestSimBatchDataDetailsPage:
         logger.debug("Manual upload page URL: %s", sim_data_details_page.page.url)
         report_case(
             expected="URL should contain sensorise-sim-manual-upload",
-            actual=sim_data_details_page.page.url,
-        )
+            actual=sim_data_details_page.page.url
+        , message="Validate SIM batch page manual button opens upload form")
         assert (
             "sensorise-sim-manual-upload" in sim_data_details_page.page.url
         ), f"Expected manual upload URL fragment in '{sim_data_details_page.page.url}'"
@@ -172,7 +172,7 @@ class TestSimBatchDataDetailsPage:
             expected_error_message,
             actual_error_message,
         )
-        report_case(expected=expected_error_message, actual=actual_error_message)
+        report_case(expected=expected_error_message, actual=actual_error_message, message="Validate SIM batch page manual upload form shows error for blank input")
         assert (
             actual_error_message == expected_error_message
         ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
@@ -195,7 +195,7 @@ class TestSimBatchDataDetailsPage:
             expected_error_message,
             actual_error_message,
         )
-        report_case(expected=expected_error_message, actual=actual_error_message)
+        report_case(expected=expected_error_message, actual=actual_error_message, message="Validate SIM batch page manual upload form shows error for 20 character input")
         assert (
             actual_error_message == expected_error_message
         ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
@@ -213,7 +213,7 @@ class TestSimBatchDataDetailsPage:
         )  # Example valid ICCID
         logger.debug("Entered valid ICCID for submit button enablement check")
         is_disabled = sim_data_details_page.is_submit_button_disabled()
-        report_case(expected=False, actual=is_disabled)
+        report_case(expected=False, actual=is_disabled, message="Validate SIM batch page submit button is enabled with valid input")
         assert not is_disabled, "Submit button should be enabled after valid input"
 
     @pytest.mark.smoke
@@ -230,7 +230,7 @@ class TestSimBatchDataDetailsPage:
         sim_data_details_page.click_submit_button()
         logger.debug("Submitted valid ICCID and checking results table visibility")
         is_visible = sim_data_details_page.is_results_table_visible()
-        report_case(expected=True, actual=is_visible)
+        report_case(expected=True, actual=is_visible, message="Validate SIM batch page submit button displays table results")
         assert (
             is_visible
         ), "Results table should be visible after submitting valid ICCID"
@@ -256,7 +256,7 @@ class TestSimBatchDataDetailsPage:
             expected_header,
             actual_headers,
         )
-        report_case(expected=expected_header, actual=actual_headers)
+        report_case(expected=expected_header, actual=actual_headers, message="Validate SIM batch page table header is visible and correct")
         assert (
             actual_headers == expected_header
         ), f"Expected table headers to be {expected_header}, got {actual_headers}"
@@ -297,7 +297,7 @@ class TestSimBatchDataDetailsPage:
             expected_headers,
             actual_headers,
         )
-        report_case(expected=expected_headers, actual=actual_headers)
+        report_case(expected=expected_headers, actual=actual_headers, message="Validate SIM batch page table headers are correct")
         assert (
             actual_headers == expected_headers
         ), f"Expected table headers {expected_headers}, got {actual_headers}"
@@ -346,7 +346,7 @@ class TestSimBatchDataDetailsPage:
             expected_error_message,
             actual_error_message,
         )
-        report_case(expected=expected_error_message, actual=actual_error_message)
+        report_case(expected=expected_error_message, actual=actual_error_message, message="Validate SIM batch page batch upload validates file input")
         assert (
             actual_error_message == expected_error_message
         ), f"Expected error message to be '{expected_error_message}', got '{actual_error_message}'"
@@ -368,8 +368,8 @@ class TestSimBatchDataDetailsPage:
         )
         report_case(
             expected="Sensorise_SIM_data_Details.xlsx should download successfully",
-            actual=f"filename={download.suggested_filename}, downloaded={is_downloaded}",
-        )
+            actual=f"filename={download.suggested_filename}, downloaded={is_downloaded}"
+        , message="Validate SIM batch page download sample button is functional")
 
         assert is_downloaded, "Sample file validation failed"
 
@@ -381,7 +381,7 @@ class TestSimBatchDataDetailsPage:
     ):
         logger.info("Testing the submit button is disabled if no input")
         is_disabled = sim_data_details_page.is_submit_button_disabled_on_no_input()
-        report_case(expected=True, actual=is_disabled)
+        report_case(expected=True, actual=is_disabled, message="Validate SIM batch page submit button is disabled when input cleared")
         assert is_disabled, "Submit button should not be enabled"
 
     @pytest.mark.smoke
@@ -395,7 +395,7 @@ class TestSimBatchDataDetailsPage:
         logger.debug("Uploading SIM data details file: %s", file_path)
         sim_data_details_page.upload_valid_file(file_path)  # Example valid file
         is_disabled = sim_data_details_page.is_submit_button_disabled_on_no_input()
-        report_case(expected=False, actual=is_disabled)
+        report_case(expected=False, actual=is_disabled, message="Validate SIM batch page submit button is enabled after valid file upload")
         assert (
             not is_disabled
         ), "Submit button should be enabled after valid file upload"
