@@ -608,6 +608,16 @@ def aepl_response_log_page(page, project_config):
     logger.info("AEPL Response Log page fixture ready")
     return aepl_response_log
 
+@pytest.fixture
+def atcu_device_state_config_page(page, project_config):
+    from pages.atcu.atcu_device_state_config_page import AtcuDeviceStateConfigPage
+
+    device_state_config = AtcuDeviceStateConfigPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["device_state_config_url"])
+    logger.info("Device State Config page fixture ready")
+    return device_state_config
+
 
 # API Fixtures
 @pytest.fixture
