@@ -1370,7 +1370,7 @@ class TestDispatchedDevicePage:
         ), "Expected Bulk Upload Submit button to be disabled when no file is selected"
 
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         is_submit_disabled_after_selection = (
@@ -1411,7 +1411,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file
@@ -1464,7 +1464,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file
@@ -1529,7 +1529,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file
@@ -1584,7 +1584,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file
@@ -1673,7 +1673,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file
