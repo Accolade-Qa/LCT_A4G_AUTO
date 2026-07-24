@@ -244,3 +244,68 @@ class CustomerMasterPage(BasePage):
 
         self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("Customer deleted successfully")
+
+    def get_dashboard_customer_list(self, dashboard_url):
+        logger.info("Navigating to Dashboard URL: %s", dashboard_url)
+        self.page.goto(dashboard_url)
+        self.page.wait_for_load_state("networkidle")
+        
+        # Target the customer dropdown specifically using placeholders/text to distinguish it from the model dropdown
+        dropdown_selectors = [
+            "mat-select:has-text('Select Customer')",
+            "div.dropdown-placeholder-wrapper:has-text(' Select Customer Name ')",
+            "span:has-text('Select Customer')",
+            "mat-select:has-text('Customer')",
+            "div.dropdown-placeholder-wrapper:has-text('Customer')"
+        ]
+        
+        dropdown = None
+        for selector in dropdown_selectors:
+            loc = self.page.locator(selector)
+            try:
+                if loc.count() > 0 and loc.first.is_visible():
+                    dropdown = loc.first
+                    logger.info("Found customer dropdown on dashboard using selector: %s", selector)
+                    break
+            except Exception:
+                pass
+                
+        if dropdown:
+            dropdown.click()
+            self.page.wait_for_timeout(1000)
+            tag_name = (dropdown.evaluate("el => el.tagName") or "").lower()
+            if "mat-select" in tag_name:
+                options = [txt.strip() for txt in self.page.locator("mat-option span").all_inner_texts()]
+            else:
+                options = [txt.strip() for txt in self.page.locator("div.list-items ul li").all_inner_texts()]
+            dropdown.press("Escape")
+            return options
+        return None
+
+    def get_dispatched_device_customer_lists(self, dispatched_device_url):
+        logger.info("Navigating to Dispatched Device URL: %s", dispatched_device_url)
+        self.page.goto(dispatched_device_url)
+        self.page.wait_for_load_state("networkidle")
+        
+        from pages.common_dispatched_device_page import DispatchedDevicePage
+        dispatched_page = DispatchedDevicePage(self.page)
+        
+        # Get header dropdown list
+        header_customers = dispatched_page.get_customer_list()
+        
+        # Get manual upload dropdown list
+        dispatched_page.click_manual_upload_button()
+        self.page.wait_for_timeout(1000)
+        manual_customers = dispatched_page.get_customer_list_from_manual_upload()
+        
+        # Close manual upload modal
+        cancel_btn = self.page.locator("button:has-text('Cancel')").first
+        if cancel_btn.is_visible():
+            cancel_btn.click()
+        else:
+            self.page.keyboard.press("Escape")
+            
+        return {
+            "header": [c.strip() for c in header_customers],
+            "manual": [c.strip() for c in manual_customers]
+        }
