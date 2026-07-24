@@ -1,6 +1,8 @@
 from utils.logger import get_logger
 from .api_client import APIClient
 from config.config import API_BASE_URL, API_USERNAME, API_PASSWORD
+from utils.helpers import Helpers
+import json
 
 logger = get_logger(__name__)
 
@@ -67,4 +69,43 @@ class CustomerAPI(APIClient):
             return customer_names
         except Exception as e:
             logger.error("Failed to fetch customer list: %s", str(e))
+            raise
+
+    @staticmethod
+    def save_customer(
+        page,
+        api_base_url=API_BASE_URL,
+        api_username=API_USERNAME,
+        api_password=API_PASSWORD,
+    ):
+        """Save a new customer via API."""
+        customer_name = "API cust " + Helpers.generate_random_string(5)
+        payload = {
+            "id": 0,
+            "customerName": customer_name,
+        }
+        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
+            "sampark-qa.accoladeelectronics.com"
+        ):
+            customer_endpoint = "/api/customerMaster/saveCustomer"
+        else:
+            customer_endpoint = "/customerMaster/saveCustomer"
+
+        logger.info("Saving customer using %s", customer_endpoint)
+
+        try:
+            response_data = APIClient.send_request(
+                page,
+                api_base_url,
+                api_username,
+                api_password,
+                "POST",
+                customer_endpoint,
+                data=json.dumps(payload),
+            )
+            logger.info("Successfully saved new customer: %s", customer_name)
+            return response_data, customer_name
+
+        except Exception as e:
+            logger.error("Failed to save customer: %s", str(e))
             raise
