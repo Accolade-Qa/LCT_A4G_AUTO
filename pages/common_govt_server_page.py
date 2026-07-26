@@ -361,6 +361,13 @@ class GovtServerPage(BasePage):
 
         self.page.wait_for_load_state("networkidle")
 
+    def click_refresh_button(self):
+        """Click on refresh button in the header"""
+        logger.info("Clicking on refresh button in the header")
+        refresh_btn = self.page.locator("//mat-icon[normalize-space()='refresh']").first
+        refresh_btn.click()
+        self.page.wait_for_load_state("networkidle")
+
     def get_page_title_on_view_page(self):
         """Get page title on view page"""
 
@@ -745,36 +752,37 @@ class GovtServerPage(BasePage):
             firmware_name,
         )
 
-        candidate_selectors = [
-            "//h6[normalize-space()='Open CPU Firmware List']"
-            "/ancestor::div[contains(@class,'component-container')]"
-            "//table/tbody/tr/td[2]",
-            "//h6[normalize-space()='Open CPU Firmware List']"
-            "/ancestor::div[contains(@class,'component-container')]"
-            "//table/tbody/tr/td[3]",
-            "//h6[normalize-space()='Firmware Master List']"
-            "/ancestor::div[contains(@class,'component-container')]"
-            "//table/tbody/tr/td[2]",
-            "//h6[normalize-space()='Firmware Master List']"
-            "/ancestor::div[contains(@class,'component-container')]"
-            "//table/tbody/tr/td[3]",
+        candidate_locators = [
+            # Open CPU Firmware List table (Column 2 and 3)
+            self.page.locator(".component-container")
+            .filter(has=self.page.get_by_text("Open CPU Firmware List"))
+            .locator("table tbody tr td:nth-child(2)"),
+            self.page.locator(".component-container")
+            .filter(has=self.page.get_by_text("Open CPU Firmware List"))
+            .locator("table tbody tr td:nth-child(3)"),
+            # Firmware Master List table (Column 2 and 3)
+            self.page.locator(".component-container")
+            .filter(has=self.page.get_by_text("Firmware Master List"))
+            .locator("table tbody tr td:nth-child(2)"),
+            self.page.locator(".component-container")
+            .filter(has=self.page.get_by_text("Firmware Master List"))
+            .locator("table tbody tr td:nth-child(3)"),
         ]
 
         seen_firmware_names = []
-        for selector in candidate_selectors:
+        for index_loc, loc in enumerate(candidate_locators):
             try:
-                firmware_names = self.page.locator(selector)
                 # Read all texts in one go to avoid per-locator timeouts
-                texts = firmware_names.all_inner_texts()
+                texts = loc.all_inner_texts()
             except Exception as exc:
                 logger.warning(
-                    "Failed to read candidate selector '%s': %s", selector, exc
+                    "Failed to read candidate locator at index %s: %s", index_loc, exc
                 )
                 texts = []
 
             logger.debug(
-                "Checking selector '%s' with %s candidate firmware names",
-                selector,
+                "Checking locator index %s with %s candidate firmware names",
+                index_loc,
                 len(texts),
             )
 
@@ -793,9 +801,9 @@ class GovtServerPage(BasePage):
                 # Use case-insensitive substring match to be robust to formatting
                 if firmware_name.lower() in current_firmware_name.lower():
                     logger.info(
-                        "Firmware '%s' found in the list at selector '%s' index %s",
+                        "Firmware '%s' found in the list at locator index %s row %s",
                         firmware_name,
-                        selector,
+                        index_loc,
                         index + 1,
                     )
                     return True
