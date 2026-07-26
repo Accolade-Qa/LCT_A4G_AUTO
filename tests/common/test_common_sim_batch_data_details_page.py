@@ -8,7 +8,6 @@ logger = get_logger(__name__)
 TEST_DATA_DIR = Path(__file__).resolve().parents[1] / "test_data" / "lct"
 
 
-@pytest.mark.device
 @pytest.mark.regression
 @pytest.mark.lct
 @pytest.mark.sampark

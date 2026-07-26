@@ -316,6 +316,22 @@ def page(browser, project_config):
     page = context.new_page()
     logger.info("New page opened")
 
+    # Debugging listeners to log network errors and console issues
+    def log_console(msg):
+        if msg.type in ["error", "warning"]:
+            logger.warning(f"Browser console {msg.type}: {msg.text}")
+
+    def log_response(response):
+        if response.status >= 400:
+            logger.error(f"HTTP Response error: {response.status} {response.url}")
+            try:
+                logger.error(f"Response body: {response.text()}")
+            except Exception:
+                pass
+
+    page.on("console", log_console)
+    page.on("response", log_response)
+
     from pages.common_login_page import LoginPage
 
     login = LoginPage(page)
@@ -550,11 +566,11 @@ def profile_page(page, project_config):
 
 
 @pytest.fixture
-def customer_master(page):
+def customer_master(page, project_config):
     from pages.common_customer_master_page import CustomerMasterPage
 
     customermaster = CustomerMasterPage(page)
-    customermaster.go_to_customer(config_module.CUSTOMER_MASTER_URL)
+    customermaster.go_to_customer(project_config["customer_master_url"])
     return customermaster
 
 
@@ -607,6 +623,16 @@ def aepl_response_log_page(page, project_config):
     base.navigate_to(project_config["aepl_response_log_url"])
     logger.info("AEPL Response Log page fixture ready")
     return aepl_response_log
+
+@pytest.fixture
+def atcu_device_state_config_page(page, project_config):
+    from pages.atcu.atcu_device_state_config_page import AtcuDeviceStateConfigPage
+
+    device_state_config = AtcuDeviceStateConfigPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["device_state_config_url"])
+    logger.info("Device State Config page fixture ready")
+    return device_state_config
 
 
 # API Fixtures

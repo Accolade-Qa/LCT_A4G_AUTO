@@ -77,7 +77,7 @@ jobs:
         env:
           PROJECT_CREDS: ${{ secrets.PROJECT_CREDS }}
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -85,7 +85,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '20'
 
       - name: Ensure Playwright system dependencies
         run: |

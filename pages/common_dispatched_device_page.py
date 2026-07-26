@@ -97,7 +97,7 @@ class DispatchedDevicePage:
 
         self.page.wait_for_selector("mat-option span", state="visible")
 
-        option = self.page.locator(f"mat-option span:has-text('{customer_name}')")
+        option = self.page.locator(f"div mat-option span:has-text('{customer_name}')")
         option.click()
         logger.info("Customer '%s' selected from dropdown", customer_name)
 

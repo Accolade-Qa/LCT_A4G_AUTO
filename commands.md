@@ -317,7 +317,7 @@ If you're new to this repo:
 
 ## activate the virtual enviroment by command  
 ```bash
-(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& d:\AEPL_AUTOMATION\LCT_A4G_AUTO\.venv\Scripts\Activate.ps1)
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& d:\AEPL_AUTOMATION\ALL_PROJECTS_AUTOMATION\.venv\Scripts\Activate.ps1)
 ```
 
 ## deactivate virtual envirometn 

@@ -1103,7 +1103,7 @@ class TestDispatchedDevicePage:
         )
 
         valid_uid = test_data.get("valid_uid") or "abc123def456ghi7890"
-        customer = test_data.get("customer") or "DEMO SURAJ"
+        customer = test_data.get("customer") or "SURAJ DEMO"
 
         dispatched_device_page.click_manual_upload_button()
         dispatched_device_page.fill_uid_input(valid_uid)
@@ -1152,12 +1152,16 @@ class TestDispatchedDevicePage:
             "on Dispatched Device page"
         )
 
-        dispatched_device_page.click_manual_upload_button()
-
         valid_uid = device_valid_uin_list[randint(0, len(device_valid_uin_list) - 1)]
-        customer = (
-            test_data.get("customer") or project_config.get("customer") or "Testing"
-        )
+
+        # add random customer name and then use here
+        from api.customer_api import CustomerAPI
+        _, customer = CustomerAPI.save_customer(dispatched_device_page.page)
+
+        dispatched_device_page.page.reload()
+        dispatched_device_page.page.wait_for_load_state("networkidle")
+
+        dispatched_device_page.click_manual_upload_button()
 
         dispatched_device_page.fill_uid_input(valid_uid)
         dispatched_device_page.fill_customer_part_number_input("PART343")
@@ -1366,7 +1370,7 @@ class TestDispatchedDevicePage:
         ), "Expected Bulk Upload Submit button to be disabled when no file is selected"
 
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         is_submit_disabled_after_selection = (
@@ -1407,7 +1411,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file
@@ -1460,7 +1464,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file
@@ -1525,7 +1529,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file
@@ -1580,7 +1584,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file
@@ -1669,7 +1673,7 @@ class TestDispatchedDevicePage:
 
         # Simulate selecting a file for upload
         dispatched_device_page.simulate_file_selection(
-            "./test_data/Sample_Dispatch_Sheet.xlsx"
+            "./test_data/lct/Sample_Dispatch_Sheet.xlsx"
         )
 
         # Click the submit button to upload the file

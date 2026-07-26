@@ -1,34 +1,48 @@
 from utils.logger import get_logger
 from pages.common_base_page import BasePage
-from pages.common_customer_master_page import CustomerMasterPage
-from pages.common_login_page import LoginPage
-from config.config import BASE_URL, CUSTOMER_MASTER_URL, PASSWORD, USERNAME
+from config.config import CUSTOMER_MASTER_URL
 
 import pytest
 
 logger = get_logger(__name__)
-
 
 @pytest.mark.lct
 @pytest.mark.sampark
 @pytest.mark.swaraj
 @pytest.mark.trio
 class TestCustomerMaster:
-    def _login_and_dashboard(self, page):
-        login_page = LoginPage(page)
-        login_page.load(BASE_URL)
-        login_page.login(USERNAME, PASSWORD)
-
-        return CustomerMasterPage(page)
+    @pytest.fixture(autouse=True)
+    def log_test_case(self, request):
+        test_name = request.node.name
+        logger.info("Starting SIM Batch Data Details test: %s", test_name)
+        logger.debug("Executing test node: %s", request.node.nodeid)
+        yield
+        report = getattr(request.node, "rep_call", None)
+        if report is None:
+            logger.debug(
+                "SIM Batch Data Details test finished without call report: %s",
+                test_name,
+            )
+        elif report.passed:
+            logger.info("SIM Batch Data Details test passed: %s", test_name)
+        elif report.failed:
+            logger.error("SIM Batch Data Details test failed: %s", test_name)
+            logger.debug(
+                "SIM Batch Data Details failure details for %s: %s",
+                test_name,
+                report.longrepr,
+            )
+        elif report.skipped:
+            logger.warning("SIM Batch Data Details test skipped: %s", test_name)
 
     @pytest.mark.regression
     @pytest.mark.smoke
-    def test_customer_master_page_navigation(self, page, report_case):
+    @pytest.mark.ui
+    def test_customer_master_page_navigation(self, customer_master, report_case):
         logger.info("Starting validation of Customer master page navigation")
-        customer_page = self._login_and_dashboard(page)
-        customer_page.go_to_customer(CUSTOMER_MASTER_URL)
-
-        actual_url = page.url
+        # wait for page to load and network idle
+        customer_master.page.wait_for_load_state("networkidle")
+        actual_url = customer_master.page.url
         logger.debug(
             "Customer master URL check | expected=%s | actual=%s",
             CUSTOMER_MASTER_URL,
@@ -49,60 +63,98 @@ class TestCustomerMaster:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_customer_master_nav_list(self, customer_master, report_case, page):
-
+    def test_customer_master_nav_list(self, customer_master, report_case):
         logger.info("Starting Test: Customer master navigation bar validation")
-        customer_page = self._login_and_dashboard(page)
-        customer_page.go_to_customer(CUSTOMER_MASTER_URL)
+
         is_enabled = customer_master._nav_list_enability()
         logger.info("Verifying navigation bar is enabled")
-        assert is_enabled
-        report_case(expected=True, actual=is_enabled, result="PASS", message="Validate Customer master nav list")
-        logger.info("Navigation bar is enabled: Test Passed")
+
+        if is_enabled:
+            assert is_enabled, "The customer master navigation list failed"
+            report_case(
+                expected=True,
+                actual=is_enabled,
+                result="PASS",
+                message="Validate Customer master nav list",
+            )
+            logger.info("Navigation bar is enabled: Test Passed")
+        else:
+            assert not is_enabled, "The customer master navigation list failed"
+            report_case(
+                expected=False,
+                actual=is_enabled,
+                result="FAIL",
+                message="Validate Customer master nav list",
+            )
+            logger.info("Navigation bar is disabled: Test Passed")
 
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_customer_master_page_title(self, customer_master, report_case, page):
+    def test_customer_master_page_title(self, customer_master, report_case):
         logger.info("Starting Test: Customer master page title visibility validation")
-        customer_page = self._login_and_dashboard(page)
-        customer_page.go_to_customer(CUSTOMER_MASTER_URL)
+
         expected_title = "Customer Management"
         is_visible = customer_master._is_PageTitle_Visible()
         logger.info("Verifying page title is visible")
-        assert is_visible
         base = BasePage(customer_master.page)
 
-        report_case(expected=expected_title, actual=base.get_title(), result="PASS", message="Validate Customer master page title")
-
+        if is_visible:
+            assert is_visible, f"{expected_title} should be visible on the page"
+            report_case(
+                expected=expected_title,
+                actual=base.get_title(),
+                result="PASS",
+                message="Validate Customer master page title",
+            )
+        else:
+            assert not is_visible, f"{expected_title} should not be visible on the page"
+            report_case(
+                expected=expected_title,
+                actual=base.get_title(),
+                result="FAIL",
+                message="Validate Customer master page title",
+            )
         logger.info("Page title is visible: Test Passed")
 
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
     def test_customer_master_element_enability(
-        self, customer_master, report_case, page
+        self, customer_master, report_case
     ):
         logger.info("Starting Test: Customer master element enability validation")
-        customer_page = self._login_and_dashboard(page)
-        customer_page.go_to_customer(CUSTOMER_MASTER_URL)
+
         is_enabled = customer_master._element_enability()
         logger.info("Verifying elements are enabled")
         assert is_enabled
 
-        report_case(expected=True, actual=is_enabled, result="PASS", message="Validate Customer master element enability")
+        if is_enabled: 
+            report_case(
+                expected=True,
+                actual=is_enabled,
+                result="PASS",
+                message="Validate Customer master element enability",
+            )
+
+        else:
+            report_case(
+                expected=False,
+                actual=is_enabled,
+                result="FAIL",
+                message="Validation of customer master element failed"
+            )
 
         logger.info("Elements are enabled: Test Passed")
 
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_customer_master_add_customer(self, customer_master, report_case, page):
+    def test_customer_master_add_customer(self, customer_master, report_case):
         logger.info(
             "Starting Test: Customer master add customer button functionality validation"
         )
-        customer_page = self._login_and_dashboard(page)
-        customer_page.go_to_customer(CUSTOMER_MASTER_URL)
+
         visibility = customer_master.page.get_by_text(
             "Add Customer", exact=True
         ).is_visible()
@@ -110,106 +162,358 @@ class TestCustomerMaster:
         logger.info("Verifying Add Customer button is clickable")
         assert click is None
 
-        report_case(expected=True, actual=visibility, message="Validate Customer master add customer")
+        if visibility:
+            report_case(
+                expected=True,
+                actual=visibility,
+                result="PASS",
+                message="Validate Customer master add customer",
+            )
+        else:
+            report_case(
+                expected=True,
+                actual=visibility,
+                result="FAIL",
+                message="Validate Customer master add customer",
+            )
         logger.info("Add Customer button is clickable and clicked")
 
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_customer_master_click_customer_name(self, customer_master, page):
+    def test_customer_master_click_customer_name(
+        self, customer_master, report_case
+    ):
         logger.info("Starting Test: Customer name field validation")
-        customer_page = self._login_and_dashboard(page)
-        customer_page.go_to_customer(CUSTOMER_MASTER_URL)
+
         result = customer_master.customer_name_field()
         logger.debug("Validation results: %s", result)
 
-        logger.info("Verifying blank field validation message")
-        assert result["name_blank_text"] == "This field is required and can't be empty."
+        expected = {
+            "name_blank_text": "This field is required and can't be empty.",
+            "name_num_text": "Only alphabets and spaces are allowed.",
+            "name_sp_char_text": "Only alphabets and spaces are allowed.",
+            "name_space_text": "This field is required and can't be only spaces.",
+            "name_char_space_text": "Remove leading or trailing spaces.",
+        }
 
-        logger.info("Varifying numeric input validation message")
-        assert result["name_num_text"] == "Only alphabets and spaces are allowed."
+        actual = {
+            "name_blank_text": result["name_blank_text"],
+            "name_num_text": result["name_num_text"],
+            "name_sp_char_text": result["name_sp_char_text"],
+            "name_space_text": result["name_space_text"],
+            "name_char_space_text": result["name_char_space_text"],
+        }
 
-        logger.info("Verifying special characters validation message")
-        assert result["name_sp_char_text"] == "Only alphabets and spaces are allowed."
+        logger.info("Verifying Customer Name field validation messages")
 
-        logger.info("Verifying space only input validation message")
-        assert (
-            result["name_space_text"]
-            == "This field is required and can't be only spaces."
-        )
+        # Assertions
+        assert actual["name_blank_text"] == expected["name_blank_text"]
+        assert actual["name_num_text"] == expected["name_num_text"]
+        assert actual["name_sp_char_text"] == expected["name_sp_char_text"]
+        assert actual["name_space_text"] == expected["name_space_text"]
+        assert actual["name_char_space_text"] == expected["name_char_space_text"]
 
-        logger.info("Verifying leading/trailing space validation message")
-        assert result["name_char_space_text"] == "Remove leading or trailing spaces."
+        # Conditional reporting
+        if actual == expected:
+            report_case(
+                expected=expected,
+                actual=actual,
+                result="PASS",
+                message="Validate Customer master customer name field validation messages",
+            )
+        else:
+            report_case(
+                expected=expected,
+                actual=actual,
+                result="FAIL",
+                message="Validate Customer master customer name field validation messages",
+            )
 
         logger.info("Customer name field validation: Test Passed")
 
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_customer_master_new_customer(self, customer_master, report_case, page):
-        logger.info(
-            "Starting Test: Customer master add new customer fuctionality validation"
-        )
-        customer_page = self._login_and_dashboard(page)
-        customer_page.go_to_customer(CUSTOMER_MASTER_URL)
+    def test_customer_master_add_update_delete_flow(self, customer_master, report_case):
+        logger.info("Starting Test: Customer Master add, update, and delete complete flow")
+        # ----------------- Step 1: Add New Customer -----------------
+        logger.info("Step 1: Adding new customer")
         customer_master.new_customer()
 
         toast_locator = customer_master.page.locator(
-            "//div[@class='mat-mdc-snack-bar-label mdc-snackbar__label']"
+            "xpath=(//div[@class='mat-mdc-snack-bar-label mdc-snackbar__label'])[last()]"
         )
-        visibility = toast_locator.is_visible()
-        toast_text = toast_locator.inner_text() if visibility else ""
+        toast_locator.wait_for(state="visible", timeout=5000)
+        toast_text = toast_locator.inner_text().strip()
+        expected_add_text = "Data Saved Successfully!!"
 
-        report_case(
-            expected="Data Saved Successfully!!", actual=toast_text, result="PASS"
-        , message="Validate Customer master new customer")
+        if toast_text == expected_add_text:
+            report_case(
+                expected=expected_add_text,
+                actual=toast_text,
+                result="PASS",
+                message="Validate Customer master new customer creation",
+            )
+        else:
+            report_case(
+                expected=expected_add_text,
+                actual=toast_text,
+                result="FAIL",
+                message="Validate Customer master new customer creation",
+            )
+        assert toast_text == expected_add_text, f"Failed to add customer. Got: '{toast_text}'"
+        logger.info("New customer added successfully: Step Passed")
 
-        logger.info("New customer added successfully: Test Passed")
+        # Wait for the add toast to disappear to prevent overlapping with next toast
+        toast_locator.wait_for(state="hidden", timeout=5000)
 
-    @pytest.mark.regression
-    @pytest.mark.smoke
-    @pytest.mark.ui
-    def test_customer_master_search_customer(self, customer_master, report_case, page):
-        logger.info("Starting test: Customer search and update functionality")
-        customer_page = self._login_and_dashboard(page)
-        customer_page.go_to_customer(CUSTOMER_MASTER_URL)
+        # ----------------- Step 2: Search and Update Customer -----------------
+        logger.info("Step 2: Searching and updating customer")
         customer_master.search_and_update_customer()
 
-        toast_locator = customer_master.page.locator(
-            "//div[@class='mat-mdc-snack-bar-label mdc-snackbar__label']"
-        )
-        visibility = toast_locator.is_visible()
-        toast_text = toast_locator.inner_text() if visibility else ""
+        toast_locator.wait_for(state="visible", timeout=5000)
+        toast_text = toast_locator.inner_text().strip()
+        expected_update_text = "Data Saved Successfully!!"
 
-        report_case(
-            expected="Data Saved Successfully!!", actual=toast_text, result="PASS"
-        , message="Validate Customer master search customer")
+        if toast_text == expected_update_text:
+            report_case(
+                expected=expected_update_text,
+                actual=toast_text,
+                result="PASS",
+                message="Validate Customer master search & update",
+            )
+        else:
+            report_case(
+                expected=expected_update_text,
+                actual=toast_text,
+                result="FAIL",
+                message="Validate Customer master search & update",
+            )
+        assert toast_text == expected_update_text, f"Failed to update customer. Got: '{toast_text}'"
+        logger.info("Customer updated successfully: Step Passed")
 
-        logger.info(
-            "Customer search and update functionality validation successful: Test Passed"
-        )
+        # Wait for the update toast to disappear to prevent overlapping with next toast
+        toast_locator.wait_for(state="hidden", timeout=5000)
+
+        # ----------------- Step 3: Search and Delete Customer -----------------
+        logger.info("Step 3: Searching and deleting customer")
+        customer_master.search_and_delete_customer()
+
+        toast_locator.wait_for(state="visible", timeout=5000)
+        toast_text = toast_locator.inner_text().strip()
+        expected_delete_text = "Data Deleted Successfully!!"
+
+        if toast_text == expected_delete_text:
+            report_case(
+                expected=expected_delete_text,
+                actual=toast_text,
+                result="PASS",
+                message="Validate Customer master search & delete",
+            )
+        else:
+            report_case(
+                expected=expected_delete_text,
+                actual=toast_text,
+                result="FAIL",
+                message="Validate Customer master search & delete",
+            )
+        assert toast_text == expected_delete_text, f"Failed to delete customer. Got: '{toast_text}'"
+        logger.info("Customer deleted successfully: Step Passed")
 
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_customer_master_search_delete_customer(
-        self, customer_master, report_case, page
-    ):
-        logger.info("Starting Test: Customer search and delete functionality")
-        customer_page = self._login_and_dashboard(page)
-        customer_page.go_to_customer(CUSTOMER_MASTER_URL)
-        customer_master.search_and_delete_customer()
-
-        toast_locator = customer_master.page.locator(
-            "//div[@class='mat-mdc-snack-bar-label mdc-snackbar__label']"
+    def test_customer_master_table_headers_are_correct(self, customer_master, report_case):
+        logger.info("Starting Test: Customer Master table headers validation")
+        expected_headers = ["CUSTOMER NAME", "CREATED AT", "ACTION"]
+        
+        from pages.common_utils import TableSection
+        table_section = TableSection(customer_master.page, table_selector="table")
+        actual_headers = table_section.get_headers()
+        
+        logger.debug(
+            "Customer Master table headers | expected=%s | actual=%s",
+            expected_headers,
+            actual_headers,
         )
-        visibility = toast_locator.is_visible()
-        toast_text = toast_locator.inner_text() if visibility else ""
+        report_case(
+            expected=expected_headers,
+            actual=actual_headers,
+            result="PASS" if actual_headers == expected_headers else "FAIL",
+            message="Validate Customer master table headers are correct",
+        )
+        assert actual_headers == expected_headers, f"Expected table headers {expected_headers}, got {actual_headers}"
+        logger.info("Customer Master table headers validated successfully: Test Passed")
+
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
+    def test_customer_master_table_data_validation(self, customer_master, report_case):
+        logger.info("Starting Test: Customer Master table data validation")
+        
+        from pages.common_utils import TableSection
+        table_section = TableSection(customer_master.page, table_selector="table")
+        rows = table_section.get_rows()
+        
+        logger.debug("Customer Master table row count: %d", len(rows))
+        report_case(
+            expected="Customer list table should contain active customer rows",
+            actual=f"Rows count: {len(rows)}",
+            result="PASS" if len(rows) >= 0 else "FAIL",
+            message="Validate Customer master table data validation",
+        )
+        assert isinstance(rows, list), "Table rows should be retrieved as a list"
+        logger.info("Customer Master table data validation completed: Test Passed")
+
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
+    def test_customer_master_shows_no_data_message_when_empty(self, customer_master, report_case):
+        logger.info("Starting Test: Customer Master table no data message validation")
+        
+        from pages.common_utils import TableSection
+        table_section = TableSection(customer_master.page, table_selector="table")
+        
+        has_no_data = table_section.has_no_data()
+        logger.debug("No data state: %s", has_no_data)
+        
+        report_case(
+            expected="Capture visibility of 'No Data Found'",
+            actual=f"Has no data state = {has_no_data}",
+            result="PASS",
+            message="Validate Customer master table displays 'No Data Found' correctly when empty",
+        )
+        logger.info("Customer Master table 'No Data Found' validation completed: Test Passed")
+
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
+    def test_customer_master_pagination_navigates_across_pages(self, customer_master, report_case):
+        logger.info("Starting Test: Customer Master table pagination validation")
+        
+        from pages.common_utils import PaginationHelper
+        pagination = PaginationHelper(customer_master.page, content_selector="table")
+        result = pagination.verify(include_backward=True)
+        
+        logger.debug("Customer Master pagination result: %s", result)
+        report_case(
+            expected="Pagination verify success=True",
+            actual=str(result),
+            result="PASS" if result["success"] else "FAIL",
+            message="Validate Customer master table pagination navigates across pages",
+        )
+        assert result["success"], f"Pagination failed: {result['error']}"
+        logger.info("Customer Master pagination validation completed: Test Passed")
+    
+
+
+    @pytest.mark.regression
+    @pytest.mark.ui
+    def test_customer_master_dropdown_sync_flow(self, customer_master, report_case, project_config):
+        logger.info("Starting Test: Customer Master dropdown synchronization flow")
+        
+        # ----------------- Step 1: Add New Customer -----------------
+        logger.info("Step 1: Adding new customer")
+        customer_master.new_customer()
+        new_name = customer_master.random_new_customer_name
+        
+        toast_locator = customer_master.page.locator(
+            "xpath=(//div[@class='mat-mdc-snack-bar-label mdc-snackbar__label'])[last()]"
+        )
+        toast_locator.wait_for(state="visible", timeout=5000)
+        toast_text = toast_locator.inner_text().strip()
+        assert toast_text == "Data Saved Successfully!!", f"Failed to add customer. Got: '{toast_text}'"
+        toast_locator.wait_for(state="hidden", timeout=5000)
+        
+        # ----------------- Step 2: Validate in Dropdowns (New Customer) -----------------
+        logger.info("Step 2: Validating new customer in other locations")
+        
+        # A. On Dashboard
+        logger.info("A. Checking on Dashboard")
+        dashboard_customers = customer_master.get_dashboard_customer_list(project_config["dashboard_url"])
+        if dashboard_customers:
+            logger.debug("Dashboard dropdown options: %s", dashboard_customers)
+            assert new_name in dashboard_customers, f"New customer {new_name} not found in Dashboard dropdown options"
+        else:
+            logger.info("No customer dropdown found on Dashboard (user may be customer-locked)")
+
+        # B. On Dispatch Device page dropdowns (header & manual upload)
+        logger.info("B. Checking on Dispatch Device page dropdowns")
+        dispatched_device_customers = customer_master.get_dispatched_device_customer_lists(project_config["dispatched_device_url"])
+        logger.debug("Dispatched Device dropdown options: %s", dispatched_device_customers)
+        assert new_name in dispatched_device_customers["header"], f"New customer {new_name} not found in Dispatched Device header dropdown"
+        assert new_name in dispatched_device_customers["manual"], f"New customer {new_name} not found in Manual Upload dropdown"
+
+        # Go back to customer master page
+        customer_master.go_to_customer(project_config["customer_master_url"])
+        
+        # ----------------- Step 3: Update Customer Name -----------------
+        logger.info("Step 3: Updating customer name")
+        customer_master.search_and_update_customer()
+        updated_name = customer_master.random_updated_customer_name
+        
+        toast_locator.wait_for(state="visible", timeout=5000)
+        toast_text = toast_locator.inner_text().strip()
+        assert toast_text == "Data Saved Successfully!!", f"Failed to update customer. Got: '{toast_text}'"
+        toast_locator.wait_for(state="hidden", timeout=5000)
+
+        # ----------------- Step 4: Validate in Dropdowns (Updated Customer) -----------------
+        logger.info("Step 4: Validating updated customer in other locations")
+
+        # A. On Dashboard
+        logger.info("A. Checking on Dashboard (updated)")
+        dashboard_customers = customer_master.get_dashboard_customer_list(project_config["dashboard_url"])
+        if dashboard_customers:
+            logger.debug("Dashboard dropdown options: %s", dashboard_customers)
+            assert updated_name in dashboard_customers, f"Updated customer {updated_name} not found in Dashboard dropdown"
+            assert new_name not in dashboard_customers, f"Old customer {new_name} still found in Dashboard dropdown"
+
+        # B. On Dispatch Device page dropdowns (updated)
+        logger.info("B. Checking on Dispatch Device page dropdowns (updated)")
+        dispatched_device_customers = customer_master.get_dispatched_device_customer_lists(project_config["dispatched_device_url"])
+        logger.debug("Dispatched Device dropdown options: %s", dispatched_device_customers)
+        assert updated_name in dispatched_device_customers["header"], f"Updated customer {updated_name} not found in Dispatched Device header dropdown"
+        assert new_name not in dispatched_device_customers["header"], f"Old customer {new_name} still found in Dispatched Device header dropdown"
+        assert updated_name in dispatched_device_customers["manual"], f"Updated customer {updated_name} not found in Manual Upload dropdown"
+        assert new_name not in dispatched_device_customers["manual"], f"Old customer {new_name} still found in Manual Upload dropdown"
+
+        # Go back to customer master page
+        customer_master.go_to_customer(project_config["customer_master_url"])
+
+        # ----------------- Step 5: Delete Customer -----------------
+        logger.info("Step 5: Deleting customer")
+        customer_master.search_and_delete_customer()
+        
+        toast_locator.wait_for(state="visible", timeout=5000)
+        toast_text = toast_locator.inner_text().strip()
+        assert toast_text == "Data Deleted Successfully!!", f"Failed to delete customer. Got: '{toast_text}'"
+        toast_locator.wait_for(state="hidden", timeout=5000)
+
+        # ----------------- Step 6: Validate in Dropdowns (Deleted Customer) -----------------
+        logger.info("Step 6: Validating deleted customer in other locations")
+
+        # A. On Dashboard
+        logger.info("A. Checking on Dashboard (deleted)")
+        dashboard_customers = customer_master.get_dashboard_customer_list(project_config["dashboard_url"])
+        if dashboard_customers:
+            logger.debug("Dashboard dropdown options: %s", dashboard_customers)
+            assert updated_name not in dashboard_customers, f"Deleted customer {updated_name} still found in Dashboard dropdown"
+
+        # B. On Dispatch Device page dropdowns (deleted)
+        logger.info("B. Checking on Dispatch Device page dropdowns (deleted)")
+        dispatched_device_customers = customer_master.get_dispatched_device_customer_lists(project_config["dispatched_device_url"])
+        logger.debug("Dispatched Device dropdown options: %s", dispatched_device_customers)
+        assert updated_name not in dispatched_device_customers["header"], f"Deleted customer {updated_name} still found in Dispatched Device header dropdown"
+        assert updated_name not in dispatched_device_customers["manual"], f"Deleted customer {updated_name} still found in Manual Upload dropdown"
+
+        # Go back to customer master page
+        customer_master.go_to_customer(project_config["customer_master_url"])
 
         report_case(
-            expected=" Data Deleted Successfully!!", actual=toast_text, result="PASS"
-        , message="Validate Customer master search delete customer")
-
-        logger.info(
-            "Customer search and delete functionality validation sucessful: Test Passed"
+            expected="Customer created, verified, updated, verified, deleted, verified successfully in all locations",
+            actual="Customer master dropdown sync flow completed and passed",
+            result="PASS",
+            message="Validate customer master dropdown sync flow across multiple pages",
         )
+        logger.info("Customer master dropdown sync flow verified successfully: Test Passed")

@@ -207,297 +207,247 @@ def main():
 def build_html_email(projects, status, actor, run_number, ref, sha, passed, failed, skipped, duration):
     """Generate a highly aesthetic, responsive HTML email body."""
     status_color = "#10b981" if status == "PASS" else "#ef4444"
-    status_bg = "#d1fae5" if status == "PASS" else "#fee2e2"
+    status_bg = "#e6f4ea" if status == "PASS" else "#fce8e6"
     status_text = "PASSED" if status == "PASS" else "FAILED"
+    status_badge_icon = "✓" if status == "PASS" else "✗"
     
+    github_repository = os.getenv('GITHUB_REPOSITORY', 'Accolade-Qa/LCT_A4G_AUTO')
+    
+    # Dynamic metric colors
+    failed_metric_color = "#ef4444" if failed > 0 else "#64748b"
+    skipped_metric_color = "#f59e0b" if skipped > 0 else "#64748b"
+    
+    # Constructing HTML with inline styles for maximum compatibility with Gmail
     html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<style>
-    body {{
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        background-color: #f8fafc;
-        margin: 0;
-        padding: 0;
-        color: #334155;
-    }}
-    .email-container {{
-        max-width: 680px;
-        margin: 20px auto;
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-    }}
-    .header {{
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        color: #ffffff;
-        padding: 30px 24px;
-        position: relative;
-    }}
-    .header h1 {{
-        margin: 0;
-        font-size: 22px;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-    }}
-    .header .meta {{
-        font-size: 13px;
-        color: #94a3b8;
-        margin-top: 8px;
-    }}
-    .status-badge {{
-        display: inline-block;
-        padding: 6px 12px;
-        font-weight: 700;
-        font-size: 12px;
-        border-radius: 20px;
-        text-transform: uppercase;
-        margin-top: 12px;
-        color: {status_color};
-        background-color: {status_bg};
-    }}
-    .content {{
-        padding: 24px;
-    }}
-    .summary-grid {{
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 24px;
-    }}
-    .summary-card {{
-        flex: 1;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 12px;
-        text-align: center;
-    }}
-    .summary-card .value {{
-        font-size: 20px;
-        font-weight: 700;
-        color: #0f172a;
-    }}
-    .summary-card .label {{
-        font-size: 11px;
-        color: #64748b;
-        text-transform: uppercase;
-        margin-top: 4px;
-        letter-spacing: 0.5px;
-    }}
-    .project-section {{
-        margin-top: 24px;
-    }}
-    .project-card {{
-        border: 1px solid #e2e8f0;
-        border-left: 4px solid #64748b;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 16px;
-        background: #ffffff;
-    }}
-    .project-card.pass {{
-        border-left-color: #10b981;
-    }}
-    .project-card.fail {{
-        border-left-color: #ef4444;
-    }}
-    .project-header {{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #f1f5f9;
-        padding-bottom: 10px;
-        margin-bottom: 12px;
-    }}
-    .project-title {{
-        font-size: 16px;
-        font-weight: 700;
-        color: #0f172a;
-    }}
-    .project-env-badge {{
-        font-size: 11px;
-        background: #f1f5f9;
-        color: #475569;
-        padding: 3px 8px;
-        border-radius: 4px;
-        font-weight: 600;
-    }}
-    .project-meta-table {{
-        width: 100%;
-        font-size: 13px;
-        margin-bottom: 12px;
-        border-collapse: collapse;
-    }}
-    .project-meta-table td {{
-        padding: 4px 0;
-    }}
-    .project-meta-table td.lbl {{
-        color: #64748b;
-        width: 120px;
-    }}
-    .project-meta-table td.val {{
-        font-weight: 500;
-        color: #334155;
-    }}
-    .stats-row {{
-        display: flex;
-        gap: 16px;
-        font-size: 12px;
-        background: #f8fafc;
-        padding: 8px 12px;
-        border-radius: 6px;
-    }}
-    .stats-item {{
-        display: flex;
-        gap: 6px;
-    }}
-    .stats-item .lbl {{
-        color: #64748b;
-    }}
-    .stats-item .val {{
-        font-weight: 700;
-    }}
-    .failures-list {{
-        margin-top: 12px;
-        background: #fef2f2;
-        border: 1px solid #fee2e2;
-        border-radius: 6px;
-        padding: 12px;
-    }}
-    .failures-header {{
-        font-size: 13px;
-        font-weight: 700;
-        color: #991b1b;
-        margin-bottom: 8px;
-    }}
-    .failure-item {{
-        font-size: 12px;
-        color: #b91c1c;
-        margin-bottom: 6px;
-        padding-left: 12px;
-        border-left: 2px solid #f87171;
-    }}
-    .failure-item:last-child {{
-        margin-bottom: 0;
-    }}
-    .footer {{
-        background: #f1f5f9;
-        padding: 20px;
-        text-align: center;
-        font-size: 12px;
-        color: #64748b;
-        border-top: 1px solid #e2e8f0;
-    }}
-    .footer a {{
-        color: #2563eb;
-        text-decoration: none;
-    }}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CI/CD Pipeline Flash Report</title>
 </head>
-<body>
-<div class="email-container">
-    <div class="header">
-        <h1>Automation Test Execution Report</h1>
-        <div class="meta">
-            Branch: <b>{ref}</b> &nbsp;|&nbsp; Commit: <b>{sha[:8]}</b> &nbsp;|&nbsp; Triggered by: <b>{actor}</b>
-        </div>
-        <div class="status-badge">{status_text}</div>
-    </div>
-    
-    <div class="content">
-        <div class="summary-grid">
-            <div class="summary-card">
-                <div class="value" style="color: #10b981;">{passed}</div>
-                <div class="label">Passed</div>
-            </div>
-            <div class="summary-card">
-                <div class="value" style="color: #ef4444;">{failed}</div>
-                <div class="label">Failed</div>
-            </div>
-            <div class="summary-card">
-                <div class="value" style="color: #d97706;">{skipped}</div>
-                <div class="label">Skipped</div>
-            </div>
-            <div class="summary-card">
-                <div class="value">{duration}s</div>
-                <div class="label">Duration</div>
-            </div>
-        </div>
-        
-        <div class="project-section">
-            <h3 style="margin-top: 0; color: #0f172a; font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">Executed Projects Summary</h3>
-    """
-    
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px 0; color: #334155; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f1f5f9; width: 100%; margin: 0; padding: 0;">
+    <tr>
+        <td align="center" style="padding: 10px 0 30px 0;">
+            <!-- Container Card -->
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; width: 600px; border-collapse: separate;">
+                
+                <!-- Header -->
+                <tr>
+                    <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); background-color: #0f172a; padding: 24px; text-align: left; border-top-left-radius: 11px; border-top-right-radius: 11px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td>
+                                    <h1 style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 0; letter-spacing: -0.5px; line-height: 1.2;">CI/CD Execution Summary</h1>
+                                    <p style="color: #94a3b8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">
+                                        Run #{run_number} &nbsp;|&nbsp; Commit <code style="color: #f1f5f9; background-color: rgba(255,255,255,0.12); padding: 1px 4px; border-radius: 3px; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">{sha[:8]}</code>
+                                    </p>
+                                </td>
+                                <td align="right" valign="top" style="width: 110px;">
+                                    <!-- Status Pill -->
+                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background-color: {status_bg}; border-radius: 30px;">
+                                        <tr>
+                                            <td style="padding: 5px 12px; font-size: 11px; font-weight: 700; color: {status_color}; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; white-space: nowrap;">
+                                                <span style="font-size: 12px; margin-right: 3px;">{status_badge_icon}</span> {status_text}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                
+                <!-- Main Body -->
+                <tr>
+                    <td style="padding: 24px;">
+                        
+                        <!-- Formal Greeting -->
+                        <p style="margin: 0 0 12px 0; font-size: 14px; line-height: 1.5; color: #334155;">Dear Team,</p>
+                        <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.5; color: #334155;">Please find below the automated test execution summary for the latest continuous integration run.</p>
+                        
+                        <!-- Execution Details Table -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px; font-size: 13px; line-height: 1.5; color: #475569; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                            <tr>
+                                <td style="padding: 16px;">
+                                    <strong style="display: block; font-size: 13px; color: #0f172a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Execution Details</strong>
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td width="120" style="color: #64748b; padding: 4px 0; font-weight: 500;">Repository:</td>
+                                            <td style="color: #334155; padding: 4px 0; font-weight: 600;">{github_repository}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #64748b; padding: 4px 0; font-weight: 500;">Branch/Ref:</td>
+                                            <td style="color: #334155; padding: 4px 0; font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">{ref}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #64748b; padding: 4px 0; font-weight: 500;">Workflow:</td>
+                                            <td style="color: #334155; padding: 4px 0;">Test and Report Workflow</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #64748b; padding: 4px 0; font-weight: 500;">Run Number:</td>
+                                            <td style="color: #334155; padding: 4px 0; font-weight: 600;">#{run_number}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #64748b; padding: 4px 0; font-weight: 500;">Job Status:</td>
+                                            <td style="color: {status_color}; padding: 4px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">{status_text}</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- Summary Cards Row (4 Columns using Table) -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px; border-collapse: separate;">
+                            <tr>
+                                <!-- Passed -->
+                                <td width="23%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #10b981; line-height: 1.1;">{passed}</div>
+                                    <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Passed</div>
+                                </td>
+                                <!-- Spacer -->
+                                <td width="2%">&nbsp;</td>
+                                <!-- Failed -->
+                                <td width="23%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: {failed_metric_color}; line-height: 1.1;">{failed}</div>
+                                    <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Failed</div>
+                                </td>
+                                <!-- Spacer -->
+                                <td width="2%">&nbsp;</td>
+                                <!-- Skipped -->
+                                <td width="23%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: {skipped_metric_color}; line-height: 1.1;">{skipped}</div>
+                                    <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Skipped</div>
+                                </td>
+                                <!-- Spacer -->
+                                <td width="2%">&nbsp;</td>
+                                <!-- Duration -->
+                                <td width="25%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #475569; line-height: 1.1;">{duration}s</div>
+                                    <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Duration</div>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- Section Header -->
+                        <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 14px; font-weight: 700; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Executed Projects Summary</h2>
+"""
+
     for proj in projects:
-        card_class = "pass" if proj["failed"] == 0 else "fail"
-        html += f"""
-            <div class="project-card {card_class}">
-                <div class="project-header" style="display: flex; justify-content: space-between;">
-                    <span class="project-title">{proj["name"]}</span>
-                    <span class="project-env-badge">{proj["env"]}</span>
-                </div>
-                <table class="project-meta-table">
-                    <tr>
-                        <td class="lbl">Target URL:</td>
-                        <td class="val"><a href="{proj["url"]}" style="color: #2563eb; text-decoration: none;">{proj["url"]}</a></td>
-                    </tr>
-                    <tr>
-                        <td class="lbl">App Version:</td>
-                        <td class="val"><code>{proj["version"]}</code></td>
-                    </tr>
-                </table>
-                <div class="stats-row" style="display: flex;">
-                    <div class="stats-item" style="margin-right: 15px;">
-                        <span class="lbl">Total:</span>
-                        <span class="val">{proj["total"]}</span>
-                    </div>
-                    <div class="stats-item" style="margin-right: 15px;">
-                        <span class="lbl" style="color: #10b981;">Passed:</span>
-                        <span class="val" style="color: #10b981;">{proj["passed"]}</span>
-                    </div>
-                    <div class="stats-item" style="margin-right: 15px;">
-                        <span class="lbl" style="color: #ef4444;">Failed:</span>
-                        <span class="val" style="color: #ef4444;">{proj["failed"]}</span>
-                    </div>
-                    <div class="stats-item" style="margin-right: 15px;">
-                        <span class="lbl" style="color: #d97706;">Skipped:</span>
-                        <span class="val" style="color: #d97706;">{proj["skipped"]}</span>
-                    </div>
-                    <div class="stats-item" style="margin-left: auto;">
-                        <span class="lbl">Pass Rate:</span>
-                        <span class="val" style="color: {'#10b981' if proj['pass_rate'] == 100.0 else '#d97706' if proj['pass_rate'] >= 80.0 else '#ef4444'}">{proj["pass_rate"]}%</span>
-                    </div>
-                </div>
-        """
+        proj_border_color = "#10b981" if proj["failed"] == 0 else "#ef4444"
+        pass_rate_color = "#10b981" if proj["pass_rate"] == 100.0 else "#d97706" if proj["pass_rate"] >= 80.0 else "#ef4444"
         
+        proj_failed_color = "#ef4444" if proj["failed"] > 0 else "#64748b"
+        proj_skipped_color = "#f59e0b" if proj["skipped"] > 0 else "#64748b"
+
+        # Build failures list if any
+        failures_section = ""
         if proj["failures"]:
-            html += f"""
-                <div class="failures-list">
-                    <div class="failures-header">Failed Tests ({len(proj["failures"])}):</div>
-            """
+            failures_list = ""
             for failure in proj["failures"]:
-                html += f"""
-                    <div class="failure-item">
-                        <b>{failure["name"]}</b>: {failure["message"]}
-                    </div>
+                # Clean messages/ensure safety
+                fail_msg = failure["message"].replace("<", "&lt;").replace(">", "&gt;")
+                failures_list += f"""
+                                    <div style="font-size: 12px; color: #b91c1c; margin-bottom: 8px; padding-left: 8px; border-left: 2px solid #f87171; line-height: 1.4;">
+                                        <strong style="color: #991b1b; font-family: ui-monospace, monospace;">{failure["name"]}</strong><br/>
+                                        <span style="color: #b91c1c; font-size: 11px;">{fail_msg}</span>
+                                    </div>
                 """
-            html += "</div>"
+            failures_section = f"""
+                            <!-- Failures List -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 14px; background-color: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px; border-collapse: separate;">
+                                <tr>
+                                    <td style="padding: 12px;">
+                                        <div style="font-size: 12px; font-weight: 700; color: #991b1b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Failed Tests ({len(proj["failures"])}):</div>
+                                        {failures_list}
+                                    </td>
+                                </tr>
+                            </table>
+            """
             
-        html += "</div>"
-        
+        html += f"""
+                        <!-- Project Card: {proj["name"]} -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid {proj_border_color}; border-radius: 8px; margin-bottom: 16px; border-collapse: separate; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                            <tr>
+                                <td style="padding: 16px;">
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 8px;">
+                                        <tr>
+                                            <td style="font-size: 16px; font-weight: 700; color: #0f172a;">{proj["name"]}</td>
+                                            <td align="right">
+                                                <span style="font-size: 10px; font-weight: 600; background-color: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">{proj["env"]}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 12px; font-size: 13px; line-height: 1.4;">
+                                        <tr>
+                                            <td style="color: #64748b; width: 90px; padding: 2px 0;">Target URL:</td>
+                                            <td style="padding: 2px 0;"><a href="{proj["url"]}" style="color: #2563eb; text-decoration: none; font-weight: 500;">{proj["url"]}</a></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #64748b; width: 90px; padding: 2px 0;">App Version:</td>
+                                            <td style="padding: 2px 0;"><code style="background-color: #f1f5f9; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">{proj["version"]}</code></td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <!-- Stats Table -->
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border-radius: 6px; font-size: 12px;">
+                                        <tr>
+                                            <td style="padding: 10px 12px; color: #64748b; line-height: 1.4;">
+                                                Total: <strong style="color: #0f172a; margin-right: 12px;">{proj["total"]}</strong>
+                                                Passed: <strong style="color: #10b981; margin-right: 12px;">{proj["passed"]}</strong>
+                                                Failed: <strong style="color: {proj_failed_color}; margin-right: 12px;">{proj["failed"]}</strong>
+                                                Skipped: <strong style="color: {proj_skipped_color};">{proj["skipped"]}</strong>
+                                            </td>
+                                            <td align="right" style="padding: 10px 12px; font-weight: 700; color: {pass_rate_color}; white-space: nowrap;">
+                                                {proj["pass_rate"]}% Pass Rate
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                    {failures_section}
+                                </td>
+                            </tr>
+                        </table>
+        """
+
     html += f"""
-        </div>
-    </div>
-    
-    <div class="footer">
-        <p>This is an automated notification from the Continuous Integration system.</p>
-        <p>Workflow Run: <a href="https://github.com/{os.getenv('GITHUB_REPOSITORY', 'Accolade-Qa/LCT_A4G_AUTO')}/actions/runs/{run_number}">#{run_number}</a></p>
-    </div>
-</div>
+                        <!-- Attachments Info -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 24px; margin-bottom: 24px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                            <tr>
+                                <td style="font-size: 13px; line-height: 1.5; color: #475569;">
+                                    <p style="margin: 0 0 10px 0;">The comprehensive analysis files have been generated and successfully attached to this transmission:</p>
+                                    <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
+                                        <li><strong>Execution Overview</strong> (HTML)</li>
+                                        <li><strong>Detailed Test Metrics</strong> (XLSX)</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- GitHub link & Sign-off -->
+                        <p style="margin: 0 0 20px 0; font-size: 13px; line-height: 1.5; color: #64748b;">
+                            For full logs and historical data, please review the workflow run directly on <a href="https://github.com/{github_repository}/actions/runs/{run_number}" style="color: #2563eb; text-decoration: none; font-weight: 600;">GitHub</a>.
+                        </p>
+                        <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #64748b;">
+                            Sincerely,<br/>
+                            <strong style="color: #475569;">Automated CI/CD Notification System</strong>
+                        </p>
+                    </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 24px; text-align: center; font-size: 12px; color: #64748b; line-height: 1.5;">
+                        <p style="margin: 0 0 6px 0;">This is an automated notification from the Continuous Integration system.</p>
+                        <p style="margin: 0;">Workflow Run: <a href="https://github.com/{github_repository}/actions/runs/{run_number}" style="color: #2563eb; text-decoration: none; font-weight: 600;">#{run_number}</a></p>
+                    </td>
+                </tr>
+                
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>
 """
