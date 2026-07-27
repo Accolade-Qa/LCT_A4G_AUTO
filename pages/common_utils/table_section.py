@@ -46,18 +46,49 @@ class TableSection:
         return values
 
     def has_no_data(self) -> bool:
-        """
-        Detect 'No Data Found' state
-        """
+        table_loc = (
+            self.table_selector
+            if isinstance(self.table_selector, Locator)
+            else self.page.locator(self.table_selector)
+        )
 
-        no_data_text = self.page.locator(f"{self.table_selector} >> text=No Data Found")
+        # Common text selector for no data
+        text_selector = "text=No Data Found, text=nodatafound, text=No Data, text=No records found"
+        
+        # Common image selector for no data (checking class, alt, src)
+        img_selector = (
+            "img.no-data-img, "
+            "img[alt='nodatafound'], "
+            "img[alt='No Data Found'], "
+            "img[alt*='nodata' i], "
+            "img[alt*='no data' i], "
+            "img[class*='no-data'], "
+            "img[src*='dataNotFound'], "
+            "img[src*='nodata'], "
+            "img[src*='no-data']"
+        )
 
-        if no_data_text.count() > 0:
-            return no_data_text.first.is_visible()
+        # 1. Check text inside table
+        try:
+            no_data_text = table_loc.locator(text_selector)
+            if no_data_text.count() > 0:
+                for i in range(no_data_text.count()):
+                    if no_data_text.nth(i).is_visible():
+                        return True
+        except Exception as e:
+            logger.debug("Error checking no_data_text inside table: %s", e)
 
-        return self.page.locator(
-            f"{self.table_selector} img[alt='No Data Found']"
-        ).is_visible()
+        # 2. Check image inside table
+        try:
+            no_data_img = table_loc.locator(img_selector)
+            if no_data_img.count() > 0:
+                for i in range(no_data_img.count()):
+                    if no_data_img.nth(i).is_visible():
+                        return True
+        except Exception as e:
+            logger.debug("Error checking no_data_img inside table: %s", e)
+
+        return False
 
     def get_row_count(self) -> int:
         rows = self.page.locator(f"{self.table_selector} tbody tr")
