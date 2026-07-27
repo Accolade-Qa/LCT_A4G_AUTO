@@ -1,9 +1,7 @@
 import argparse
 import json
 import os
-import re
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Add project root to path
@@ -62,7 +60,7 @@ def determine_environment(base_url):
     if not base_url or base_url == "N/A":
         return "Unknown"
     url_lower = base_url.lower()
-    if "prod" in url_lower:
+    if any(env in url_lower for env in ["prod", "ais-data", "atcu-data"]):
         return "Production"
     elif "staging" in url_lower:
         return "Staging"
