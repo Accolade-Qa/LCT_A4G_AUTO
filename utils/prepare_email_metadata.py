@@ -171,10 +171,13 @@ def main():
             overall_status = "FAIL"
             
         pass_rate = 0.0
+        skipped_rate = 0.0
         total_runs = stats["passed"] + stats["failed"]
         if total_runs > 0:
             pass_rate = round((stats["passed"] / total_runs) * 100, 1)
-            skipped_rate = round((stats["skipped"] / (total_runs + stats["skipped"])) * 100, 1)
+        
+        if stats["total"] > 0:
+            skipped_rate = round((stats["skipped"] / stats["total"]) * 100, 1)
             
         project_details.append({
             "name": proj_name.upper(),
@@ -187,6 +190,7 @@ def main():
             "total": stats["total"],
             "duration": stats["duration"],
             "pass_rate": pass_rate,
+            "skipped_rate": skipped_rate,
             "failures": stats["failures"]
         })
         
@@ -315,10 +319,10 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
                                 <!-- Spacer -->
                                 <td width="2%">&nbsp;</td>
                                 <!-- Skipped -->
-                                # <td width="23%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
-                                #     <div style="font-size: 24px; font-weight: 700; color: {skipped_metric_color}; line-height: 1.1;">{skipped}</div>
-                                #     <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Skipped</div>
-                                # </td>
+                                <td width="23%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: {skipped_metric_color}; line-height: 1.1;">{skipped}</div>
+                                    <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Skipped</div>
+                                </td>
                                 <!-- Spacer -->
                                 <td width="2%">&nbsp;</td>
                                 <!-- Duration -->
@@ -397,7 +401,7 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
                                                 Total: <strong style="color: #0f172a; margin-right: 12px;">{proj["total"]}</strong>
                                                 Passed: <strong style="color: #10b981; margin-right: 12px;">{proj["passed"]}</strong>
                                                 Failed: <strong style="color: {proj_failed_color}; margin-right: 12px;">{proj["failed"]}</strong>
-                                                # Skipped: <strong style="color: {proj_skipped_color};">{proj["skipped"]}</strong>
+                                                Skipped: <strong style="color: {proj_skipped_color};">{proj["skipped"]}</strong>
                                             </td>
                                             <td align="right" style="padding: 10px 12px; font-weight: 700; color: {pass_rate_color}; white-space: nowrap;">
                                                 {proj["pass_rate"]}% Pass Rate
@@ -409,7 +413,7 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
                                     </table>
                                     
                                     <!-- Failures Section -->
-                                    # <!-- {failures_section} -->
+                                    <!-- {failures_section} -->
                                 </td>
                             </tr>
                         </table>
@@ -462,4 +466,15 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
     print(f"Successfully generated HTML email body at: {output_path.resolve()}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Error executing prepare_email_metadata.py: {e}")
+        import traceback
+        traceback.print_exc()
+        output_path = ROOT / "email_body.html"
+        if not output_path.exists():
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(f"<html><body><h2>CI/CD Execution Summary</h2><p>Error generating report metadata: {e}</p></body></html>")
+            print(f"Generated fallback HTML email body at: {output_path.resolve()}")
+
