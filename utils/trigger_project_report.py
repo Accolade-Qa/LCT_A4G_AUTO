@@ -91,7 +91,8 @@ def main():
     data = json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(url, data=data)
     request.add_header("Accept", "application/vnd.github+json")
-    request.add_header("Authorization", f"token {args.token}")
+    auth_header = args.token if args.token.startswith(("token ", "Bearer ")) else f"Bearer {args.token}"
+    request.add_header("Authorization", auth_header)
     request.add_header("Content-Type", "application/json")
 
     try:
