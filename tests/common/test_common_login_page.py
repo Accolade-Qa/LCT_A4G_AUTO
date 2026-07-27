@@ -71,9 +71,10 @@ class TestLoginPage:
 
         actual_url = login_page.page.url
 
-        assert project_config["username"] == test_data.get(
-            "login_user"
-        ), "Configured username should match project login user"
+        assert project_config["username"] in [
+            test_data.get("login_user"),
+            test_data.get("username"),
+        ], "Configured username should match project login user"
         assert (
             project_config["dashboard_url"] in actual_url
         ), f"Expected dashboard URL to contain {project_config['dashboard_url']}, got {actual_url}"

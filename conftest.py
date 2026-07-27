@@ -253,16 +253,16 @@ def project_config():
 def test_data(project_config):
     project = project_config["project"]
     combined_data = {
-        "login": {
-            "username": project_config.get("username"),
-            "password": project_config.get("password"),
-            "login_user": project_config.get("login_user"),
-            "valid_uid": project_config.get("valid_uid"),
-            "valid_uin": project_config.get("valid_uin"),
-            "command_to_search": project_config.get("command_to_search"),
-            "vin": project_config.get("vin"),
-            "iccid": project_config.get("iccid"),
-        }
+        "username": project_config.get("username"),
+        "password": project_config.get("password"),
+        "login_user": project_config.get("login_user"),
+        "valid_uid": project_config.get("valid_uid"),
+        "valid_uin": project_config.get("valid_uin"),
+        "command_to_search": project_config.get("command_to_search"),
+        "vin": project_config.get("vin"),
+        "iccid": project_config.get("iccid"),
+        "customer": project_config.get("customer"),
+        "valid_imei": project_config.get("imei"),
     }
 
     logger.info("Loaded test data for project %s", project)
