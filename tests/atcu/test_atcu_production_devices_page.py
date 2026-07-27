@@ -2,7 +2,7 @@ from pathlib import Path
 from utils.logger import get_logger
 import pytest
 
-TEST_DATA_DIR_PROD = Path(__file__).resolve().parents[1] / "test_data" / "atcu"
+TEST_DATA_DIR_PROD = Path(__file__).resolve().parents[2] / "test_data" / "atcu"
 logger = get_logger(__name__)
 
 

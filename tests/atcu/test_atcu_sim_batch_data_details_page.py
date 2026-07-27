@@ -5,7 +5,7 @@ import pytest
 
 logger = get_logger(__name__)
 
-TEST_DATA_DIR = Path(__file__).resolve().parents[1] / "test_data" / "atcu"
+TEST_DATA_DIR = Path(__file__).resolve().parents[2] / "test_data" / "atcu"
 
 
 @pytest.mark.atcu

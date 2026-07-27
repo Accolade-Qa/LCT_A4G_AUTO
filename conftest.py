@@ -438,6 +438,8 @@ def pytest_runtest_makereport(item, call):
             import re
 
             safe_nodeid = re.sub(r'[<>:"\\|?*]+', "_", safe_nodeid)
+            if len(safe_nodeid) > 100:
+                safe_nodeid = safe_nodeid[-100:]
             page.screenshot(
                 path=os.path.join(screenshot_path, f"{safe_nodeid}.png"),
                 full_page=True,
