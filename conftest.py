@@ -384,7 +384,19 @@ def report_case(record_property):
         record_property("expected", clean_expected)
         record_property("actual", clean_actual)
 
-        if message:
+        # 🔹 Determine result conditionally if not explicitly passed
+        if not result:
+            if clean_expected == clean_actual:
+                result = "PASS"
+            elif clean_expected != "" and clean_actual != "":
+                if str(clean_expected).strip() == str(clean_actual).strip():
+                    result = "PASS"
+                else:
+                    result = ""
+            else:
+                result = ""
+
+        if result:
             record_property("result", result)
         if message:
             record_property("message", message)
@@ -400,7 +412,8 @@ def pytest_runtest_makereport(item, call):
     setattr(item, f"rep_{report.when}", report)
 
     if report.when == "call":
-        existing_properties = {name for name, _ in item.user_properties}
+        # Extract existing properties as a dict for easier manipulation
+        props_dict = {name: val for name, val in item.user_properties}
 
         # 🔹 Extract expected from docstring or test name
         expected = (getattr(item.function, "__doc__", "") or "").strip()
@@ -416,13 +429,33 @@ def pytest_runtest_makereport(item, call):
             # For failed tests, use the cleaned failure reason (no full stack trace)
             actual = clean_error_message(str(report.longrepr)) if report.longrepr else "Test failed"
 
-        # 🔹 Only add default properties if they weren't explicitly set by report_case
-        if "expected" not in existing_properties and expected:
-            item.user_properties.append(("expected", expected))
-        if "actual" not in existing_properties and actual:
-            item.user_properties.append(("actual", actual))
-        if "result" not in existing_properties:
-            item.user_properties.append(("result", report.outcome))
+        # Determine the final result value: failed tests always override to "failed"
+        final_result = props_dict.get("result", "")
+        if report.failed:
+            final_result = "failed"
+        elif not final_result:
+            final_result = report.outcome
+
+        # Re-build user_properties to update values cleanly (remove duplicates of result)
+        updated_properties = []
+        for name, val in item.user_properties:
+            if name == "result":
+                continue
+            updated_properties.append((name, val))
+        
+        # Add result (either updated or original)
+        updated_properties.append(("result", final_result))
+
+        # Add expected/actual if they were not explicitly recorded
+        has_expected = any(name == "expected" for name, _ in updated_properties)
+        has_actual = any(name == "actual" for name, _ in updated_properties)
+
+        if not has_expected and expected:
+            updated_properties.append(("expected", expected))
+        if not has_actual and actual:
+            updated_properties.append(("actual", actual))
+
+        item.user_properties = updated_properties
 
     if report.when == "call" and report.failed:
         page = item.funcargs.get("page")
