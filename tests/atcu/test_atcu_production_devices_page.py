@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-from pages.atcu.atcu_production_devices_page import AtcuProductionDevicesPage
 from pages.common_base_page import BasePage
 from utils.logger import get_logger
 
