@@ -178,7 +178,7 @@ class TestModelPage:
             actual=f"Current URL after click: {actual_url}",
             message="Validate Create Model button click",
         )
-
+        assert actual_url is not None and actual_url != "", "URL should not be empty after clicking Create Model button"
         logger.info("Successfully clicked Create Model button")
 
     @pytest.mark.smoke

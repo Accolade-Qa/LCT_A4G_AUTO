@@ -431,29 +431,40 @@ def pytest_runtest_makereport(item, call):
 
         # Determine the final result value: failed tests always override to "failed"
         final_result = props_dict.get("result", "")
+        failure_reason = ""
         if report.failed:
             final_result = "failed"
+            failure_reason = clean_error_message(str(report.longrepr)) if report.longrepr else "Test failed"
         elif not final_result:
             final_result = report.outcome
 
-        # Re-build user_properties to update values cleanly (remove duplicates of result)
+        # Re-build user_properties to update values cleanly (update result, actual, message on failure)
         updated_properties = []
         for name, val in item.user_properties:
             if name == "result":
                 continue
+            if report.failed:
+                if name == "actual" and failure_reason:
+                    # Append failure reason to actual if actual was already recorded
+                    val = f"{val} | Failure: {failure_reason}" if val and val != failure_reason else failure_reason
+                elif name == "message" and failure_reason:
+                    val = f"{val} | Failure: {failure_reason}"
             updated_properties.append((name, val))
         
         # Add result (either updated or original)
         updated_properties.append(("result", final_result))
 
-        # Add expected/actual if they were not explicitly recorded
+        # Add expected/actual/message if they were not explicitly recorded
         has_expected = any(name == "expected" for name, _ in updated_properties)
         has_actual = any(name == "actual" for name, _ in updated_properties)
+        has_message = any(name == "message" for name, _ in updated_properties)
 
         if not has_expected and expected:
             updated_properties.append(("expected", expected))
         if not has_actual and actual:
             updated_properties.append(("actual", actual))
+        if not has_message and failure_reason:
+            updated_properties.append(("message", f"Test failed: {failure_reason}"))
 
         item.user_properties = updated_properties
 

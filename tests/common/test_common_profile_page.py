@@ -187,12 +187,18 @@ class TestProfilePage:
             editable_fields_status = {}
 
             for field_name, field in input_fields.items():
-
                 readonly = field.get_attribute("ng-reflect-readonly")
 
                 if field_name in ["admin", "user_role"]:
-                    readonly_fields_status[field_name] = readonly is not None
-                    assert readonly is not None, (
+                    is_readonly = readonly is not None
+                    readonly_fields_status[field_name] = is_readonly
+                    report_case(
+                        expected=True,
+                        actual=is_readonly,
+                        result="PASS" if is_readonly else "FAIL",
+                        message=f"Validate '{field_name}' field is readonly",
+                    )
+                    assert is_readonly, (
                         f"Expected input field '{field_name}' "
                         f"to be readonly but it is editable"
                     )
@@ -203,8 +209,15 @@ class TestProfilePage:
                     )
 
                 else:
-                    editable_fields_status[field_name] = readonly is None
-                    assert readonly is None, (
+                    is_editable = readonly is None
+                    editable_fields_status[field_name] = is_editable
+                    report_case(
+                        expected=True,
+                        actual=is_editable,
+                        result="PASS" if is_editable else "FAIL",
+                        message=f"Validate '{field_name}' field is editable",
+                    )
+                    assert is_editable, (
                         f"Expected input field '{field_name}' "
                         f"to be editable but it is readonly"
                     )

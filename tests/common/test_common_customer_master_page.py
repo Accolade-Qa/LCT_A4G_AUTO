@@ -120,6 +120,9 @@ class TestCustomerMaster:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
+    @pytest.mark.regression
+    @pytest.mark.smoke
+    @pytest.mark.ui
     def test_customer_master_element_enability(
         self, customer_master, report_case
     ):
@@ -127,7 +130,6 @@ class TestCustomerMaster:
 
         is_enabled = customer_master._element_enability()
         logger.info("Verifying elements are enabled")
-        assert is_enabled
 
         if is_enabled: 
             report_case(
@@ -136,15 +138,15 @@ class TestCustomerMaster:
                 result="PASS",
                 message="Validate Customer master element enability",
             )
-
         else:
             report_case(
-                expected=False,
+                expected=True,
                 actual=is_enabled,
                 result="FAIL",
                 message="Validation of customer master element failed"
             )
 
+        assert is_enabled, "Customer master elements are not enabled"
         logger.info("Elements are enabled: Test Passed")
 
     @pytest.mark.regression
@@ -160,9 +162,6 @@ class TestCustomerMaster:
         ).is_visible()
 
         click = customer_master._click_add_customer()
-        
-        logger.info("Verifying Add Customer button is clickable")
-        assert click is None
 
         if visibility:
             report_case(
@@ -178,7 +177,9 @@ class TestCustomerMaster:
                 result="FAIL",
                 message="Validate Customer master add customer",
             )
-        logger.info("Add Customer button is clickable and clicked is Failed")
+        assert visibility, "Add Customer button is not visible"
+        assert click is None, "Click action returned unexpected result"
+        logger.info("Add Customer button is clickable: Test Passed")
 
     @pytest.mark.regression
     @pytest.mark.smoke
@@ -381,11 +382,12 @@ class TestCustomerMaster:
         logger.debug("No data state: %s", has_no_data)
         
         report_case(
-            expected="Capture visibility of 'No Data Found'",
+            expected="Table should expose boolean no-data state",
             actual=f"Has no data state = {has_no_data}",
             result="PASS",
             message="Validate Customer master table displays 'No Data Found' correctly when empty",
         )
+        assert isinstance(has_no_data, bool), "No data state should be a boolean"
         logger.info("Customer Master table 'No Data Found' validation completed: Test Passed")
 
     @pytest.mark.regression
@@ -425,6 +427,12 @@ class TestCustomerMaster:
         )
         toast_locator.wait_for(state="visible", timeout=5000)
         toast_text = toast_locator.inner_text().strip()
+        report_case(
+            expected="Data Saved Successfully!!",
+            actual=toast_text,
+            result="PASS" if toast_text == "Data Saved Successfully!!" else "FAIL",
+            message="Validate Customer master new customer creation toast",
+        )
         assert toast_text == "Data Saved Successfully!!", f"Failed to add customer. Got: '{toast_text}'"
         toast_locator.wait_for(state="hidden", timeout=5000)
         
@@ -457,6 +465,12 @@ class TestCustomerMaster:
         
         toast_locator.wait_for(state="visible", timeout=5000)
         toast_text = toast_locator.inner_text().strip()
+        report_case(
+            expected="Data Saved Successfully!!",
+            actual=toast_text,
+            result="PASS" if toast_text == "Data Saved Successfully!!" else "FAIL",
+            message="Validate Customer master update customer toast",
+        )
         assert toast_text == "Data Saved Successfully!!", f"Failed to update customer. Got: '{toast_text}'"
         toast_locator.wait_for(state="hidden", timeout=5000)
 
@@ -489,6 +503,12 @@ class TestCustomerMaster:
         
         toast_locator.wait_for(state="visible", timeout=5000)
         toast_text = toast_locator.inner_text().strip()
+        report_case(
+            expected="Data Deleted Successfully!!",
+            actual=toast_text,
+            result="PASS" if toast_text == "Data Deleted Successfully!!" else "FAIL",
+            message="Validate Customer master delete customer toast",
+        )
         assert toast_text == "Data Deleted Successfully!!", f"Failed to delete customer. Got: '{toast_text}'"
         toast_locator.wait_for(state="hidden", timeout=5000)
 
