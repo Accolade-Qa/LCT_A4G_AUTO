@@ -140,15 +140,12 @@ pytest -m regression -v --log-cli-level=DEBUG
 # Generate custom dashboard report for a different project
 .\.venv\Scripts\python utils\generate_reports.py -p lct
 
-# Generate custom dashboard reports for multiple projects
-.\.venv\Scripts\python utils\generate_reports.py --projects atcu,lct
-
 # Generate report with multiple test markers (comma-separated, space-separated, or quoted)
 .\.venv\Scripts\python utils\generate_reports.py --project lct --markers smoke, ui
 .\.venv\Scripts\python utils\generate_reports.py --project lct --markers "smoke, ui"
 .\.venv\Scripts\python utils\generate_reports.py --project lct --markers smoke ui
 
-# Trigger GitHub Actions workflow with multiple markers
+# Trigger GitHub Actions workflow for a specific project with test markers
 python utils/trigger_project_report.py --owner Accolade-Qa --repo LCT_A4G_AUTO --token YOUR_TOKEN --project lct --marker smoke, ui
 python utils/trigger_project_report.py --owner Accolade-Qa --repo LCT_A4G_AUTO --token YOUR_TOKEN --project lct --marker "smoke or ui"
 
@@ -404,8 +401,7 @@ When triggered, the workflow:
 
 Inputs available when run manually from GitHub:
 
-- `project`: single project name, e.g. `lct`
-- `projects`: comma-separated projects, e.g. `atcu,lct`
+- `project`: target project name, e.g. `lct`, `atcu`
 - `marker`: pytest marker expression, e.g. `smoke`, `api`, `regression and not slow`
 - `report_dir`: destination directory for reports, default `reports`
 
@@ -413,21 +409,12 @@ Inputs available when run manually from GitHub:
 
 External systems must send payload values via `client_payload`:
 
-- `project`
-- `projects`
-- `marker`
-- `report_dir`
-
-The workflow uses the payload values in this order:
-- `projects` if present
-- otherwise `project`
-- then `marker`
-- then `report_dir`
+- `project`: target project name, e.g. `lct`, `atcu`
+- `marker`: pytest marker expression
+- `report_dir`: destination directory for reports
 
 #### Important compatibility note
 
-- `project` and `projects` are mutually exclusive.
-- If `projects` is provided, `project` is ignored.
 - `repository_dispatch` triggers the workflow definition on the default branch (`master`).
 - `workflow_dispatch` can target a branch via `ref`.
 

@@ -11,10 +11,7 @@ def parse_args():
     parser.add_argument("--owner", required=True, help="GitHub repository owner")
     parser.add_argument("--repo", required=True, help="GitHub repository name")
     parser.add_argument("--token", required=True, help="GitHub token with repo access")
-    parser.add_argument("--project", help="Single project name, e.g. lct")
-    parser.add_argument(
-        "--projects", help="Comma-separated list of projects, e.g. atcu,lct"
-    )
+    parser.add_argument("--project", help="Target project name, e.g. lct")
     parser.add_argument("--marker", nargs="+", help="Pytest marker expression, e.g. api or smoke")
     parser.add_argument(
         "--report-dir",
@@ -35,10 +32,6 @@ def parse_args():
 
 def main():
     args = parse_args()
-
-    if args.project and args.projects:
-        print("Error: --project and --projects are mutually exclusive.")
-        sys.exit(1)
 
     marker_expr = None
     if args.marker:
@@ -69,8 +62,6 @@ def main():
         }
         if args.project:
             payload["inputs"]["project"] = args.project
-        if args.projects:
-            payload["inputs"]["projects"] = args.projects
         if marker_expr:
             payload["inputs"]["marker"] = marker_expr
     else:
@@ -83,8 +74,6 @@ def main():
         }
         if args.project:
             payload["client_payload"]["project"] = args.project
-        if args.projects:
-            payload["client_payload"]["projects"] = args.projects
         if marker_expr:
             payload["client_payload"]["marker"] = marker_expr
 

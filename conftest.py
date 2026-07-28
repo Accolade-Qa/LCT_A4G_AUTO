@@ -135,7 +135,7 @@ def pytest_configure(config):
     if config.getoption("collectonly", default=False):
         return
 
-    project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower()
+    project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower().strip()
     if project not in VALID_PROJECTS:
         raise pytest.UsageError(
             f"Invalid project '{project}'. Must be one of: {', '.join(VALID_PROJECTS)}"
@@ -148,13 +148,6 @@ def pytest_configure(config):
     enable_file_logging(project)
     os.makedirs(get_project_logs_path(project=project), exist_ok=True)
     os.makedirs(get_project_screenshot_path(project=project), exist_ok=True)
-
-    logger.info(
-        "Artifact directories prepared for project %s at %s and %s",
-        project,
-        artifact_dirs["logs_dir"],
-        artifact_dirs["screenshots_dir"],
-    )
 
     required_configs = ("BASE_URL", "USERNAME", "PASSWORD", "BROWSER")
     missing = [key for key in required_configs if not getattr(config_module, key, None)]
@@ -176,22 +169,40 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
-    current_project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower()
+    current_project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower().strip()
     project_markers = set(VALID_PROJECTS)
+
+    selected = []
+    deselected = []
 
     for item in items:
         item_markers = {marker.name for marker in item.iter_markers()}
         test_projects = item_markers & project_markers
 
-        if test_projects and current_project not in test_projects:
-            item.add_marker(
-                pytest.mark.skip(
-                    reason=(
-                        f"Test marked for {', '.join(sorted(test_projects))}, "
-                        f"running {current_project}"
-                    )
-                )
-            )
+        # Also check path to see if item is in a project-specific directory (e.g., tests/atcu/)
+        item_path_str = str(item.fspath).replace("\\", "/").lower()
+        path_project = None
+        for proj in VALID_PROJECTS:
+            if f"/tests/{proj}/" in item_path_str:
+                path_project = proj
+                break
+
+        if test_projects:
+            if current_project in test_projects:
+                selected.append(item)
+            else:
+                deselected.append(item)
+        elif path_project:
+            if current_project == path_project:
+                selected.append(item)
+            else:
+                deselected.append(item)
+        else:
+            selected.append(item)
+
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+    items[:] = selected
 
 
 @pytest.fixture(scope="session")

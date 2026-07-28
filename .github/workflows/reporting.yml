@@ -105,18 +105,14 @@ jobs:
         continue-on-error: true
         run: |
           EVENT_PROJECT=${{ github.event.client_payload.project || github.event.inputs.project || '' }}
-          EVENT_PROJECTS=${{ github.event.client_payload.projects || github.event.inputs.projects || '' }}
           EVENT_MARKER=${{ github.event.client_payload.marker || github.event.inputs.marker || '' }}
 
           COMMIT_MSG="${{ github.event.head_commit.message }}"
           echo "Commit Message: $COMMIT_MSG"
 
-          if [ -z "$EVENT_PROJECT" ] && [ -z "$EVENT_PROJECTS" ] && [ -n "$COMMIT_MSG" ]; then
+          if [ -z "$EVENT_PROJECT" ] && [ -n "$COMMIT_MSG" ]; then
             PARSED_PROJECT=$(echo "$COMMIT_MSG" | grep -oP '\[project:\s*\K[^\]]+' || true)
-            PARSED_PROJECTS=$(echo "$COMMIT_MSG" | grep -oP '\[projects:\s*\K[^\]]+' || true)
-            if [ -n "$PARSED_PROJECTS" ]; then
-              EVENT_PROJECTS="$PARSED_PROJECTS"
-            elif [ -n "$PARSED_PROJECT" ]; then
+            if [ -n "$PARSED_PROJECT" ]; then
               EVENT_PROJECT="$PARSED_PROJECT"
             fi
           fi
@@ -134,9 +130,7 @@ jobs:
           TARGET_REPORT_DIR=${{ env.TARGET_REPORT_DIR }}
           ARGS="--report-dir \"$TARGET_REPORT_DIR\""
 
-          if [ -n "$EVENT_PROJECTS" ]; then
-            ARGS="$ARGS --projects \"$EVENT_PROJECTS\""
-          elif [ -n "$EVENT_PROJECT" ]; then
+          if [ -n "$EVENT_PROJECT" ]; then
             ARGS="$ARGS --project $EVENT_PROJECT"
           fi
 

@@ -900,6 +900,10 @@ def _build_test_rows(data, manual_excel_path):
     counts = {"passed": 0, "failed": 0, "skipped": 0}
 
     for t in data.get("tests", []):
+        skip_reason = str(t.get("longrepr", "") or "")
+        if "Test marked for " in skip_reason and "running " in skip_reason:
+            continue
+
         nodeid = t.get("nodeid", "")
         test_name = _test_case_name(nodeid)
         status = _normalize_status(t.get("outcome", ""))
@@ -1319,8 +1323,7 @@ def _resolve_markers(cli_markers=None):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--project", help="Project name to run.")
-    parser.add_argument("--projects", help="Comma-separated project names.")
+    parser.add_argument("--project", "-p", help="Project name to run (e.g. lct, atcu).")
     parser.add_argument(
         "--marker",
         "--markers",
@@ -1409,27 +1412,12 @@ def _run_report_for_target(project_name, base_report_dir, skip_pytest, markers=N
 
 def main():
     args = parse_args()
-    project_names = []
-    if args.projects:
-        project_names = [p.strip() for p in args.projects.split(",") if p.strip()]
-
-    cli_project = _resolve_project_name(args.project)
-    if cli_project:
-        project_names.append(cli_project)
-
-    if not project_names:
-        project_names = [None]
-
+    project_name = _resolve_project_name(args.project)
     marker_expr = _resolve_markers(args.markers)
 
-    overall_exit_code = 0
-    for project_name in project_names:
-        exit_code = _run_report_for_target(
-            project_name, args.report_dir, args.skip_pytest, marker_expr
-        )
-        overall_exit_code = max(overall_exit_code, exit_code)
-
-    return overall_exit_code
+    return _run_report_for_target(
+        project_name, args.report_dir, args.skip_pytest, marker_expr
+    )
 
 
 if __name__ == "__main__":

@@ -87,24 +87,45 @@ def parse_report_json(json_path):
         with open(json_path, "r", encoding="utf-8") as f:
             data = json.load(f)
             
-        summary = data.get("summary", {})
-        results["passed"] = summary.get("passed", 0)
-        results["failed"] = summary.get("failed", 0)
-        results["skipped"] = summary.get("skipped", 0)
-        results["total"] = results["passed"] + results["failed"] + results["skipped"]
-        results["duration"] = round(data.get("duration", 0.0), 2)
-        
-        # Extract failures details
-        for test in data.get("tests", []):
-            if test.get("outcome") == "failed":
-                name = test.get("nodeid", "Unknown Test")
-                # Clean name a bit
-                name_clean = name.split("::")[-1] if "::" in name else name
-                message = "No failure message available"
+        tests = data.get("tests", [])
+        if tests:
+            passed = 0
+            failed = 0
+            skipped = 0
+            for test in tests:
+                outcome = test.get("outcome", "")
                 call = test.get("call", {})
-                if call and call.get("longrepr"):
-                    message = str(call.get("longrepr")).split("\n")[-1]
-                results["failures"].append({"name": name_clean, "message": message})
+                longrepr_str = str(test.get("longrepr") or (call.get("longrepr") if call else "") or "")
+                
+                # Ignore legacy project mismatch skipped tests
+                if outcome == "skipped" and "Test marked for " in longrepr_str and "running " in longrepr_str:
+                    continue
+
+                if outcome == "passed":
+                    passed += 1
+                elif outcome == "failed":
+                    failed += 1
+                    name = test.get("nodeid", "Unknown Test")
+                    name_clean = name.split("::")[-1] if "::" in name else name
+                    message = "No failure message available"
+                    if call and call.get("longrepr"):
+                        message = str(call.get("longrepr")).split("\n")[-1]
+                    results["failures"].append({"name": name_clean, "message": message})
+                elif outcome == "skipped":
+                    skipped += 1
+
+            results["passed"] = passed
+            results["failed"] = failed
+            results["skipped"] = skipped
+            results["total"] = passed + failed + skipped
+            results["duration"] = round(data.get("duration", 0.0), 2)
+        else:
+            summary = data.get("summary", {})
+            results["passed"] = summary.get("passed", 0)
+            results["failed"] = summary.get("failed", 0)
+            results["skipped"] = summary.get("skipped", 0)
+            results["total"] = results["passed"] + results["failed"] + results["skipped"]
+            results["duration"] = round(data.get("duration", 0.0), 2)
                 
     except Exception as e:
         print(f"Error parsing JSON report {json_path}: {e}")
