@@ -47,7 +47,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_page_navigates_correctly(self, ota_page, report_case):
+    def test_ota_page_navigation_and_url_validation(self, ota_page, report_case):
         """Verify OTA page is loaded with correct URL."""
         logger.info("Validating OTA page load state")
         logger.debug("Current OTA page URL: %s", ota_page.page.url)
@@ -66,7 +66,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_page_title_is_correct(self, ota_page, report_case):
+    def test_ota_page_batch_header_title_validation(self, ota_page, report_case):
         """Verify OTA Batch page title is correct."""
         logger.info("Verifying OTA Batch page title")
 
@@ -91,7 +91,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_page_all_elements_are_visible(self, ota_page, report_case):
+    def test_ota_page_batch_ui_elements_visibility(self, ota_page, report_case):
         """Verify all OTA Batch page elements are visible and loaded."""
         logger.info("Validating OTA Batch page elements")
 
@@ -124,7 +124,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_batch_table_search_filters_results(self, ota_page, report_case):
+    def test_ota_page_batch_table_search_filter_functionality(self, ota_page, report_case):
         """Verify search functionality on OTA Batch page."""
         logger.info("Testing search functionality on OTA Batch table")
 
@@ -159,7 +159,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_batch_table_displays_valid_data(self, ota_page, report_case):
+    def test_ota_page_batch_table_headers_and_data_display(self, ota_page, report_case):
         """Verify OTA Batch table data is visible and valid."""
         logger.info("Validating OTA Batch table data")
 
@@ -203,7 +203,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_batch_table_search_helper_finds_records(self, ota_page, report_case):
+    def test_ota_page_batch_table_search_helper_record_lookup(self, ota_page, report_case):
         """Test search using SearchHelper on OTA Batch page."""
         logger.info("Testing search using SearchHelper on OTA Batch")
 
@@ -234,7 +234,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_page_master_button_is_visible(self, ota_page, report_case):
+    def test_ota_page_master_button_visibility(self, ota_page, report_case):
         """Verify OTA Master button is visible on OTA Batch page."""
         logger.info("Validating OTA Master button visibility")
 
@@ -252,7 +252,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_page_master_button_navigates_to_master_form(
+    def test_ota_page_master_button_navigation(
         self, ota_page, report_case
     ):
         """Verify navigation to OTA Master page succeeds."""
@@ -272,7 +272,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_master_page_title_is_correct(self, ota_page, report_case):
+    def test_ota_page_master_header_title_validation(self, ota_page, report_case):
         """Verify OTA Master page title is correct after navigation."""
         logger.info("Verifying OTA Master page title")
         ota_page.go_to_ota_master_page()
@@ -298,7 +298,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_master_page_all_elements_are_visible(self, ota_page, report_case):
+    def test_ota_page_master_ui_elements_visibility(self, ota_page, report_case):
         """Verify OTA Master page elements are visible after navigation."""
         logger.info("Validating OTA Master page elements")
         ota_page.go_to_ota_master_page()
@@ -329,7 +329,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_master_table_search_filters_results(self, ota_page, report_case):
+    def test_ota_page_master_table_search_filter_functionality(self, ota_page, report_case):
         """Verify search functionality on OTA Master page."""
         logger.info("Testing search functionality on OTA Master table")
 
@@ -365,7 +365,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_master_table_displays_valid_data(self, ota_page, report_case):
+    def test_ota_page_master_table_headers_and_data_display(self, ota_page, report_case):
         """Verify OTA Master table data is visible and valid."""
         logger.info("Validating OTA Master table data")
 
@@ -410,7 +410,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_master_table_search_helper_finds_records(self, ota_page, report_case):
+    def test_ota_page_master_table_search_helper_record_lookup(self, ota_page, report_case):
         """Test search using SearchHelper on OTA Master page."""
         logger.info("Testing search using SearchHelper on OTA Master")
 
@@ -440,7 +440,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_page_add_command_button_is_visible(self, ota_page, report_case):
+    def test_ota_page_add_command_button_visibility_and_navigation(self, ota_page, report_case):
         """Verify Add OTA Command button is visible on OTA Master page."""
         logger.info("Validating Add OTA Command button visibility and navigation")
         ota_page.go_to_ota_master_page()
@@ -482,7 +482,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_page_add_command_form_fields_are_visible(self, ota_page, report_case):
+    def test_ota_page_add_command_form_fields_visibility(self, ota_page, report_case):
         """Verify all Add OTA Command form fields are visible."""
         logger.info("Validating Add OTA Command form fields visibility")
         ota_page.go_to_ota_master_page()
@@ -504,7 +504,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_page_add_command_form_ota_name_field_accepts_input(
+    def test_ota_page_add_command_form_ota_name_field_input(
         self, ota_page, report_case
     ):
         """Verify OTA Name field can be filled."""
@@ -536,7 +536,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_page_add_command_form_ota_command_field_accepts_input(
+    def test_ota_page_add_command_form_ota_command_field_input(
         self, ota_page, report_case
     ):
         """Verify OTA Command field can be filled."""
@@ -568,7 +568,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_page_add_command_form_example_field_accepts_input(
+    def test_ota_page_add_command_form_example_field_input(
         self, ota_page, report_case
     ):
         """Verify Example field can be filled."""
@@ -598,7 +598,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_page_add_command_form_ota_type_dropdown_works(
+    def test_ota_page_add_command_form_ota_type_dropdown_selection(
         self, ota_page, report_case
     ):
         """Verify OTA Type dropdown can be selected."""
@@ -629,7 +629,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_page_add_command_form_input_field_required_dropdown_works(
+    def test_ota_page_add_command_form_input_field_required_dropdown_selection(
         self, ota_page, report_case
     ):
         """Verify Input Field Required dropdown can be selected."""
@@ -660,7 +660,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_page_add_command_form_submission_succeeds_with_valid_data(
+    def test_ota_page_add_command_form_fill_and_validation_flow(
         self, ota_page, report_case
     ):
         """Test complete Add OTA Command form flow with all fields."""
@@ -712,7 +712,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_add_command_form_submit_button_disabled_when_empty(self, ota_page, report_case):
+    def test_ota_page_add_command_form_submit_disabled_when_empty(self, ota_page, report_case):
         """Verify Submit button is disabled when form fields are empty."""
         logger.info("Testing Submit button disabled state on empty form")
         ota_page.go_to_ota_master_page()
@@ -735,7 +735,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_add_command_form_submit_button_enabled_when_filled(self, ota_page, report_case):
+    def test_ota_page_add_command_form_submit_enabled_when_filled(self, ota_page, report_case):
         """Verify Submit button is enabled when all form fields are filled."""
         logger.info("Testing Submit button enabled state on filled form")
         ota_page.go_to_ota_master_page()
@@ -778,7 +778,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_add_command_form_submit_button_state_transitions(self, ota_page, report_case):
+    def test_ota_page_add_command_form_submit_state_transitions_on_field_fill(self, ota_page, report_case):
         """Verify Submit button state transitions between disabled and enabled."""
         logger.info("Testing Submit button state transitions")
         ota_page.go_to_ota_master_page()
@@ -843,7 +843,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_add_command_form_submit_button_clickable_when_enabled(self, ota_page, report_case):
+    def test_ota_page_add_command_form_submit_button_clickability(self, ota_page, report_case):
         """Verify Submit button is clickable when enabled with all fields filled."""
         logger.info("Testing Submit button is clickable when enabled")
         ota_page.go_to_ota_master_page()
@@ -889,7 +889,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_manual_ota_button_visibility(self, ota_page, report_case):
+    def test_ota_page_manual_ota_button_visibility(self, ota_page, report_case):
         """Verify Manual OTA button is visible on OTA Master page."""
         logger.info("Validating Manual OTA button visibility")
 
@@ -907,7 +907,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_click_and_validate_manual_ota_button(self, ota_page, report_case):
+    def test_ota_page_manual_ota_button_navigation(self, ota_page, report_case):
         """Verify clicking Manual OTA button opens correct page."""
         logger.info("Testing Manual OTA button click and validation")
 
@@ -948,7 +948,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_component_title_on_manual_ota_page(self, ota_page, report_case):
+    def test_ota_page_manual_ota_search_device_title_visibility(self, ota_page, report_case):
         """Verify component title is visible on Manual OTA page."""
         logger.info("Validating component title on Manual OTA page")
 
@@ -975,7 +975,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_search_button_disabled_on_manual_ota_page_if_fields_not_filled(
+    def test_ota_page_manual_ota_search_button_disabled_when_empty(
         self, ota_page, report_case
     ):
         """Verify Search button is disabled on Manual OTA page if fields are not filled."""
@@ -999,7 +999,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_imei_input_field_validation_errors(self, ota_page, report_case):
+    def test_ota_page_manual_ota_imei_field_validation_errors(self, ota_page, report_case):
         """Verify error messages for IMEI input fields on Manual OTA page."""
         logger.info("Testing IMEI input fields error messages")
         ota_page.go_to_manual_ota_page()
@@ -1052,7 +1052,7 @@ class TestOtaPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_enter_valid_imei_and_search(
+    def test_ota_page_manual_ota_valid_imei_search_execution(
         self, ota_page, project_config, test_data, report_case
     ):
         """Verify entering valid IMEI and clicking search on Manual OTA page."""
@@ -1092,7 +1092,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.regression
     @pytest.mark.ui
-    def test_ota_validate_device_details_displayed_after_search(
+    def test_ota_page_manual_ota_device_details_and_command_display(
         self, ota_page, project_config, test_data, report_case
     ):
         """Verify device details are displayed after searching with valid IMEI on Manual OTA page."""
@@ -1161,7 +1161,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_new_ota_button_visible_after_valid_search(
+    def test_ota_page_manual_ota_new_ota_button_enabled_after_search(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify New OTA Command button is visible after searching with valid IMEI on Manual OTA page."""
@@ -1188,7 +1188,7 @@ class TestOtaPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_ota_click_on_new_ota_button_after_valid_search(
+    def test_ota_page_manual_ota_new_ota_button_navigation(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify clicking New OTA Command button after valid search navigates to Add OTA Command page."""
@@ -1235,7 +1235,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_select_ota_type_dropdown(
+    def test_ota_page_manual_ota_command_list_ota_type_dropdown_selection(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify OTA Type dropdown can be selected on Add OTA Command page."""
@@ -1281,7 +1281,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_all_checkboxes_visible_and_unchecked_on_manual_ota_page(
+    def test_ota_page_manual_ota_command_checkboxes_visibility_and_default_state(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify all checkboxes are visible and unchecked on Manual OTA page after valid search."""
@@ -1329,7 +1329,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_select_one_checkbox_by_searching_command_on_manual_ota_page(
+    def test_ota_page_manual_ota_select_command_checkbox_via_search(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify selecting one checkbox by searching command on Manual OTA page after valid search."""
@@ -1394,7 +1394,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_select_checkbox_and_validate_set_batch_button_enabled_on_manual_ota_page(
+    def test_ota_page_manual_ota_set_batch_button_enabled_on_checkbox_selection(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify selecting a checkbox enables the Set Batch button on Manual OTA page after valid search."""
@@ -1498,7 +1498,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_click_on_set_batch_button_and_validate_set_configuration_component_visible(
+    def test_ota_page_manual_ota_set_configuration_component_visibility(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify Set Configuration component is visible after clicking Set Batch button."""
@@ -1597,7 +1597,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_manual_ota_submit_button_visible_and_clickable(
+    def test_ota_page_manual_ota_set_configuration_submit_button_clickability(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify Submit button is visible and clickable on Set Configuration component."""
@@ -1671,7 +1671,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_history_component_visible_after_submit(
+    def test_ota_page_manual_ota_history_component_visibility_after_submit(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify OTA History component is visible after submitting configuration."""
@@ -1740,7 +1740,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_history_table_headers_validation(
+    def test_ota_page_manual_ota_history_table_headers_validation(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify that the table headers on OTA History component are correct."""
@@ -1827,7 +1827,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_history_table_data_validation(
+    def test_ota_page_manual_ota_history_table_first_row_data_validation(
         self, project_config, test_data, ota_page, report_case
     ):
         """Verify that the data displayed in OTA History table is correct after submitting configuration."""
@@ -1907,7 +1907,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_history_component_have_export_button_and_clickable(
+    def test_ota_page_manual_ota_history_export_button_clickability(
         self, ota_page, project_config, test_data, report_case
     ):
         """Verify OTA History component has Export button and it is clickable."""
@@ -1996,7 +1996,7 @@ class TestOtaPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_ota_pagination_on_manual_ota_page(
+    def test_ota_page_manual_ota_history_pagination_validation(
         self, ota_page, project_config, test_data, report_case
     ):
         # Pagination class is defined.
