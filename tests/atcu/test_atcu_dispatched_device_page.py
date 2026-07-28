@@ -1076,7 +1076,7 @@ class TestDispatchedDevicePage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_manual_upload_form_submit_button_is_enabled_when_all_fields_valid(
+    def test_dispatched_device_manual_upload_form_submit_button_is_enabled_when_all_fields_valid(
         self, test_data, dispatched_device_page, report_case
     ):
         logger.info(

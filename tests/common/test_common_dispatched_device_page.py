@@ -1103,7 +1103,7 @@ class TestDispatchedDevicePage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_manual_upload_form_submit_button_is_enabled_when_all_fields_valid(
+    def test_dispatched_device_manual_upload_form_submit_button_is_enabled_when_all_fields_valid(
         self, test_data, dispatched_device_page, report_case
     ):
         logger.info(
@@ -1112,7 +1112,7 @@ class TestDispatchedDevicePage:
         )
 
         valid_uid = test_data.get("valid_uid") or "abc123def456ghi7890"
-        customer = test_data.get("customer") or "SURAJ DEMO"
+        customer = "SURAJ DEMO" or test_data.get("customer") 
 
         dispatched_device_page.click_manual_upload_button()
         dispatched_device_page.fill_uid_input(valid_uid)
