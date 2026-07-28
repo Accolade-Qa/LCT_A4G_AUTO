@@ -998,9 +998,12 @@ class TestGovtServerPage:
 
         logger.info("Verifying page title after clicking view button")
 
-        search_term = (
-            "SURAJ" if project_config.get("project") == "sampark" else "Shital"
-        )
+        project_name = project_config.get("project")
+
+        if project_name == "sampark":
+            search_term = "SURAJ"
+        else:
+            search_term = "Shital"
 
         response = govt_server_page.search_server(search_term)
 
@@ -1057,9 +1060,12 @@ class TestGovtServerPage:
 
         logger.info("Validating UI input field data with API response")
 
-        state_name = (
-            "SURAJ" if project_config.get("project") == "sampark" else "Shital"
-        )
+        project_name = project_config.get("project")
+
+        if project_name == "sampark":
+            state_name = "SURAJ"
+        else:
+            state_name = "Shital"
 
         response, _, _ = GovtServerAPI.get_state_server_details_by_name(
             govt_server_page.page,
@@ -2287,7 +2293,11 @@ class TestGovtServerPage:
 
         govt_server_page.click_firmware_master_button()
 
+        # wait for page to load completely
         govt_server_page.page.wait_for_load_state("networkidle")
+
+        # wait for page to loaded successfully
+        govt_server_page.page.wait_for_selector("span:has-text('Firmware Master')")
 
         logger.info("Add Firmware Master page opened successfully")
 
