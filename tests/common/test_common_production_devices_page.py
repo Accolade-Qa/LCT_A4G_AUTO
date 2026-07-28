@@ -73,7 +73,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_production_devices_nav_list_visibility(
+    def test_production_devices_page_nav_list_visibility(
         self, production_devices_page, project_config, report_case
     ):
         logger.info("Starting validation of Production navbar list visibility")
@@ -131,7 +131,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_production_devices_manual_upload_btn_visibility(self, production_devices_page, report_case):
+    def test_production_devices_page_manual_upload_btn_visibility(self, production_devices_page, report_case):
         logger.info("Starting validation of Manual Upload button visibility")
 
         is_visible = production_devices_page._manual_upload_btn_visibility()
@@ -158,7 +158,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_production_devices_manual_upload_btn_click_navigates_to_create_production(self, page, production_devices_page, report_case):
+    def test_production_devices_page_manual_upload_click_navigation(self, page, production_devices_page, report_case):
         logger.info("Starting validation of Manual Upload button click")
         production_devices_page._manual_upload_click()
 
@@ -177,7 +177,7 @@ class TestProductionDevices:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_create_production_page_title_visibility(self, production_devices_page, report_case):
+    def test_production_devices_page_create_production_title_visibility(self, production_devices_page, report_case):
         logger.info("Starting validation of Create Production page title")
         production_devices_page._manual_upload_click()
 

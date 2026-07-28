@@ -42,7 +42,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_login_with_valid_credentials(
+    def test_login_page_valid_credentials_authentication(
         self,
         login_page,
         project_config,
@@ -102,7 +102,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_login_with_invalid_credentials(
+    def test_login_page_invalid_credentials_error(
         self,
         login_page,
         project_config,
@@ -156,7 +156,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_login_with_username_only(
+    def test_login_page_username_only_validation_error(
         self,
         login_page,
         project_config,
@@ -204,7 +204,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_login_with_password_only(
+    def test_login_page_password_only_validation_error(
         self,
         login_page,
         project_config,
@@ -253,7 +253,7 @@ class TestLoginPage:
     @pytest.mark.ui
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_page_title_is_correct(
+    def test_login_page_title_validation(
         self,
         login_page,
         project_config,
@@ -297,7 +297,7 @@ class TestLoginPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_network_loss_during_login_shows_login_page(
+    def test_login_page_network_loss_offline_state(
         self,
         login_page,
         project_config,
@@ -336,7 +336,7 @@ class TestLoginPage:
     @pytest.mark.smoke
     @pytest.mark.regression
     @pytest.mark.slow
-    def test_login_with_high_latency_still_completes(
+    def test_login_page_high_latency_authentication(
         self,
         login_page,
         project_config,
@@ -397,7 +397,7 @@ class TestLoginPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_recover_after_network_restore_and_login(
+    def test_login_page_network_restore_recovery(
         self,
         login_page,
         project_config,
@@ -431,7 +431,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_login_with_long_username_and_short_password(
+    def test_login_page_long_username_short_password_errors(
         self,
         login_page,
         project_config,
@@ -494,7 +494,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_login_with_short_username_and_short_password(
+    def test_login_page_short_username_short_password_errors(
         self,
         login_page,
         project_config,
@@ -552,7 +552,7 @@ class TestLoginPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_cookie_expiry_logs_user_out(self, page, project_config, report_case):
+    def test_login_page_cookie_expiry_logout(self, page, project_config, report_case):
         """Simulate cookie expiry and verify user is logged out and login form shown"""
         logger.info("Testing cookie expiry behavior")
 
@@ -588,7 +588,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_cookies_shared_across_tabs(self, page, project_config, report_case):
+    def test_login_page_cookie_sharing_across_tabs(self, page, project_config, report_case):
         """Verify that authentication cookies are shared across tabs in same context"""
         logger.info("Testing cookie sharing across tabs")
 
@@ -689,7 +689,7 @@ class TestLoginPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_simulate_6hr_cookie_expiry_and_logout(
+    def test_login_page_simulate_6hr_cookie_expiry_logout(
         self, page, project_config, report_case
     ):
         """Simulate cookies having expired after 6 hours and validate logout"""
@@ -748,7 +748,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_simulate_cookie_valid_before_6hr(self, page, project_config, report_case):
+    def test_login_page_simulate_cookie_valid_before_6hr(self, page, project_config, report_case):
         """Simulate cookies still valid just before 6 hours and validate session remains"""
         logger.info(
             "Simulating cookie valid state before 6 hours and validating session"
@@ -805,7 +805,7 @@ class TestLoginPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_expired_cookies_do_not_authenticate_new_tab(
+    def test_login_page_expired_cookies_new_tab_auth(
         self, page, project_config, report_case
     ):
         """Ensure expired cookies do not authenticate a new tab"""
@@ -865,7 +865,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_footer_links_are_present(
+    def test_login_page_footer_links_presence(
         self,
         login_page,
         project_config,
@@ -921,7 +921,7 @@ class TestLoginPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_footer_links_are_clickable(
+    def test_login_page_footer_links_clickability(
         self,
         login_page,
         project_config,
@@ -970,7 +970,7 @@ class TestLoginPage:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_footer_contains_current_year(
+    def test_login_page_footer_current_year_validation(
         self,
         login_page,
         project_config,
@@ -1020,7 +1020,7 @@ class TestLoginPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     @pytest.mark.regression
-    def test_build_version_format_is_valid(
+    def test_login_page_build_version_format_validation(
         self,
         login_page,
         project_config,

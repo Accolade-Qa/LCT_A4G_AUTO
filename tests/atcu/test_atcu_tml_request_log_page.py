@@ -430,7 +430,7 @@ class TestTmlRequestLogPage:
     )
     @pytest.mark.api
     @pytest.mark.regression
-    def test_concurrent_multiple_ticket_generation_uniqueness(
+    def test_tml_request_log_page_concurrent_ticket_generation_uniqueness(
         self,
         tml_request_log_page,
         report_case,

@@ -83,7 +83,7 @@ class TestAeplResponseLogPage:
     @pytest.mark.ui
     @pytest.mark.api
     @pytest.mark.smoke
-    def test_aepl_response_log_api_payload_integrity(self, aepl_response_log_page, report_case):
+    def test_aepl_response_log_page_api_payload_integrity(self, aepl_response_log_page, report_case):
         logger.info("Validating AEPL Response Log request-response pairs")
         payload, VIN, UIN, ICCID, ticket_number, data = (
             aepl_response_log_page.get_valid_request_response_by_api()
@@ -119,7 +119,7 @@ class TestAeplResponseLogPage:
     @pytest.mark.ui
     @pytest.mark.api
     @pytest.mark.smoke
-    def test_validate_response_log_page_with_valid_payload(
+    def test_aepl_response_log_page_valid_payload_ui_validation(
         self, aepl_response_log_page, report_case
     ):
         logger.info("Validating AEPL Response Log page payload with API response")
@@ -195,7 +195,7 @@ class TestAeplResponseLogPage:
     @pytest.mark.ui
     @pytest.mark.api
     @pytest.mark.smoke
-    def test_validate_response_log_table_data_against_api_response(
+    def test_aepl_response_log_page_table_data_api_validation(
         self, aepl_response_log_page, report_case
     ):
         logger.info("Validating AEPL Response Log table data with API response")
@@ -265,7 +265,7 @@ class TestAeplResponseLogPage:
     @pytest.mark.regression
     @pytest.mark.ui
     @pytest.mark.critical
-    def test_search_functionality_on_the_aepl_response_page(
+    def test_aepl_response_log_page_search_functionality(
         self, aepl_response_log_page, report_case
     ):
         # take help of helper search from pages/common_utils/search.py
@@ -307,7 +307,7 @@ class TestAeplResponseLogPage:
     # Validate the table headers on response log page
     @pytest.mark.regression
     @pytest.mark.ui
-    def test_validate_table_headers_on_response_log_page(
+    def test_aepl_response_log_page_table_headers_validation(
         self, aepl_response_log_page, report_case
     ):
         logger.info("Validating table headers on the AEPL Response Log page")
@@ -339,7 +339,7 @@ class TestAeplResponseLogPage:
     # Validate the table data first row response's each data with the response from the api
     @pytest.mark.regression
     @pytest.mark.ui
-    def test_table_data_first_row_response_with_api(
+    def test_aepl_response_log_page_first_row_api_validation(
         self, aepl_response_log_page, report_case
     ):
         logger.info(
@@ -413,7 +413,7 @@ class TestAeplResponseLogPage:
     # Validate the pagination on the response log page with the valid payload and validate the response on the ui with the response from the api
     @pytest.mark.regression
     @pytest.mark.ui
-    def test_check_pagination_functionality_on_the_page_aepl_response_page(
+    def test_aepl_response_log_page_pagination_functionality(
         self, aepl_response_log_page, report_case
     ):
         logger.info("Validating pagination functionality on the AEPL Response Log page")
