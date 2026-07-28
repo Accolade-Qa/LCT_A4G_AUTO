@@ -137,8 +137,7 @@ class TestUserManagementPage:
 
         report_case(
             expected="This field is mandatory.",
-            actual=visible,
-            result="Pass" if visible == "This field is mandatory." else "Fail",
+            actual=error_msg["result_drop_text"],
             message="Validate user type dropdown error message",
         )
         logger.info("Verifying user type dropdown validation message")
@@ -413,10 +412,9 @@ class TestUserManagementPage:
         logger.debug("Captured dropdown text: %s", visible)
 
         report_case(
-            expected="This field is mandatory.",
-            actual=visible,
-            result="Pass" if visible == "This field is mandatory." else "Fail",
-            message="Validate user type dropdown error message",
+            expected="This field is required and can't be empty.",
+            actual=error_msg["status_locator_text"],
+            message="Validate user management status field error message",
         )
 
         logger.info("Verifying status field validation message")
@@ -448,7 +446,6 @@ class TestUserManagementPage:
         report_case(
             expected="Data Fetched Successfully",
             actual=toast_text,
-            result="Pass" if toast_text == "Data Fetched Successfully" else "Fail",
             message="Validate new user flow",
         )
         logger.info(f"Toast message after new user flow: '{toast_text}'")
@@ -473,8 +470,7 @@ class TestUserManagementPage:
         report_case(
             expected="Data Fetched Successfully",
             actual=toast_text,
-            result=("Pass" if toast_text == "Data Fetched Successfully" else "Fail"),
-            message="Validate new user flow",
+            message="Validate user update flow",
         )
         logger.info(f"Toast message after update user flow: '{toast_text}'")
         assert (

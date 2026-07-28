@@ -69,24 +69,13 @@ class TestCustomerMaster:
         is_enabled = customer_master._nav_list_enability()
         logger.info("Verifying navigation bar is enabled")
 
-        if is_enabled:
-            assert is_enabled, "The customer master navigation list failed"
-            report_case(
-                expected=True,
-                actual=is_enabled,
-                result="PASS",
-                message="Validate Customer master nav list",
-            )
-            logger.info("Navigation bar is enabled: Test Passed")
-        else:
-            assert not is_enabled, "The customer master navigation list failed"
-            report_case(
-                expected=False,
-                actual=is_enabled,
-                result="FAIL",
-                message="Validate Customer master nav list",
-            )
-            logger.info("Navigation bar is disabled: Test Passed")
+        report_case(
+            expected=True,
+            actual=is_enabled,
+            message="Validate Customer master nav list",
+        )
+        assert is_enabled, "The customer master navigation list failed"
+        logger.info("Navigation bar is enabled: Test Passed")
 
     @pytest.mark.regression
     @pytest.mark.smoke
@@ -99,27 +88,15 @@ class TestCustomerMaster:
         logger.info("Verifying page title is visible")
         base = BasePage(customer_master.page)
 
-        if is_visible:
-            assert is_visible, f"{expected_title} should be visible on the page"
-            report_case(
-                expected=expected_title,
-                actual=base.get_title(),
-                result="PASS",
-                message="Validate Customer master page title",
-            )
-        else:
-            assert not is_visible, f"{expected_title} should not be visible on the page"
-            report_case(
-                expected=expected_title,
-                actual=base.get_title(),
-                result="FAIL",
-                message="Validate Customer master page title",
-            )
+        report_case(
+            expected=expected_title,
+            actual=base.get_title(),
+            message="Validate Customer master page title",
+        )
+        assert is_visible, f"{expected_title} should be visible on the page"
+        logger.info("Page title is visible: Test Passed")
         logger.info("Page title is visible: Test Passed")
 
-    @pytest.mark.regression
-    @pytest.mark.smoke
-    @pytest.mark.ui
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
@@ -131,21 +108,11 @@ class TestCustomerMaster:
         is_enabled = customer_master._element_enability()
         logger.info("Verifying elements are enabled")
 
-        if is_enabled: 
-            report_case(
-                expected=True,
-                actual=is_enabled,
-                result="PASS",
-                message="Validate Customer master element enability",
-            )
-        else:
-            report_case(
-                expected=True,
-                actual=is_enabled,
-                result="FAIL",
-                message="Validation of customer master element failed"
-            )
-
+        report_case(
+            expected=True,
+            actual=is_enabled,
+            message="Validate Customer master element enability",
+        )
         assert is_enabled, "Customer master elements are not enabled"
         logger.info("Elements are enabled: Test Passed")
 
@@ -163,20 +130,11 @@ class TestCustomerMaster:
 
         click = customer_master._click_add_customer()
 
-        if visibility:
-            report_case(
-                expected=True,
-                actual=visibility,
-                result="PASS",
-                message="Validate Customer master add customer is Passed",
-            )
-        else:
-            report_case(
-                expected=True,
-                actual=visibility,
-                result="FAIL",
-                message="Validate Customer master add customer",
-            )
+        report_case(
+            expected=True,
+            actual=visibility,
+            message="Validate Customer master add customer button visibility",
+        )
         assert visibility, "Add Customer button is not visible"
         assert click is None, "Click action returned unexpected result"
         logger.info("Add Customer button is clickable: Test Passed")
@@ -210,28 +168,16 @@ class TestCustomerMaster:
 
         logger.info("Verifying Customer Name field validation messages")
 
-        # Assertions
+        report_case(
+            expected=expected,
+            actual=actual,
+            message="Validate Customer master customer name field validation messages",
+        )
         assert actual["name_blank_text"] == expected["name_blank_text"]
         assert actual["name_num_text"] == expected["name_num_text"]
         assert actual["name_sp_char_text"] == expected["name_sp_char_text"]
         assert actual["name_space_text"] == expected["name_space_text"]
         assert actual["name_char_space_text"] == expected["name_char_space_text"]
-
-        # Conditional reporting
-        if actual == expected:
-            report_case(
-                expected=expected,
-                actual=actual,
-                result="PASS",
-                message="Validate Customer master customer name field validation messages",
-            )
-        else:
-            report_case(
-                expected=expected,
-                actual=actual,
-                result="FAIL",
-                message="Validate Customer master customer name field validation messages",
-            )
 
         logger.info("Customer name field validation: Test Passed")
 
@@ -251,20 +197,11 @@ class TestCustomerMaster:
         toast_text = toast_locator.inner_text().strip()
         expected_add_text = "Data Saved Successfully!!"
 
-        if toast_text == expected_add_text:
-            report_case(
-                expected=expected_add_text,
-                actual=toast_text,
-                result="PASS",
-                message="Validate Customer master new customer creation",
-            )
-        else:
-            report_case(
-                expected=expected_add_text,
-                actual=toast_text,
-                result="FAIL",
-                message="Validate Customer master new customer creation",
-            )
+        report_case(
+            expected=expected_add_text,
+            actual=toast_text,
+            message="Validate Customer master new customer creation",
+        )
         assert toast_text == expected_add_text, f"Failed to add customer. Got: '{toast_text}'"
         logger.info("New customer added successfully: Step Passed")
 
@@ -279,20 +216,11 @@ class TestCustomerMaster:
         toast_text = toast_locator.inner_text().strip()
         expected_update_text = "Data Saved Successfully!!"
 
-        if toast_text == expected_update_text:
-            report_case(
-                expected=expected_update_text,
-                actual=toast_text,
-                result="PASS",
-                message="Validate Customer master search & update",
-            )
-        else:
-            report_case(
-                expected=expected_update_text,
-                actual=toast_text,
-                result="FAIL",
-                message="Validate Customer master search & update",
-            )
+        report_case(
+            expected=expected_update_text,
+            actual=toast_text,
+            message="Validate Customer master search & update",
+        )
         assert toast_text == expected_update_text, f"Failed to update customer. Got: '{toast_text}'"
         logger.info("Customer updated successfully: Step Passed")
 
@@ -307,20 +235,11 @@ class TestCustomerMaster:
         toast_text = toast_locator.inner_text().strip()
         expected_delete_text = "Data Deleted Successfully!!"
 
-        if toast_text == expected_delete_text:
-            report_case(
-                expected=expected_delete_text,
-                actual=toast_text,
-                result="PASS",
-                message="Validate Customer master search & delete",
-            )
-        else:
-            report_case(
-                expected=expected_delete_text,
-                actual=toast_text,
-                result="FAIL",
-                message="Validate Customer master search & delete",
-            )
+        report_case(
+            expected=expected_delete_text,
+            actual=toast_text,
+            message="Validate Customer master search & delete",
+        )
         assert toast_text == expected_delete_text, f"Failed to delete customer. Got: '{toast_text}'"
         logger.info("Customer deleted successfully: Step Passed")
 

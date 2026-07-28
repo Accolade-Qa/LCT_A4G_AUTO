@@ -195,7 +195,6 @@ class TestProfilePage:
                     report_case(
                         expected=True,
                         actual=is_readonly,
-                        result="PASS" if is_readonly else "FAIL",
                         message=f"Validate '{field_name}' field is readonly",
                     )
                     assert is_readonly, (
@@ -214,7 +213,6 @@ class TestProfilePage:
                     report_case(
                         expected=True,
                         actual=is_editable,
-                        result="PASS" if is_editable else "FAIL",
                         message=f"Validate '{field_name}' field is editable",
                     )
                     assert is_editable, (
