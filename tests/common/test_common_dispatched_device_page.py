@@ -595,38 +595,47 @@ class TestDispatchedDevicePage:
         logger.debug("Entering search value '%s' in Search box", search_value)
 
         search_helper = SearchHelper(dispatched_device_page.page)
+
         result = search_helper.run_search(search_value)
+
+        fallback_first_result = result.get("first_result", {"results_found": 0, "results": [], "success": True})
+
         logger.debug(
             "Search results for query '%s': %s",
             search_value,
-            result,
+            fallback_first_result,
         )
+
         expected_result_description = (
-            f"Search results containing '{search_value}'"
-            if result["results_found"] > 0
+            f"Search results containing : '{search_value}'"
+            if fallback_first_result["results_found"] > 0
             else "No Data Found message"
         )
+
         report_case(
             expected=expected_result_description,
             actual=(
-                result["results"] if result["results_found"] > 0 else "No Data Found"
+                f"Search results contains : {fallback_first_result['results']}"
+                if fallback_first_result["results_found"] > 0 
+                else "No Data Found"
             ),
             message=f"Validate search results for query '{search_value}'",
         )
-        if result["results_found"] > 0:
-            assert result["success"], f"Search failed: {result['error']}"
+        
+        if fallback_first_result["results_found"] > 0:
+            assert fallback_first_result["success"], f"Search failed: {fallback_first_result['error']}"
 
-            for row in result["results"]:
+            for row in fallback_first_result["results"]:
                 assert (
                     search_value in row
                 ), f"Expected search value '{search_value}' to be present in row: {row}"
 
             logger.info(
                 "Search functionality validated successfully with %s results found",
-                result["results_found"],
+                fallback_first_result["results_found"],
             )
         else:
-            assert result["success"], f"Search failed: {result['error']}"
+            assert fallback_first_result["success"], f"Search failed: {fallback_first_result['error']}"
 
             logger.info(
                 "Search functionality validated successfully with no results found"

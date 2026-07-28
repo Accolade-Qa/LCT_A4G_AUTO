@@ -156,9 +156,11 @@ class TestCustomerMaster:
         )
 
         visibility = customer_master.page.get_by_text(
-            "Add Customer", exact=True
+            "Add Customer open_in_new", exact=True
         ).is_visible()
+
         click = customer_master._click_add_customer()
+        
         logger.info("Verifying Add Customer button is clickable")
         assert click is None
 
@@ -167,7 +169,7 @@ class TestCustomerMaster:
                 expected=True,
                 actual=visibility,
                 result="PASS",
-                message="Validate Customer master add customer",
+                message="Validate Customer master add customer is Passed",
             )
         else:
             report_case(
@@ -176,7 +178,7 @@ class TestCustomerMaster:
                 result="FAIL",
                 message="Validate Customer master add customer",
             )
-        logger.info("Add Customer button is clickable and clicked")
+        logger.info("Add Customer button is clickable and clicked is Failed")
 
     @pytest.mark.regression
     @pytest.mark.smoke
