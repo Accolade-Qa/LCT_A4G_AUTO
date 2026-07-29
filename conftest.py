@@ -774,9 +774,15 @@ def atcu_govt_server_page(page, project_config):
     return govt_server_page
 
 
+@pytest.fixture
+def atcu_device_activity_log_page(page, project_config):
+    from pages.atcu.atcu_device_activity_log_page import AtcuDeviceActivityLogPage
 
-
-
+    activity_log_page = AtcuDeviceActivityLogPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["device_activity_log_url"])
+    logger.info("ATCU Device System Activity Log page fixture ready")
+    return activity_log_page
 
 # API Fixtures
 @pytest.fixture

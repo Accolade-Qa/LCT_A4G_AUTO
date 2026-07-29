@@ -31,7 +31,8 @@ aepl_response_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/ais140-api
 status_update_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/status-update-log"
 device_state_config_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-state-config"
 device_vin_config_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-vin-config"
-device_activity_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-activity-log"
+device_activity_log_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/device-system-activity-log"
+
 user_management_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/user-management"
 role_management_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/role-management"
 role_group_url: "https://aepl-tcu4g-qa.accoladeelectronics.com/group-management"
