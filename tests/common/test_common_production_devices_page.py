@@ -8,8 +8,7 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-TEST_DATA_DIR_PROD = Path(__file__).resolve().parent.parent / "test_data" / "production_devices"
-
+TEST_DATA_DIR_PROD = Path(__file__).resolve().parents[2] / "test_data" / "lct"
 
 @pytest.mark.production
 @pytest.mark.common

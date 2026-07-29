@@ -24,7 +24,7 @@ class RoleManagementPage:
         return self.page.url.endswith("/user-role")
 
     def is_add_role_button_visible(self):
-        logger.debug("Checking visibility of Add Role button")
+        logger.debug("Checking visibility of Add Role open_in_new button")
         add_role = self.page.locator("button[class='primary-button ng-star-inserted']")
         return add_role.is_visible()
 
@@ -40,7 +40,7 @@ class RoleManagementPage:
 
     def click_add_role(self):
         logger.info("Clicking Add New Role button")
-        self.page.get_by_text("Add Role", exact=True).click()
+        self.page.get_by_text("Add Role open_in_new", exact=True).click()
 
     def enter_role_name(self, role_name):
         logger.info("Entering role name: %s", role_name)
