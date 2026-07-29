@@ -39,7 +39,6 @@ class TestRoleManagementPage:
             logger.warning("Role Management test skipped: %s", test_name)
 
     """" Test for deleting roles from the role management page. """
-
     @pytest.mark.api
     @pytest.mark.regression
     @pytest.mark.smoke

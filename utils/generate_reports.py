@@ -1096,7 +1096,8 @@ def generate_html(tests, counts, total, html_path, project_name=None, markers=No
             pass
 
     run_by = os.getenv("EXECUTION_USER") or os.getenv("GITHUB_ACTOR") or getpass.getuser()
-    total_duration = round(sum(t["duration"] for t in tests if isinstance(t["duration"], (int, float))), 2)
+    # Total duration must be in the minutes and not in seconds
+    total_duration = round(sum(t["duration"] for t in tests if isinstance(t["duration"], (int, float))) / 60, 2)
 
     durations = [t["duration"] for t in tests if isinstance(t["duration"], (int, float)) and t["duration"] > 0]
     if durations:

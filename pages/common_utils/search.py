@@ -69,6 +69,9 @@ class SearchHelper:
             # Assertion: Verify entered value
             expect(search_input).to_have_value(query)
 
+            # waiting for whole page content to load
+            self.page.wait_for_load_state("load")
+
             search_input.press("Enter")
 
             # Wait for either result rows to appear or the 'No Data Found' indicator.

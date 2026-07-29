@@ -44,7 +44,6 @@ class TestRoleGroupPage:
             logger.warning("Role Group test skipped: %s", test_name)
 
     """" Test for deleting role group from the role group page. """
-
     @pytest.mark.api
     @pytest.mark.regression
     @pytest.mark.smoke

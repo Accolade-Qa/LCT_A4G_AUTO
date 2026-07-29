@@ -941,10 +941,11 @@ class TestGovtServerPage:
         """Verify view button is enabled and clickable for searched server"""
 
         logger.info("Verifying view button is enabled for searched server")
-
-        search_term = (
-            "SURAJ" if project_config.get("project") == "sampark" else "Shital"
-        )
+        
+        if project_config.get("project") == "sampark":
+            search_term = "SURAJ"
+        else:
+            search_term = "Shital"
 
         response = govt_server_page.search_server(search_term)
 
@@ -1083,9 +1084,10 @@ class TestGovtServerPage:
 
         api_data = response
 
-        search_term = (
-            "SURAJ" if project_config.get("project") == "sampark" else "Shital"
-        )
+        if project_config.get("project") == "sampark":
+            search_term = "SURAJ"
+        else:
+            search_term = "Shital"
 
         searched_response = govt_server_page.search_server(search_term)
 

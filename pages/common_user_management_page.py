@@ -1,6 +1,7 @@
 from config.config import USER_MANAGEMENT_URL
 from .common_base_page import BasePage
 from utils.logger import get_logger
+from utils.helpers import Helpers
 
 # from .common.table_section import TableSection
 
@@ -14,7 +15,7 @@ class UserManagementPage(BasePage):
         self.nav_bar_locator = page.locator("ul.nav-list")
         self.refresh_btn_locator = page.get_by_text("refresh", exact=True)
         self.page_title_locator = page.get_by_text("User Management", exact=True)
-        self.add_user_locator = page.get_by_text("Add User", exact=True)
+        self.add_user_locator = page.get_by_text("Add User open_in_new", exact=True)
         self.select_role_drop_locator = page.get_by_text("Select Role", exact=True)
         self.search_field_locator = page.get_by_placeholder(
             "Search and Press Enter", exact=True
@@ -70,7 +71,6 @@ class UserManagementPage(BasePage):
         )
 
     def _click_add_user(self):
-
         self.add_user_locator.wait_for(state="visible")
         self.highlight(self.add_user_locator)
         self.add_user_locator.click()
@@ -297,22 +297,27 @@ class UserManagementPage(BasePage):
         self.add_user_locator.click()
 
         self._user_drop_locator.click()
+
+        self.page.wait_for_timeout(1000)  # Wait for the dropdown to render
         soft_loc = self.page.locator(
             "//span[@class='mdc-list-item__primary-text'][normalize-space()='super role']"
         )
         soft_loc.click()
-        self.first_name_locator.fill("Dhananjay")
-        self.last_name_locator.fill("Jagtap")
+        self.first_name_locator.fill(Helpers.generate_random_string(6))
+        self.last_name_locator.fill(Helpers.generate_random_string(3))
         self.highlight(self.last_name_locator)
         self.last_name_locator.wait_for(timeout=5000)
-        self.email_locator.fill("dhananjaydemo@gmail.com")
-        self.mob_no_locator.fill("9876543216")
+        self.email_locator.fill(Helpers.generate_random_email())
+        self.mob_no_locator.fill(Helpers.generate_random_phone())
         self.country_locator.fill("India")
         self.state_locator.fill("Maharashtra")
         self.status_locator.click()
+
+        # Scrolls to the bottom of the window
+        self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+
         act_loc = self.page.get_by_text("Active", exact=True)
         act_loc.click()
-
         save_btn_locator = self.page.get_by_text(
             "Save User Details check_circle", exact=True
         )

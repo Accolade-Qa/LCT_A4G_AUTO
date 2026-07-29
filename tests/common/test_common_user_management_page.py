@@ -1,12 +1,5 @@
 from utils.logger import get_logger
-from pages.common_user_management_page import UserManagementPage
-from pages.common_login_page import LoginPage
-from config.config import (
-    BASE_URL,
-    USER_MANAGEMENT_URL,
-    PASSWORD,
-    USERNAME,
-)
+from config.config import USER_MANAGEMENT_URL
 
 import pytest
 
@@ -19,22 +12,35 @@ logger = get_logger(__name__)
 @pytest.mark.swaraj
 @pytest.mark.trio
 class TestUserManagementPage:
-
-    def _login_and_dashboard(self, page):
-        login_page = LoginPage(page)
-        login_page.load(BASE_URL)
-        login_page.login(USERNAME, PASSWORD)
-
-        return UserManagementPage(page)
+    @pytest.fixture(autouse=True)
+    def log_test_case(self, request):
+        test_name = request.node.name
+        logger.info("Starting User Management test: %s", test_name)
+        logger.debug("Executing test node: %s", request.node.nodeid)
+        yield
+        report = getattr(request.node, "rep_call", None)
+        if report is None:
+            logger.debug(
+                "User Management test finished without call report: %s",
+                test_name,
+            )
+        elif report.passed:
+            logger.info("User Management test passed: %s", test_name)
+        elif report.failed:
+            logger.error("User Management test failed: %s", test_name)
+            logger.debug(
+                "User Management failure details for %s: %s",
+                test_name,
+                report.longrepr,
+            )
+        elif report.skipped:
+            logger.warning("User Management test skipped: %s", test_name)
 
     @pytest.mark.regression
     @pytest.mark.smoke
-    def test_user_management_page_navigation(self, page, report_case):
+    def test_user_management_page_navigation(self, user_management, report_case):
         logger.info("Starting validation of User Management page navigation")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
-
-        actual_url = page.url
+        actual_url = user_management.page.url
         logger.debug(
             "User Management URL check | expected=%s | actual=%s",
             USER_MANAGEMENT_URL,
@@ -56,11 +62,9 @@ class TestUserManagementPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     def test_user_management_page_nav_list_enability(
-        self, user_management, report_case, page
+        self, user_management, report_case
     ):
         logger.info("Testing navbar list enability on user management page")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         enabled = user_management._nav_list_enability()
         report_case(expected=False, actual=enabled, message="Validate User management nav list enability")
         logger.info("Navbar list enability result: %s", enabled)
@@ -71,11 +75,9 @@ class TestUserManagementPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     def test_user_management_page_title_visibility(
-        self, user_management, report_case, page
+        self, user_management, report_case
     ):
         logger.info("Testing page title visibility on user management page")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         expected_title = "User Management"
         actual_title = user_management.get_title()
         logger.info(
@@ -94,11 +96,9 @@ class TestUserManagementPage:
     @pytest.mark.smoke
     @pytest.mark.ui
     def test_user_management_page_element_enability(
-        self, user_management, report_case, page
+        self, user_management, report_case
     ):
         logger.info("Testing element enability on user management page")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         ele_enabled = user_management._element_enability()
 
         report_case(expected=True, actual=ele_enabled, message="Validate User management element enability")
@@ -110,12 +110,10 @@ class TestUserManagementPage:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_user_management_page_click_add_user(self, user_management, report_case, page):
+    def test_user_management_page_click_add_user(self, user_management, report_case):
         logger.info("Testing click add user functionality")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         user_management._click_add_user()
-        is_visible = user_management.page.locator(".component-title:has-text('Add User')").is_visible()
+        is_visible = user_management.page.locator(".component-title:has-text('Save User Details')").is_visible()
         report_case(
             expected=True,
             actual=is_visible,
@@ -126,10 +124,8 @@ class TestUserManagementPage:
 
     @pytest.mark.regression
     @pytest.mark.smoke
-    def test_user_management_page_user_type_dropdown_validation(self, user_management, report_case, page):
+    def test_user_management_page_user_type_dropdown_validation(self, user_management, report_case):
         logger.info("Starting test: User type dropdown validation")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         error_msg = user_management.user_type_drop()
         logger.debug("User type dropdown validation result: %s", error_msg)
         error_text = user_management.page.locator("#mat-select-value-1:visible")
@@ -149,10 +145,8 @@ class TestUserManagementPage:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_user_management_page_first_name_field_validation(self, user_management, report_case, page):
+    def test_user_management_page_first_name_field_validation(self, user_management, report_case):
         logger.info("Starting test: First name field validation")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.first_name_field()
         logger.debug("First name field validation results: %s", result)
         validations = {
@@ -189,10 +183,8 @@ class TestUserManagementPage:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_user_management_page_last_name_field_validation(self, user_management, report_case, page):
+    def test_user_management_page_last_name_field_validation(self, user_management, report_case):
         logger.info("Starting test: Last name field validation")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.last_name_field()
         logger.debug("Last name field validation results: %s", result)
         validations = {
@@ -229,10 +221,8 @@ class TestUserManagementPage:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_user_management_page_email_field_validation(self, user_management, report_case, page):
+    def test_user_management_page_email_field_validation(self, user_management, report_case):
         logger.info("Starting test: Email field validation")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.email_field()
         logger.debug("Email field validation results: %s", result)
         validations = {
@@ -269,11 +259,9 @@ class TestUserManagementPage:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_user_management_page_mobile_no_field_validation(self, user_management, report_case, page):
+    def test_user_management_page_mobile_no_field_validation(self, user_management, report_case):
 
         logger.info("Starting test: Mobile number field validation")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.mob_no_field()
         logger.debug("Mobile number field validation results: %s", result)
         validations = {
@@ -310,11 +298,9 @@ class TestUserManagementPage:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_user_management_page_country_field_validation(self, user_management, report_case, page):
+    def test_user_management_page_country_field_validation(self, user_management, report_case):
 
         logger.info("Starting test: Country field validation")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.country_field()
         logger.debug("Country field validation results: %s", result)
         validations = {
@@ -352,11 +338,9 @@ class TestUserManagementPage:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_user_management_page_state_field_validation(self, user_management, report_case, page):
+    def test_user_management_page_state_field_validation(self, user_management, report_case):
 
         logger.info("Starting test: State field validation")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         result = user_management.state_field()
 
         logger.debug("State field validation results: %s", result)
@@ -396,11 +380,9 @@ class TestUserManagementPage:
     @pytest.mark.regression
     @pytest.mark.smoke
     @pytest.mark.ui
-    def test_user_management_page_status_field_validation(self, user_management, report_case, page):
+    def test_user_management_page_status_field_validation(self, user_management, report_case):
 
         logger.info("Starting test: User management status field validation")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         error_msg = user_management.status_field()
 
         logger.debug("Status field validation result: %s", error_msg)
@@ -432,10 +414,8 @@ class TestUserManagementPage:
 
     @pytest.mark.regression
     @pytest.mark.smoke
-    def test_user_management_page_complete_create_flow(self, user_management, report_case, page):
+    def test_user_management_page_complete_create_flow(self, user_management, report_case):
         logger.info("Starting test: Test usermanagement new flow.")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         user_management.new_flow()
         logger.info("Completed usermanagement new flow, validating results.")
         toast = user_management.page.locator(
@@ -455,11 +435,9 @@ class TestUserManagementPage:
 
     @pytest.mark.regression
     @pytest.mark.smoke
-    def test_user_management_page_complete_update_flow(self, user_management, report_case, page):
+    def test_user_management_page_complete_update_flow(self, user_management, report_case):
 
         logger.info("Starting Test: Test user management update flow")
-        user_page = self._login_and_dashboard(page)
-        user_page.go_to_user(USER_MANAGEMENT_URL)
         user_management.update_flow()
         logger.info("Completed usermanagement new flow, validating results.")
         toast = user_management.page.locator(
