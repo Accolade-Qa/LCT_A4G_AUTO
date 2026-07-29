@@ -1,6 +1,5 @@
 from datetime import datetime
-from config.config import API_BASE_URL, API_USERNAME, API_PASSWORD
-from api.api_client import APIClient
+from api.role_group_api import RoleGroupAPI
 from utils.helpers import Helpers
 from pages.common_utils import TableSection, SearchHelper
 from utils.logger import get_logger
@@ -47,68 +46,19 @@ class TestRoleGroupPage:
     @pytest.mark.api
     @pytest.mark.regression
     @pytest.mark.smoke
-    def test_role_group_page_delete_roles_api(self, role_group_page):
+    def test_role_group_page_delete_roles_api(self, role_group_page, report_case):
         """Test deleting a role permission."""
-
         logger.info("Testing delete role permission functionality")
-        if "sampark-qa" in API_BASE_URL:
-            endpoint = "/api/roleGroup/getRolesGroup?page=0&size=1000&search="
-        else:
-            endpoint = "/roleGroup/getRolesGroup?page=0&size=1000&search="
-        # first call get all item i.e. roles by get all roles count from the role management page
-        response = APIClient.send_request(
-            role_group_page.page,
-            API_BASE_URL,
-            API_USERNAME,
-            API_PASSWORD,
-            "GET",
-            endpoint,
+        result = RoleGroupAPI.delete_role_groups(role_group_page.page)
+        report_case(
+            expected=True,
+            actual=result.get("success"),
+            message="Validate delete role groups via API in role group page",
         )
-        total_roles = response.get("totalItems", 0)
-
-        for i in range(1, total_roles + 1):
-            if "sampark-qa" in API_BASE_URL:
-                endpoint = f"/api/roleGroup/deleteRoleGroup?id={i}"
-            else:
-                endpoint = f"/roleGroup/deleteRoleGroup?id={i}"
-            try:
-                response = APIClient.send_request(
-                    role_group_page.page,
-                    API_BASE_URL,
-                    API_USERNAME,
-                    API_PASSWORD,
-                    "DELETE",
-                    endpoint,
-                )
-
-                assert (
-                    response.get("message") == "User Deleted Successfully!!"
-                ), f"Failed to delete permission for role group {i}"
-
-                logger.info("Deleted role group %s successfully", i)
-
-            except Exception as e:
-
-                error_message = str(e)
-
-                if (
-                    "Cannot delete group: Group is assigned to one or more roles."
-                    in error_message
-                ):
-                    logger.warning(
-                        "Cannot delete role group %s: Role is assigned to users",
-                        i,
-                    )
-                    continue
-
-                logger.error(
-                    "Unexpected error while deleting role group %s: %s",
-                    i,
-                    error_message,
-                )
-                raise
-
+        assert result.get("success"), "Role group deletion API execution failed"
         logger.info("Delete role management test completed")
+
+
 
     @pytest.mark.ui
     @pytest.mark.smoke
