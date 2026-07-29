@@ -12,7 +12,6 @@ import pytest
 
 logger = get_logger(__name__)
 
-
 @pytest.mark.atcu
 @pytest.mark.lct
 @pytest.mark.sampark

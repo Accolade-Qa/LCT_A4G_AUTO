@@ -3,8 +3,8 @@ import pytest
 from pages.atcu.atcu_status_update_log_page import AtcuStatusUpdateLogPage
 
 
-@pytest.mark.log
 @pytest.mark.atcu
+@pytest.mark.log
 @pytest.mark.regression
 class TestStatusUpdateLogPage:
     @pytest.mark.regression

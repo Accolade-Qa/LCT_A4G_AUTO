@@ -3,8 +3,8 @@ import pytest
 from pages.atcu.atcu_ticket_dashboard_page import AtcuTicketDashboardPage
 
 
-@pytest.mark.ticket
 @pytest.mark.atcu
+@pytest.mark.ticket
 @pytest.mark.regression
 class TestTicketDashboardPage:
     @pytest.mark.regression

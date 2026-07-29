@@ -364,7 +364,7 @@ footer {
             </div>
             <div class="info-item">
                 <strong>Execution Duration:</strong>
-                <span>{{ total_duration }}s</span>
+                <span>{{ total_duration }} min's</span>
             </div>
         </div>
     </div>
@@ -385,13 +385,6 @@ footer {
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
         </button>
-        <div class="logo-container" style="display: flex; align-items: center; justify-content: center; width: 180px; height: 120px; padding: 8px; overflow: hidden; border-radius: 16px;">
-            {% if logo_base64 %}
-            <img src="data:image/png;base64,{{ logo_base64 }}" alt="Accolade Logo" style="width: 100%; height: 100%; object-fit: contain;">
-            {% else %}
-            <span style="font-weight: 800; font-size: 16px; color: var(--text-title);">AEPL</span>
-            {% endif %}
-        </div>
     </div>
 </header>
 <div class="cards">
@@ -1163,54 +1156,62 @@ def generate_excel(tests, excel_path, project_name=None):
 
     excel_path.parent.mkdir(parents=True, exist_ok=True)
     with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Test Results", startrow=5)
+        df.to_excel(writer, index=False, sheet_name="Test Results", startrow=6)
 
-    _style_excel(excel_path, project_name)
+    _style_excel(excel_path, project_name, tests)
 
     print("Excel generated:", excel_path)
     print(f"Total rows: {len(rows)}")
 
 
-def _style_excel(excel_path, project_name=None):
+def _style_excel(excel_path, project_name=None, tests=None):
     import getpass
     import os
     from datetime import datetime
     import config.config as config_module
     from openpyxl import load_workbook
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-    from openpyxl.drawing.image import Image
 
     wb = load_workbook(excel_path)
     ws = wb["Test Results"]
 
-    # 1. Insert Logo
-    ws.merge_cells("A1:B4")
-    logo_path = Path(__file__).resolve().parent / "accolade_logo.png"
-    if logo_path.exists():
-        img = Image(str(logo_path))
-        img.width = 130
-        img.height = 130
-        ws.add_image(img, "A1")
+    tests = tests or []
+    total = len(tests)
+    passed = sum(1 for t in tests if str(t.get("status", "")).lower() in ("pass", "passed"))
+    failed = sum(1 for t in tests if str(t.get("status", "")).lower() in ("fail", "failed"))
+    skipped = sum(1 for t in tests if str(t.get("status", "")).lower() in ("skip", "skipped"))
+    total_runs = passed + failed
+    pass_rate = round((passed / total_runs) * 100, 1) if total_runs > 0 else 0.0
 
-    # 2. Write Metadata
+    durations = [t["duration"] for t in tests if isinstance(t.get("duration"), (int, float))]
+    avg_duration = round(sum(durations) / len(durations), 2) if durations else 0.0
+    total_duration_min = round(sum(durations) / 60, 2) if durations else 0.0
+
     run_by = os.getenv("EXECUTION_USER") or os.getenv("GITHUB_ACTOR") or getpass.getuser()
     base_url = getattr(config_module, "BASE_URL", "N/A")
     browser = getattr(config_module, "BROWSER", "chromium")
-
     proj_display = (project_name or getattr(config_module, "PROJECT", "lct")).upper()
-    execution_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    metadata = [
-        ("Project Name:", f"{proj_display}"),
-        ("Target URL:", base_url),
-        ("Browser:", browser.upper()),
-        ("Test Executed by:", run_by)
-    ]
+    title_font = Font(name="Segoe UI", size=10, bold=True, color="ffffff")
+    label_font = Font(name="Segoe UI", size=9, bold=True, color="475569")
+    val_font = Font(name="Segoe UI", size=10, bold=True, color="0f172a")
+    num_font = Font(name="Segoe UI", size=12, bold=True, color="0f172a")
+    pass_num_font = Font(name="Segoe UI", size=12, bold=True, color="065f46")
+    fail_num_font = Font(name="Segoe UI", size=12, bold=True, color="991b1b")
+    skip_num_font = Font(name="Segoe UI", size=12, bold=True, color="92400e")
+    
+    pass_rate_color = "065f46" if pass_rate == 100.0 else ("92400e" if pass_rate >= 80.0 else "991b1b")
+    rate_num_font = Font(name="Segoe UI", size=12, bold=True, color=pass_rate_color)
 
-    label_font = Font(name="Segoe UI", size=10, bold=True, color="475569")
-    value_font = Font(name="Segoe UI", size=10, color="0f172a")
     header_font = Font(name="Segoe UI", size=11, bold=True, color="ffffff")
     data_font = Font(name="Segoe UI", size=10, color="334155")
+
+    header_title_fill = PatternFill("solid", fgColor="0f172a")
+    kpi_title_fill = PatternFill("solid", fgColor="1e293b")
+    card_default_fill = PatternFill("solid", fgColor="f8fafc")
+    card_pass_fill = PatternFill("solid", fgColor="d1fae5")
+    card_fail_fill = PatternFill("solid", fgColor="fee2e2")
+    card_skip_fill = PatternFill("solid", fgColor="fef3c7")
 
     thin_border = Border(
         left=Side(style='thin', color='cbd5e1'),
@@ -1219,40 +1220,108 @@ def _style_excel(excel_path, project_name=None):
         bottom=Side(style='thin', color='cbd5e1')
     )
 
-    for r_idx, (l1, v1) in enumerate(metadata, start=1):
-        c_cell = ws.cell(row=r_idx, column=3, value=l1)
-        c_cell.font = label_font
-        c_cell.alignment = Alignment(horizontal="right")
+    # 1. Section Header Row 1 (No Logo Image)
+    ws.merge_cells("A1:B1")
+    ws["A1"] = "EXECUTION METADATA"
+    ws["A1"].font = title_font
+    ws["A1"].fill = header_title_fill
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
 
-        d_cell = ws.cell(row=r_idx, column=4, value=v1)
-        d_cell.font = value_font
-        d_cell.alignment = Alignment(horizontal="left")
+    ws.merge_cells("C1:F1")
+    ws["C1"] = "QUANTITATIVE SUMMARY METRICS"
+    ws["C1"].font = title_font
+    ws["C1"].fill = kpi_title_fill
+    ws["C1"].alignment = Alignment(horizontal="center", vertical="center")
 
-    for r in range(1, 5):
-        ws.row_dimensions[r].height = 28
+    # 2. Metadata Columns A & B (Rows 2 to 5)
+    metadata_items = [
+        ("Project Name:", proj_display),
+        ("Target URL:", base_url),
+        ("Browser:", browser.upper()),
+        ("Executed By:", run_by)
+    ]
 
-    ws.row_dimensions[5].height = 15
+    for idx, (lbl, val) in enumerate(metadata_items, start=2):
+        c1 = ws.cell(row=idx, column=1, value=lbl)
+        c1.font = label_font
+        c1.alignment = Alignment(horizontal="right", vertical="center")
+        c1.border = thin_border
+        c1.fill = card_default_fill
 
+        c2 = ws.cell(row=idx, column=2, value=val)
+        c2.font = val_font
+        c2.alignment = Alignment(horizontal="left", vertical="center")
+        c2.border = thin_border
+
+    # 3. Quantitative KPI Cards (Rows 2 to 5, Columns C to F)
+    # Total Tests (C2:D2)
+    c_lbl = ws.cell(row=2, column=3, value="TOTAL TESTS")
+    c_lbl.font, c_lbl.alignment, c_lbl.border, c_lbl.fill = label_font, Alignment(horizontal="center", vertical="center"), thin_border, card_default_fill
+    c_val = ws.cell(row=2, column=4, value=total)
+    c_val.font, c_val.alignment, c_val.border, c_val.fill = num_font, Alignment(horizontal="center", vertical="center"), thin_border, card_default_fill
+
+    # Passed (E2:F2)
+    c_lbl = ws.cell(row=2, column=5, value="PASSED")
+    c_lbl.font, c_lbl.alignment, c_lbl.border, c_lbl.fill = label_font, Alignment(horizontal="center", vertical="center"), thin_border, card_pass_fill
+    c_val = ws.cell(row=2, column=6, value=passed)
+    c_val.font, c_val.alignment, c_val.border, c_val.fill = pass_num_font, Alignment(horizontal="center", vertical="center"), thin_border, card_pass_fill
+
+    # Failed (C3:D3)
+    c_lbl = ws.cell(row=3, column=3, value="FAILED")
+    c_lbl.font, c_lbl.alignment, c_lbl.border, c_lbl.fill = label_font, Alignment(horizontal="center", vertical="center"), thin_border, card_fail_fill
+    c_val = ws.cell(row=3, column=4, value=failed)
+    c_val.font, c_val.alignment, c_val.border, c_val.fill = fail_num_font, Alignment(horizontal="center", vertical="center"), thin_border, card_fail_fill
+
+    # Skipped (E3:F3)
+    c_lbl = ws.cell(row=3, column=5, value="SKIPPED")
+    c_lbl.font, c_lbl.alignment, c_lbl.border, c_lbl.fill = label_font, Alignment(horizontal="center", vertical="center"), thin_border, card_skip_fill
+    c_val = ws.cell(row=3, column=6, value=skipped)
+    c_val.font, c_val.alignment, c_val.border, c_val.fill = skip_num_font, Alignment(horizontal="center", vertical="center"), thin_border, card_skip_fill
+
+    # Pass Rate (C4:D4)
+    c_lbl = ws.cell(row=4, column=3, value="PASS RATE")
+    c_lbl.font, c_lbl.alignment, c_lbl.border, c_lbl.fill = label_font, Alignment(horizontal="center", vertical="center"), thin_border, card_default_fill
+    c_val = ws.cell(row=4, column=4, value=f"{pass_rate}%")
+    c_val.font, c_val.alignment, c_val.border, c_val.fill = rate_num_font, Alignment(horizontal="center", vertical="center"), thin_border, card_default_fill
+
+    # Avg Duration (E4:F4)
+    c_lbl = ws.cell(row=4, column=5, value="AVG DURATION")
+    c_lbl.font, c_lbl.alignment, c_lbl.border, c_lbl.fill = label_font, Alignment(horizontal="center", vertical="center"), thin_border, card_default_fill
+    c_val = ws.cell(row=4, column=6, value=f"{avg_duration}s")
+    c_val.font, c_val.alignment, c_val.border, c_val.fill = num_font, Alignment(horizontal="center", vertical="center"), thin_border, card_default_fill
+
+    # Total Duration (C5:D5)
+    c_lbl = ws.cell(row=5, column=3, value="TOTAL DURATION")
+    c_lbl.font, c_lbl.alignment, c_lbl.border, c_lbl.fill = label_font, Alignment(horizontal="center", vertical="center"), thin_border, card_default_fill
+    c_val = ws.cell(row=5, column=4, value=f"{total_duration_min} min")
+    c_val.font, c_val.alignment, c_val.border, c_val.fill = num_font, Alignment(horizontal="center", vertical="center"), thin_border, card_default_fill
+
+    # Row Dimensions
+    for r in range(1, 6):
+        ws.row_dimensions[r].height = 24
+    ws.row_dimensions[6].height = 14
+
+    # 4. Data Table Header at Row 7
     header_fill = PatternFill("solid", fgColor="1e293b")
-    for cell in ws[6]:
+    for cell in ws[7]:
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = Alignment(horizontal="left", vertical="center")
         cell.border = thin_border
 
-    ws.row_dimensions[6].height = 26
+    ws.row_dimensions[7].height = 26
 
     pass_fill = PatternFill("solid", fgColor="d1fae5")
     fail_fill = PatternFill("solid", fgColor="fee2e2")
     skip_fill = PatternFill("solid", fgColor="fef3c7")
 
     result_col = None
-    for cell in ws[6]:
+    for cell in ws[7]:
         if cell.value == "Result":
             result_col = cell.column
             break
 
-    for row in range(7, ws.max_row + 1):
+    for row in range(8, ws.max_row + 1):
         ws.row_dimensions[row].height = 20
         for col in range(1, 7):
             cell = ws.cell(row=row, column=col)
@@ -1274,7 +1343,7 @@ def _style_excel(excel_path, project_name=None):
                 cell.font = Font(name="Segoe UI", size=10, bold=True, color="92400e")
 
     widths = {
-        "A": 36,
+        "A": 38,
         "B": 48,
         "C": 30,
         "D": 36,
@@ -1284,8 +1353,8 @@ def _style_excel(excel_path, project_name=None):
     for column, width in widths.items():
         ws.column_dimensions[column].width = width
 
-    ws.freeze_panes = "A7"
-    ws.auto_filter.ref = f"A6:F{ws.max_row}"
+    ws.freeze_panes = "A8"
+    ws.auto_filter.ref = f"A7:F{ws.max_row}"
     wb.save(excel_path)
 
 

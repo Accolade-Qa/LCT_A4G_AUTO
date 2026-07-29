@@ -70,14 +70,15 @@ def determine_environment(base_url):
         return "QA/Staging"
 
 def parse_report_json(json_path):
-    """Parse report.json to extract test results."""
+    """Parse report.json to extract test results, test durations, and failure details."""
     results = {
         "passed": 0,
         "failed": 0,
         "skipped": 0,
         "total": 0,
         "duration": 0.0,
-        "failures": []
+        "failures": [],
+        "tests": []
     }
     
     if not json_path.exists():
@@ -87,32 +88,44 @@ def parse_report_json(json_path):
         with open(json_path, "r", encoding="utf-8") as f:
             data = json.load(f)
             
-        tests = data.get("tests", [])
-        if tests:
+        raw_tests = data.get("tests", [])
+        if raw_tests:
             passed = 0
             failed = 0
             skipped = 0
-            for test in tests:
+            for test in raw_tests:
                 outcome = test.get("outcome", "")
                 call = test.get("call", {})
+                setup = test.get("setup", {})
+                teardown = test.get("teardown", {})
                 longrepr_str = str(test.get("longrepr") or (call.get("longrepr") if call else "") or "")
                 
                 # Ignore legacy project mismatch skipped tests
                 if outcome == "skipped" and "Test marked for " in longrepr_str and "running " in longrepr_str:
                     continue
 
+                nodeid = test.get("nodeid", "Unknown Test")
+                name_clean = nodeid.split("::")[-1] if "::" in nodeid else nodeid
+                
+                # Calculate test duration in seconds
+                dur = round(test.get("duration", 0.0) or (call.get("duration", 0.0) + setup.get("duration", 0.0) + teardown.get("duration", 0.0)), 2)
+
                 if outcome == "passed":
                     passed += 1
                 elif outcome == "failed":
                     failed += 1
-                    name = test.get("nodeid", "Unknown Test")
-                    name_clean = name.split("::")[-1] if "::" in name else name
                     message = "No failure message available"
                     if call and call.get("longrepr"):
                         message = str(call.get("longrepr")).split("\n")[-1]
                     results["failures"].append({"name": name_clean, "message": message})
                 elif outcome == "skipped":
                     skipped += 1
+
+                results["tests"].append({
+                    "name": name_clean,
+                    "status": outcome,
+                    "duration": dur
+                })
 
             results["passed"] = passed
             results["failed"] = failed
@@ -169,6 +182,7 @@ def main():
     total_failed = 0
     total_skipped = 0
     total_duration = 0.0
+    all_tests = []
     
     for proj_name, json_path in project_reports.items():
         # Load project config
@@ -181,6 +195,7 @@ def main():
         
         # Parse test metrics
         stats = parse_report_json(json_path)
+        all_tests.extend(stats.get("tests", []))
         
         total_passed += stats["passed"]
         total_failed += stats["failed"]
@@ -214,23 +229,40 @@ def main():
             "skipped_rate": skipped_rate,
             "failures": stats["failures"]
         })
+
+    # Calculate overall quantitative metrics across all projects
+    total_tests = total_passed + total_failed + total_skipped
+    avg_duration = 0.0
+    if all_tests:
+        valid_durations = [t["duration"] for t in all_tests if isinstance(t.get("duration"), (int, float))]
+        if valid_durations:
+            avg_duration = round(sum(valid_durations) / len(valid_durations), 2)
+
+    top_slow_tests = sorted(
+        [t for t in all_tests if isinstance(t.get("duration"), (int, float)) and t["duration"] > 0],
+        key=lambda item: item["duration"],
+        reverse=True
+    )[:5]
         
     # Build HTML email
     build_html_email(
-        project_details,
-        overall_status,
-        args.actor,
-        args.run_number,
-        args.ref,
-        args.sha,
-        total_passed,
-        total_failed,
-        total_skipped,
-        round(total_duration, 2)
+        projects=project_details,
+        status=overall_status,
+        actor=args.actor,
+        run_number=args.run_number,
+        ref=args.ref,
+        sha=args.sha,
+        passed=total_passed,
+        failed=total_failed,
+        skipped=total_skipped,
+        total=total_tests,
+        duration=round(total_duration, 2),
+        avg_duration=avg_duration,
+        slow_tests=top_slow_tests
     )
 
-def build_html_email(projects, status, actor, run_number, ref, sha, passed, failed, skipped, duration):
-    """Generate a highly aesthetic, responsive HTML email body."""
+def build_html_email(projects, status, actor, run_number, ref, sha, passed, failed, skipped, total, duration, avg_duration, slow_tests):
+    """Generate a highly aesthetic, responsive HTML email body with quantitative reports, metric cards, and charts (without logo)."""
     status_color = "#10b981" if status == "PASS" else "#ef4444"
     status_bg = "#e6f4ea" if status == "PASS" else "#fce8e6"
     status_text = "PASSED" if status == "PASS" else "FAILED"
@@ -242,13 +274,69 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
     failed_metric_color = "#ef4444" if failed > 0 else "#64748b"
     skipped_metric_color = "#f59e0b" if skipped > 0 else "#64748b"
     
-    # Constructing HTML with inline styles for maximum compatibility with Gmail
+    total_runs = passed + failed
+    overall_pass_rate = round((passed / total_runs) * 100, 1) if total_runs > 0 else 0.0
+    pass_rate_color = "#10b981" if overall_pass_rate == 100.0 else ("#d97706" if overall_pass_rate >= 80.0 else "#ef4444")
+
+    pct_passed = round((passed / total) * 100, 1) if total > 0 else 0.0
+    pct_failed = round((failed / total) * 100, 1) if total > 0 else 0.0
+    pct_skipped = round((skipped / total) * 100, 1) if total > 0 else 0.0
+
+    # Build Top Slow Tests chart section
+    slow_tests_html = ""
+    if slow_tests:
+        max_dur = max(t["duration"] for t in slow_tests) if slow_tests else 1.0
+        slow_rows = ""
+        for t in slow_tests:
+            dur = t["duration"]
+            width_pct = max(6, int((dur / max_dur) * 100)) if max_dur > 0 else 6
+            t_name = t["name"]
+            if len(t_name) > 42:
+                t_name_disp = t_name[:39] + "..."
+            else:
+                t_name_disp = t_name
+
+            bar_color = "#ef4444" if t.get("status") in ["failed", "fail"] else "#f97316"
+
+            slow_rows += f"""
+            <tr>
+                <td style="padding: 4px 0; font-size: 11px; color: #334155; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{t['name']}">
+                    {t_name_disp}
+                </td>
+                <td style="padding: 4px 8px; width: 45%;">
+                    <div style="background-color: #f1f5f9; border-radius: 4px; overflow: hidden; height: 12px; width: 100%;">
+                        <div style="background-color: {bar_color}; width: {width_pct}%; height: 100%; border-radius: 4px;"></div>
+                    </div>
+                </td>
+                <td align="right" style="padding: 4px 0; font-size: 11px; font-weight: 700; color: #475569; width: 10%; white-space: nowrap;">
+                    {dur}s
+                </td>
+            </tr>
+            """
+
+        slow_tests_html = f"""
+        <!-- Top Slow Tests Card -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <tr>
+                <td style="padding: 16px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                        Top Slowest Test Cases
+                    </div>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        {slow_rows}
+                    </table>
+                </td>
+            </tr>
+        </table>
+        """
+
+    # Constructing HTML with inline styles for maximum compatibility with Gmail / Outlook
     html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CI/CD Pipeline Flash Report</title>
+<title>CI/CD Pipeline Execution Summary</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px 0; color: #334155; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f1f5f9; width: 100%; margin: 0; padding: 0;">
@@ -257,7 +345,7 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
             <!-- Container Card -->
             <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; width: 600px; border-collapse: separate;">
                 
-                <!-- Header -->
+                <!-- Header (Logo Removed) -->
                 <tr>
                     <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); background-color: #0f172a; padding: 24px; text-align: left; border-top-left-radius: 11px; border-top-right-radius: 11px;">
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -289,7 +377,7 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
                         
                         <!-- Formal Greeting -->
                         <p style="margin: 0 0 12px 0; font-size: 14px; line-height: 1.5; color: #334155;">Dear Team,</p>
-                        <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.5; color: #334155;">Please find below the automated test execution summary for the latest continuous integration run.</p>
+                        <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.5; color: #334155;">Please find below the automated test execution summary and quantitative analytics for the latest continuous integration run.</p>
                         
                         <!-- Execution Details Table -->
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px; font-size: 13px; line-height: 1.5; color: #475569; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -322,38 +410,97 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
                             </tr>
                         </table>
                         
-                        <!-- Summary Cards Row (3 Columns using Table) -->
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px; border-collapse: separate;">
+                        <!-- Quantitative Summary Cards Row 1 (Total, Passed, Failed, Skipped) -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 12px; border-collapse: separate;">
                             <tr>
+                                <!-- Total -->
+                                <td width="23%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 6px;">
+                                    <div style="font-size: 22px; font-weight: 700; color: #0f172a; line-height: 1.1;">{total}</div>
+                                    <div style="font-size: 9px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 5px; letter-spacing: 0.5px;">Total Tests</div>
+                                </td>
+                                <td width="2.6%">&nbsp;</td>
                                 <!-- Passed -->
-                                <td width="31%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
-                                    <div style="font-size: 24px; font-weight: 700; color: #10b981; line-height: 1.1;">{passed}</div>
-                                    <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Passed</div>
+                                <td width="23%" align="center" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 6px;">
+                                    <div style="font-size: 22px; font-weight: 700; color: #10b981; line-height: 1.1;">{passed}</div>
+                                    <div style="font-size: 9px; color: #15803d; font-weight: 600; text-transform: uppercase; margin-top: 5px; letter-spacing: 0.5px;">Passed</div>
                                 </td>
-                                <!-- Spacer -->
-                                <td width="3.5%">&nbsp;</td>
+                                <td width="2.6%">&nbsp;</td>
                                 <!-- Failed -->
-                                <td width="31%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
-                                    <div style="font-size: 24px; font-weight: 700; color: {failed_metric_color}; line-height: 1.1;">{failed}</div>
-                                    <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Failed</div>
+                                <td width="23%" align="center" style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 6px;">
+                                    <div style="font-size: 22px; font-weight: 700; color: {failed_metric_color}; line-height: 1.1;">{failed}</div>
+                                    <div style="font-size: 9px; color: #b91c1c; font-weight: 600; text-transform: uppercase; margin-top: 5px; letter-spacing: 0.5px;">Failed</div>
                                 </td>
-                                <!-- Spacer -->
-                                <td width="3.5%">&nbsp;</td>
-                                <!-- Skipped (Commented out) -->
-                                <!--
-                                <td width="23%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
-                                    <div style="font-size: 24px; font-weight: 700; color: {skipped_metric_color}; line-height: 1.1;">{skipped}</div>
-                                    <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Skipped</div>
-                                </td>
-                                <td width="2%">&nbsp;</td>
-                                -->
-                                <!-- Duration -->
-                                <td width="31%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 10px;">
-                                    <div style="font-size: 24px; font-weight: 700; color: #475569; line-height: 1.1;">{duration}min</div>
-                                    <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;">Duration</div>
+                                <td width="2.6%">&nbsp;</td>
+                                <!-- Skipped -->
+                                <td width="23%" align="center" style="background-color: #fffbeb; border: 1px solid #fef08a; border-radius: 8px; padding: 12px 6px;">
+                                    <div style="font-size: 22px; font-weight: 700; color: {skipped_metric_color}; line-height: 1.1;">{skipped}</div>
+                                    <div style="font-size: 9px; color: #b45309; font-weight: 600; text-transform: uppercase; margin-top: 5px; letter-spacing: 0.5px;">Skipped</div>
                                 </td>
                             </tr>
                         </table>
+
+                        <!-- Quantitative Summary Cards Row 2 (Pass Rate, Avg Duration, Total Duration) -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px; border-collapse: separate;">
+                            <tr>
+                                <!-- Pass Rate -->
+                                <td width="31%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 10px;">
+                                    <div style="font-size: 22px; font-weight: 700; color: {pass_rate_color}; line-height: 1.1;">{overall_pass_rate}%</div>
+                                    <div style="font-size: 9px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 5px; letter-spacing: 0.5px;">Pass Rate</div>
+                                </td>
+                                <td width="3.5%">&nbsp;</td>
+                                <!-- Avg Duration -->
+                                <td width="31%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 10px;">
+                                    <div style="font-size: 22px; font-weight: 700; color: #475569; line-height: 1.1;">{avg_duration}s</div>
+                                    <div style="font-size: 9px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 5px; letter-spacing: 0.5px;">Avg Duration</div>
+                                </td>
+                                <td width="3.5%">&nbsp;</td>
+                                <!-- Total Duration -->
+                                <td width="31%" align="center" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 10px;">
+                                    <div style="font-size: 22px; font-weight: 700; color: #475569; line-height: 1.1;">{duration}min</div>
+                                    <div style="font-size: 9px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 5px; letter-spacing: 0.5px;">Total Duration</div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Test Status Distribution Visual Chart -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                            <tr>
+                                <td style="padding: 16px;">
+                                    <div style="font-size: 12px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+                                        Test Status Distribution
+                                    </div>
+                                    
+                                    <!-- Stacked Distribution Bar -->
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 16px; border-radius: 8px; overflow: hidden; background-color: #e2e8f0; border-collapse: collapse;">
+                                        <tr>
+                                            {'<td width="' + str(pct_passed) + '%" style="background-color: #10b981; height: 16px;"></td>' if pct_passed > 0 else ''}
+                                            {'<td width="' + str(pct_failed) + '%" style="background-color: #ef4444; height: 16px;"></td>' if pct_failed > 0 else ''}
+                                            {'<td width="' + str(pct_skipped) + '%" style="background-color: #f59e0b; height: 16px;"></td>' if pct_skipped > 0 else ''}
+                                        </tr>
+                                    </table>
+
+                                    <!-- Chart Legend -->
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 10px; font-size: 11px; color: #64748b;">
+                                        <tr>
+                                            <td width="33%" align="left">
+                                                <span style="display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; margin-right: 4px;"></span>
+                                                Passed: <strong style="color: #0f172a;">{passed}</strong> ({pct_passed}%)
+                                            </td>
+                                            <td width="33%" align="center">
+                                                <span style="display: inline-block; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; margin-right: 4px;"></span>
+                                                Failed: <strong style="color: #0f172a;">{failed}</strong> ({pct_failed}%)
+                                            </td>
+                                            <td width="33%" align="right">
+                                                <span style="display: inline-block; width: 8px; height: 8px; background-color: #f59e0b; border-radius: 50%; margin-right: 4px;"></span>
+                                                Skipped: <strong style="color: #0f172a;">{skipped}</strong> ({pct_skipped}%)
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        {slow_tests_html}
                         
                         <!-- Section Header -->
                         <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 14px; font-weight: 700; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Executed Projects Summary</h2>
@@ -361,35 +508,33 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
 
     for proj in projects:
         proj_border_color = "#10b981" if proj["failed"] == 0 else "#ef4444"
-        pass_rate_color = "#10b981" if proj["pass_rate"] == 100.0 else "#d97706" if proj["pass_rate"] >= 80.0 else "#ef4444"
+        pass_rate_color = "#10b981" if proj["pass_rate"] == 100.0 else ("#d97706" if proj["pass_rate"] >= 80.0 else "#ef4444")
         
         proj_failed_color = "#ef4444" if proj["failed"] > 0 else "#64748b"
         proj_skipped_color = "#f59e0b" if proj["skipped"] > 0 else "#64748b"
 
-        # Build failures list if any (Commented out as requested)
         failures_section = ""
-        # if proj["failures"]:
-        #     failures_list = ""
-        #     for failure in proj["failures"]:
-        #         # Clean messages/ensure safety
-        #         fail_msg = failure["message"].replace("<", "&lt;").replace(">", "&gt;")
-        #         failures_list += f"""
-        #                             <div style="font-size: 12px; color: #b91c1c; margin-bottom: 8px; padding-left: 8px; border-left: 2px solid #f87171; line-height: 1.4;">
-        #                                 <strong style="color: #991b1b; font-family: ui-monospace, monospace;">{failure["name"]}</strong><br/>
-        #                                 <span style="color: #b91c1c; font-size: 11px;">{fail_msg}</span>
-        #                             </div>
-        #         """
-        #     failures_section = f"""
-        #                     <!-- Failures List -->
-        #                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 14px; background-color: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px; border-collapse: separate;">
-        #                         <tr>
-        #                             <td style="padding: 12px;">
-        #                                 <div style="font-size: 12px; font-weight: 700; color: #991b1b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Failed Tests ({len(proj["failures"])}):</div>
-        #                                 {failures_list}
-        #                             </td>
-        #                         </tr>
-        #                     </table>
-        #     """
+        if proj["failures"]:
+            failures_list = ""
+            for failure in proj["failures"]:
+                fail_msg = failure["message"].replace("<", "&lt;").replace(">", "&gt;")
+                failures_list += f"""
+                                    <div style="font-size: 12px; color: #b91c1c; margin-bottom: 8px; padding-left: 8px; border-left: 2px solid #f87171; line-height: 1.4;">
+                                        <strong style="color: #991b1b; font-family: ui-monospace, monospace;">{failure["name"]}</strong><br/>
+                                        <span style="color: #b91c1c; font-size: 11px;">{fail_msg}</span>
+                                    </div>
+                """
+            failures_section = f"""
+                            <!-- Failures List -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px; background-color: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px; border-collapse: separate;">
+                                <tr>
+                                    <td style="padding: 12px;">
+                                        <div style="font-size: 11px; font-weight: 700; color: #991b1b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Failed Tests ({len(proj["failures"])}):</div>
+                                        {failures_list}
+                                    </td>
+                                </tr>
+                            </table>
+            """
             
         html += f"""
                         <!-- Project Card: {proj["name"]} -->
@@ -416,25 +561,21 @@ def build_html_email(projects, status, actor, run_number, ref, sha, passed, fail
                                         </tr>
                                     </table>
                                     
-                                    <!-- Stats Table -->
+                                    <!-- Project Stats Grid -->
                                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border-radius: 6px; font-size: 12px;">
                                         <tr>
                                             <td style="padding: 10px 12px; color: #64748b; line-height: 1.4;">
-                                                Total: <strong style="color: #0f172a; margin-right: 12px;">{proj["total"]}</strong>
-                                                Passed: <strong style="color: #10b981; margin-right: 12px;">{proj["passed"]}</strong>
-                                                Failed: <strong style="color: {proj_failed_color};">{proj["failed"]}</strong>
-                                                <!-- Skipped: <strong style="color: {proj_skipped_color};">{proj["skipped"]}</strong> -->
+                                                Total: <strong style="color: #0f172a; margin-right: 10px;">{proj["total"]}</strong>
+                                                Passed: <strong style="color: #10b981; margin-right: 10px;">{proj["passed"]}</strong>
+                                                Failed: <strong style="color: {proj_failed_color}; margin-right: 10px;">{proj["failed"]}</strong>
+                                                Skipped: <strong style="color: {proj_skipped_color};">{proj["skipped"]}</strong>
                                             </td>
                                             <td align="right" style="padding: 10px 12px; font-weight: 700; color: {pass_rate_color}; white-space: nowrap;">
                                                 {proj["pass_rate"]}% Pass Rate
                                             </td>
-                                            <!--
-                                            <td align="right" style="padding: 10px 12px; font-weight: 700; color: {proj_skipped_color}; white-space: nowrap;">
-                                                {proj["skipped_rate"]}% Skipped Rate
-                                            </td>
-                                            -->
                                         </tr>
                                     </table>
+                                    {failures_section}
                                 </td>
                             </tr>
                         </table>

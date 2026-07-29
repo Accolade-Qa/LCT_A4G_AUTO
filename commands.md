@@ -609,3 +609,12 @@ python utils/trigger_project_report.py \
 - The workflow file must exist on the branch being dispatched.
 - Developers do not need the whole repo cloned just to send the trigger.
 - Store tokens securely in CI variables or secrets.
+
+## Check server's connections
+```powershell
+Test-NetConnection -ComputerName 20.244.15.95 -Port 9090
+# or
+curl -v https://aepl-tcu4g-qa.accoladeelectronics.com:9090
+# or 
+ping 20.244.15.95 - to check packets
+```
