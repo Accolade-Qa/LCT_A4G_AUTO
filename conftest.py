@@ -30,7 +30,7 @@ from utils.logger import enable_file_logging, get_logger
 
 logger = get_logger(__name__)
 
-VALID_PROJECTS = ("atcu", "lct", "sampark", "swaraj", "trio")
+VALID_PROJECTS = ("atcu", "lct", "sampark", "swaraj", "trio", "all")
 
 ZOOM_SCRIPT = """
 () => {
@@ -120,8 +120,8 @@ def pytest_addoption(parser):
     parser.addoption(
         "--project",
         action="store",
-        default=os.getenv("PROJECT", "lct"),
-        help="Project name to select the configuration",
+        default=os.getenv("PROJECT"),
+        help="Project name to select the configuration (atcu, lct, sampark, swaraj, trio, all)",
     )
     parser.addoption(
         "--headless",
@@ -132,10 +132,27 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    if config.getoption("collectonly", default=False):
+    if config.getoption("collectonly", default=False) or os.getenv("TEST_RUN_PIPE"):
         return
 
-    project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower().strip()
+    cli_project = config.getoption("--project")
+    env_project = os.getenv("PROJECT")
+
+    project = cli_project or env_project
+    if not project:
+        for arg in config.args:
+            arg_clean = str(arg).replace("\\", "/").lower()
+            for proj in ("atcu", "lct", "sampark", "swaraj", "trio"):
+                if f"tests/{proj}/" in arg_clean or f"tests/{proj}" in arg_clean:
+                    project = proj
+                    break
+            if project:
+                break
+
+    if not project or project.lower().strip() == "all":
+        project = "lct"
+
+    project = project.lower().strip()
     if project not in VALID_PROJECTS:
         raise pytest.UsageError(
             f"Invalid project '{project}'. Must be one of: {', '.join(VALID_PROJECTS)}"
@@ -169,8 +186,30 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
-    current_project = config.getoption("--project", os.getenv("PROJECT", "lct")).lower().strip()
-    project_markers = set(VALID_PROJECTS)
+    if config.getoption("collectonly", default=False) or os.getenv("TEST_RUN_PIPE"):
+        return
+
+    cli_project = config.getoption("--project")
+    env_project = os.getenv("PROJECT")
+
+    current_project = cli_project or env_project
+    if current_project and current_project.lower().strip() == "all":
+        return
+
+    if not current_project:
+        detected_projects = set()
+        for item in items:
+            item_path_str = str(item.fspath).replace("\\", "/").lower()
+            for proj in ("atcu", "lct", "sampark", "swaraj", "trio"):
+                if f"/tests/{proj}/" in item_path_str:
+                    detected_projects.add(proj)
+        if len(detected_projects) == 1:
+            current_project = detected_projects.pop()
+        else:
+            return
+
+    current_project = current_project.lower().strip()
+    project_markers = set(VALID_PROJECTS) - {"all"}
 
     selected = []
     deselected = []
@@ -179,10 +218,9 @@ def pytest_collection_modifyitems(config, items):
         item_markers = {marker.name for marker in item.iter_markers()}
         test_projects = item_markers & project_markers
 
-        # Also check path to see if item is in a project-specific directory (e.g., tests/atcu/)
         item_path_str = str(item.fspath).replace("\\", "/").lower()
         path_project = None
-        for proj in VALID_PROJECTS:
+        for proj in ("atcu", "lct", "sampark", "swaraj", "trio"):
             if f"/tests/{proj}/" in item_path_str:
                 path_project = proj
                 break
@@ -701,6 +739,18 @@ def atcu_device_vin_config_page(page, project_config):
     base.navigate_to(project_config["device_vin_config_url"])
     logger.info("Device VIN Config page fixture ready")
     return device_vin_config
+
+
+@pytest.fixture
+def atcu_dealer_fota_page(page, project_config):
+    from pages.atcu.atcu_dealer_fota_page import AtcuDealerFotaPage
+
+    dealer_fota = AtcuDealerFotaPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["dealer_fota_url"])
+    logger.info("Dealer FOTA page fixture ready")
+    return dealer_fota
+
 
 
 

@@ -7,7 +7,7 @@ import json
 logger = get_logger(__name__)
 
 
-class TmlRequestApi:
+class TmlRequestAPI:
 
     @staticmethod
     def get_token(
@@ -118,7 +118,7 @@ class TmlRequestApi:
         logger.info("Creating TML request ticket.")
 
         try:
-            token = TmlRequestApi.get_token(api_base_url=api_base_url)
+            token = TmlRequestAPI.get_token(api_base_url=api_base_url)
 
             import urllib.request
             import ssl
@@ -171,3 +171,7 @@ class TmlRequestApi:
         except Exception as e:
             logger.error("Failed to create TML request: %s", str(e))
             raise
+
+
+TmlRequestApi = TmlRequestAPI
+
