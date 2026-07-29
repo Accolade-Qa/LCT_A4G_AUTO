@@ -763,6 +763,18 @@ def atcu_model_page(page, project_config):
     return model_page
 
 
+@pytest.fixture
+def atcu_govt_server_page(page, project_config):
+    from pages.atcu.atcu_govt_server_page import AtcuGovtServerPage
+
+    govt_server_page = AtcuGovtServerPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["government_servers_url"])
+    logger.info("ATCU Government Servers page fixture ready")
+    return govt_server_page
+
+
+
 
 
 
