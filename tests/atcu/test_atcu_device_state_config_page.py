@@ -555,5 +555,77 @@ class TestDeviceStateConfigPage:
             pag_result["success"]
         ), f"Pagination validation failed: {pag_result.get('error')}"
 
+    # 18. Integration Test: Validating added device state reflects in State Wise Details on Device Dashboard
+    @pytest.mark.regression
+    @pytest.mark.ui
+    @pytest.mark.smoke
+    def test_atcu_device_state_config_integration_with_device_dashboard(
+        self,
+        atcu_device_state_config_page,
+        project_config,
+        report_case,
+    ):
+        """
+        Integration Scenario:
+        1. Device state added successfully via CSV upload (863192053020625, Maharashtra)
+        2. Go to Device Dashboard page
+        3. Click on the State Wise Details graph
+        4. Validate table appears after DOM change with title 'State Wise Details'
+        5. Search the IMEI mentioned in the CSV (863192053020625)
+        6. Validate entry present in table
+        7. Validate the state name in the CSV ('Maharashtra') is present in the table row
+        8. Done
+        """
+        page = atcu_device_state_config_page.page
+        logger.info("Step 1: Adding device state successfully on Device State Config page")
+        sample_csv_path = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "..",
+                "test_data",
+                "atcu",
+                "device_state_config_sample_valid.csv",
+            )
+        )
+        atcu_device_state_config_page.upload_csv_file(sample_csv_path)
+        atcu_device_state_config_page.click_upload_submit_button()
+        assert atcu_device_state_config_page.is_response_table_visible(timeout=15000)
+
+        logger.info("Step 2: Navigating to ATCU Device Dashboard page")
+        dashboard_url = project_config["dashboard_url"]
+        from pages.atcu.atcu_dashboard_page import AtcuDashboardPage
+        atcu_dashboard = AtcuDashboardPage(page)
+        atcu_dashboard.go_to_atcu_dashboard(dashboard_url)
+
+        logger.info("Step 3: Clicking on the State Wise Details graph")
+        atcu_dashboard.click_state_wise_graph_card("State Wise Details")
+
+        logger.info("Step 4: Validating table title 'State Wise Details'")
+        table_title = atcu_dashboard.get_state_wise_table_title()
+        assert "State Wise Details" in table_title, f"Expected 'State Wise Details' table title, got '{table_title}'"
+
+        logger.info("Step 5: Searching the IMEI mentioned in the CSV (863192053020625)")
+        target_imei = "863192053020625"
+        expected_state = "Maharashtra"
+        atcu_dashboard.search_imei_in_state_wise_table(target_imei)
+
+        logger.info("Step 6: Validating entry present in table")
+        is_entry_present = atcu_dashboard.is_imei_present_in_state_wise_table(target_imei)
+        assert is_entry_present, f"Device IMEI '{target_imei}' entry not found in State Wise Details table"
+
+        logger.info("Step 7: Validating the state name ('Maharashtra') is present in the table row")
+        row_details = atcu_dashboard.get_imei_row_state_details(target_imei)
+        row_values_text = " ".join(str(v) for v in row_details.values()) if isinstance(row_details, dict) else str(row_details)
+        assert expected_state.lower() in row_values_text.lower(), f"State '{expected_state}' not found in row details: {row_details}"
+
+        report_case(
+            expected="Device state added via CSV should reflect in State Wise Details table on Device Dashboard",
+            actual=f"table_title='{table_title}', is_entry_present={is_entry_present}, row_details={row_details}",
+            message="Validate device state update integration on Device Dashboard",
+        )
+
+
+
 
 
