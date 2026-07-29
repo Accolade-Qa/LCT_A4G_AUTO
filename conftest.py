@@ -752,6 +752,18 @@ def atcu_dealer_fota_page(page, project_config):
     return dealer_fota
 
 
+@pytest.fixture
+def atcu_model_page(page, project_config):
+    from pages.atcu.atcu_model_page import AtcuModelPage
+
+    model_page = AtcuModelPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["model_url"])
+    logger.info("ATCU Device Model page fixture ready")
+    return model_page
+
+
+
 
 
 # API Fixtures
