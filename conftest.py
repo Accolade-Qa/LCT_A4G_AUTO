@@ -784,6 +784,18 @@ def atcu_device_activity_log_page(page, project_config):
     logger.info("ATCU Device System Activity Log page fixture ready")
     return activity_log_page
 
+
+@pytest.fixture
+def atcu_status_update_log_page(page, project_config):
+    from pages.atcu.atcu_status_update_log_page import AtcuStatusUpdateLogPage
+
+    status_log_page = AtcuStatusUpdateLogPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["status_update_log_url"])
+    logger.info("ATCU AIS140 Ticket Status Update Logs page fixture ready")
+    return status_log_page
+
+
 # API Fixtures
 @pytest.fixture
 def api_context(project_config):

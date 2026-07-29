@@ -172,6 +172,50 @@ class TmlRequestAPI:
             logger.error("Failed to create TML request: %s", str(e))
             raise
 
+    @staticmethod
+    def get_status_update_logs(
+        page=None,
+        vin_no=None,
+        api_base_url=TICKET_BASE_URL,
+    ):
+        """
+        Fetch ticket status update logs from CRM API for validation against UI table.
+        """
+        endpoint = "/api/crm/getStatusUpdateLogs"
+        if vin_no:
+            endpoint += f"?vinNo={vin_no}"
+
+        logger.info("Fetching status update logs from %s", endpoint)
+
+        try:
+            token = TmlRequestAPI.get_token(api_base_url=api_base_url)
+
+            import urllib.request
+            import ssl
+
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+
+            headers = {
+                "token": token,
+                "Content-Type": "application/json",
+            }
+            req = urllib.request.Request(
+                api_base_url + endpoint, headers=headers, method="GET"
+            )
+
+            with urllib.request.urlopen(req, context=ctx) as response:
+                log_data = json.loads(response.read().decode("utf-8"))
+
+            logger.info("Successfully fetched status update logs API data.")
+            return log_data
+
+        except Exception as e:
+            logger.error("Failed to fetch status update logs API: %s", str(e))
+            return {}
+
 
 TmlRequestApi = TmlRequestAPI
+
 
