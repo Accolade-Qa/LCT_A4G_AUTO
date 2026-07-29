@@ -93,15 +93,69 @@ class AtcuDashboardPage(DashboardPage):
             logger.warning("IMEI '%s' not found in table within %s ms: %s", imei, timeout, e)
             return False
 
-    def get_imei_row_state_details(self, imei):
-        logger.info("Getting row details for IMEI '%s'", imei)
+    def click_installed_device_card(self, card_title="Installed"):
+        logger.info("Clicking KPI card with title: %s", card_title)
+        try:
+            self.page.locator(".kpi-section").first.wait_for(state="visible", timeout=15000)
+        except Exception:
+            pass
+
+        card_locator = (
+            self.page.locator("div.kpi-section > div, div.kpi-details, span.kpi-content")
+            .filter(has_text=card_title)
+            .first
+        )
+        card_locator.wait_for(state="visible", timeout=15000)
+        card_locator.scroll_into_view_if_needed()
+        card_locator.click()
+        self.page.wait_for_load_state("networkidle", timeout=10000)
+        logger.info("Successfully clicked KPI card: %s", card_title)
+
+    def get_installed_devices_table_title(self):
+        logger.info("Retrieving component table title after KPI card click")
+        title_locator = self.page.locator(".component-title, h6.component-title").first
+        title_locator.wait_for(state="visible", timeout=10000)
+        title = title_locator.inner_text().strip()
+        logger.info("Component table title: %s", title)
+        return title
+
+
+    def search_imei_or_vin_in_installed_table(self, search_term):
+        logger.info("Searching Installed Devices table for term: %s", search_term)
+        try:
+            search_input = self.page.locator(
+                "input[formcontrolname='searchInput'], input[placeholder*='Search'], .search-bar input"
+            ).first
+            search_input.wait_for(state="visible", timeout=10000)
+            search_input.fill(str(search_term))
+            search_input.press("Enter")
+            self.page.wait_for_load_state("networkidle", timeout=10000)
+        except Exception as e:
+            logger.warning("Direct search input fill fallback to SearchHelper: %s", e)
+            self.search_helper.run_search(str(search_term))
+
+    def is_device_present_in_installed_table(self, search_term, timeout=10000):
+        logger.info("Checking if device '%s' is present in Installed Devices table", search_term)
+        try:
+            row_locator = self.page.locator(f"//tr[td[contains(text(), '{search_term}')]]")
+            row_locator.wait_for(state="visible", timeout=timeout)
+            is_vis = row_locator.is_visible()
+            logger.info("Device '%s' present in table: %s", search_term, is_vis)
+            return is_vis
+        except Exception as e:
+            logger.warning("Device '%s' not found in table within %s ms: %s", search_term, timeout, e)
+            return False
+
+    def get_installed_device_row_details(self, search_term):
+        logger.info("Getting row details for device '%s'", search_term)
         try:
             headers = [th.inner_text().strip() for th in self.page.locator("table thead th").all()]
-            row_locator = self.page.locator(f"//tr[td[contains(text(), '{imei}')]]").first
+            row_locator = self.page.locator(f"//tr[td[contains(text(), '{search_term}')]]").first
             cells = [td.inner_text().strip() for td in row_locator.locator("td").all()]
             row_dict = dict(zip(headers, cells)) if headers else cells
-            logger.info("Row details for IMEI '%s': %s", imei, row_dict)
+            logger.info("Row details for device '%s': %s", search_term, row_dict)
             return row_dict
         except Exception as e:
-            logger.error("Failed to get row details for IMEI '%s': %s", imei, e)
+            logger.error("Failed to get row details for device '%s': %s", search_term, e)
             return {}
+

@@ -692,6 +692,18 @@ def atcu_device_state_config_page(page, project_config):
     return device_state_config
 
 
+@pytest.fixture
+def atcu_device_vin_config_page(page, project_config):
+    from pages.atcu.atcu_device_vin_config_page import AtcuDeviceVinConfigPage
+
+    device_vin_config = AtcuDeviceVinConfigPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["device_vin_config_url"])
+    logger.info("Device VIN Config page fixture ready")
+    return device_vin_config
+
+
+
 # API Fixtures
 @pytest.fixture
 def api_context(project_config):
