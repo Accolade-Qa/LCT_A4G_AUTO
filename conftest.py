@@ -796,6 +796,18 @@ def atcu_status_update_log_page(page, project_config):
     return status_log_page
 
 
+@pytest.fixture
+def atcu_dispatched_device_page(page, project_config):
+    from pages.atcu.atcu_dispatched_device_page import AtcuDispatchedDevicePage
+
+    dispatched_device_page = AtcuDispatchedDevicePage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["dispatched_device_url"])
+    logger.info("ATCU Dispatched Devices page fixture ready")
+    return dispatched_device_page
+
+
+
 # API Fixtures
 @pytest.fixture
 def api_context(project_config):

@@ -159,3 +159,37 @@ class AtcuDashboardPage(DashboardPage):
             logger.error("Failed to get row details for device '%s': %s", search_term, e)
             return {}
 
+    def get_dispatched_device_card_count(self, card_title="Dispatched Devices"):
+        logger.info("Retrieving count for KPI card with title: %s", card_title)
+        try:
+            card_locator = (
+                self.page.locator("div.kpi-section > div, div.kpi-details, span.kpi-content, .kpi-card")
+                .filter(has_text=card_title)
+                .first
+            )
+            card_locator.wait_for(state="visible", timeout=15000)
+            count_loc = card_locator.locator(".card-count, .kpi-count, h2, h3, span.count").first
+            count_text = count_loc.inner_text().strip()
+            logger.info("Dispatched Devices card count: %s", count_text)
+            return count_text
+        except Exception as e:
+            logger.error("Failed to get Dispatched Devices card count: %s", e)
+            return "0"
+
+    def click_dispatched_device_card(self, card_title="Dispatched Devices"):
+        logger.info("Clicking Dispatched Devices KPI card with title: %s", card_title)
+        try:
+            card_locator = (
+                self.page.locator("div.kpi-section > div, div.kpi-details, span.kpi-content, .kpi-card")
+                .filter(has_text=card_title)
+                .first
+            )
+            card_locator.wait_for(state="visible", timeout=15000)
+            card_locator.scroll_into_view_if_needed()
+            card_locator.click()
+            self.page.wait_for_load_state("networkidle", timeout=10000)
+            logger.info("Successfully clicked Dispatched Devices KPI card")
+        except Exception as e:
+            logger.error("Failed to click Dispatched Devices KPI card: %s", e)
+
+
