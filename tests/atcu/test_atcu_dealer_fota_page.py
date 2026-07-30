@@ -151,7 +151,8 @@ class TestDealerFotaPage:
         report_case,
     ):
         logger.info("Validating search by File Name")
-        search_term = "5.2.8_REL24"
+        first_row = atcu_dealer_fota_page.get_first_row_data()
+        search_term = first_row.get("File Name", "5.2.8_REL24") if first_row else "5.2.8_REL24"
         atcu_dealer_fota_page.search_dealer_fota_list(search_term)
 
         is_present = atcu_dealer_fota_page.is_device_present_in_table(search_term)
@@ -171,7 +172,8 @@ class TestDealerFotaPage:
         report_case,
     ):
         logger.info("Validating search by UIN NO.")
-        search_term = "ACON4NA082300092233"
+        first_row = atcu_dealer_fota_page.get_first_row_data()
+        search_term = first_row.get("UIN NO.", "ACON4NA082300092233") if first_row else "ACON4NA082300092233"
         atcu_dealer_fota_page.search_dealer_fota_list(search_term)
 
         is_present = atcu_dealer_fota_page.is_device_present_in_table(search_term)
@@ -191,7 +193,8 @@ class TestDealerFotaPage:
         report_case,
     ):
         logger.info("Validating search by VIN NO.")
-        search_term = "ACCDEV07241580138"
+        first_row = atcu_dealer_fota_page.get_first_row_data()
+        search_term = first_row.get("VIN NO.", "ACCDEV07241580138") if first_row else "ACCDEV07241580138"
         atcu_dealer_fota_page.search_dealer_fota_list(search_term)
 
         is_present = atcu_dealer_fota_page.is_device_present_in_table(search_term)
@@ -201,6 +204,7 @@ class TestDealerFotaPage:
             message="Validate search by VIN NO.",
         )
         assert is_present, f"Search result for VIN NO. '{search_term}' not found in table"
+
 
     # 9. Test download details button visibility
     @pytest.mark.regression

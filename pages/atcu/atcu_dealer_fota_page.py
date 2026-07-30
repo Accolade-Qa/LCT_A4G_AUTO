@@ -156,7 +156,7 @@ class AtcuDealerFotaPage(BasePage):
     def is_device_present_in_table(self, uin_or_vin, timeout=10000):
         logger.info("Checking if device with UIN/VIN '%s' is present in table", uin_or_vin)
         try:
-            row_locator = self.page.locator(f"//tr[td[contains(text(), '{uin_or_vin}')]]")
+            row_locator = self.page.locator(f"//tr[td[contains(text(), '{uin_or_vin}')]][1]")
             row_locator.wait_for(state="visible", timeout=timeout)
             is_vis = row_locator.is_visible()
             logger.info("Device '%s' present in table: %s", uin_or_vin, is_vis)
@@ -198,7 +198,7 @@ class AtcuDealerFotaPage(BasePage):
             page_input="input.page-input",
             next_button="button:has(mat-icon:has-text('chevron_right'))",
             prev_button="button:has(mat-icon:has-text('chevron_left'))",
-            content_selector="table tbody tr",
+            # content_selector="table tbody tr",
         )
         result = pagination.verify()
         logger.debug("Pagination validation result: %s", result)
@@ -244,6 +244,8 @@ class AtcuDealerFotaPage(BasePage):
         btn = self.page.locator(self.SUBMIT_BTN)
         btn.wait_for(state="visible", timeout=5000)
         btn.click()
+        self.page.wait_for_load_state("networkidle", timeout=10000)
+        self.page.wait_for_timeout(1000)
 
     def get_file_name_list_headers(self):
         headers = []
@@ -255,10 +257,10 @@ class AtcuDealerFotaPage(BasePage):
             logger.error("Failed to get File Name List headers: %s", e)
         return headers
 
-    def is_file_name_present_in_list(self, file_name, timeout=10000):
+    def is_file_name_present_in_list(self, file_name, timeout=5000):
         logger.info("Checking if file name '%s' is present in File Name List", file_name)
         try:
-            row_loc = self.page.locator(f"//tr[td[contains(text(), '{file_name}')]]")
+            row_loc = self.page.locator(f"//tr[td[contains(text(), '{file_name}')]]").first
             row_loc.wait_for(state="visible", timeout=timeout)
             return row_loc.is_visible()
         except Exception:
@@ -295,6 +297,7 @@ class AtcuDealerFotaPage(BasePage):
             input_loc.fill(str(search_term))
             input_loc.press("Enter")
             self.page.wait_for_load_state("networkidle", timeout=10000)
+            self.page.wait_for_timeout(500)
         except Exception as e:
             logger.warning("Direct search input fill fallback on Approved Files page: %s", e)
             search_helper = SearchHelper(self.page)
@@ -303,7 +306,7 @@ class AtcuDealerFotaPage(BasePage):
     def is_delete_button_visible_for_row(self, file_name):
         logger.info("Checking Delete button visibility for file: %s", file_name)
         try:
-            row_locator = self.page.locator(f"//tr[td[contains(text(), '{file_name}')]]")
+            row_locator = self.page.locator(f"//tr[td[contains(text(), '{file_name}')]]").first
             delete_btn = row_locator.locator("button.delete-button, button:has(mat-icon:has-text('delete'))").first
             return delete_btn.is_visible()
         except Exception as e:
@@ -313,7 +316,7 @@ class AtcuDealerFotaPage(BasePage):
     def is_delete_button_enabled_for_row(self, file_name):
         logger.info("Checking Delete button enablement for file: %s", file_name)
         try:
-            row_locator = self.page.locator(f"//tr[td[contains(text(), '{file_name}')]]")
+            row_locator = self.page.locator(f"//tr[td[contains(text(), '{file_name}')]]").first
             delete_btn = row_locator.locator("button.delete-button, button:has(mat-icon:has-text('delete'))").first
             return delete_btn.is_enabled()
         except Exception as e:
@@ -322,9 +325,32 @@ class AtcuDealerFotaPage(BasePage):
 
     def click_delete_button_for_file_name(self, file_name):
         logger.info("Clicking Delete button for file: %s", file_name)
-        row_locator = self.page.locator(f"//tr[td[contains(text(), '{file_name}')]]")
+
+        def handle_dialog(dialog):
+            logger.info("Accepting browser alert/confirm dialog: '%s'", dialog.message)
+            dialog.accept()
+
+        self.page.once("dialog", handle_dialog)
+
+        row_locator = self.page.locator(f"//tr[td[contains(text(), '{file_name}')]]").first
         delete_btn = row_locator.locator("button.delete-button, button:has(mat-icon:has-text('delete'))").first
         delete_btn.wait_for(state="visible", timeout=5000)
         delete_btn.click()
+
+        # Handle modal confirmation dialog if present
+        try:
+            confirm_btn = self.page.locator(
+                "button.swal2-confirm, .mat-mdc-dialog-actions button, button:has-text('Yes'), button:has-text('Confirm'), button:has-text('Delete')"
+            ).first
+            if confirm_btn.is_visible(timeout=2000):
+                confirm_btn.click()
+                logger.info("Clicked modal delete confirmation button")
+        except Exception:
+            pass
+
         self.page.wait_for_load_state("networkidle", timeout=10000)
+        self.page.wait_for_timeout(1000)
+
+
+
 

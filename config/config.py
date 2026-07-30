@@ -179,6 +179,11 @@ STATUS_UPDATE_LOG_URL = _get(
     "STATUS_UPDATE_LOG_URL",
     "https://aepl-tcu4g-qa.accoladeelectronics.com/ais140-tml-api-logs",
 )
+
+DEALER_FOTA_URL = _get(
+    "DEALER_FOTA_URL", "https://aepl-tcu4g-qa.accoladeelectronics.com/dealer-fota",
+)
+
 DEVICE_STATE_CONFIG_URL = _get(
     "DEVICE_STATE_CONFIG_URL",
     "http://lct-a4g-qa.accoladeelectronics.com/device-state-config",

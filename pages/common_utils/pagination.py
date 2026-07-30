@@ -86,7 +86,8 @@ class PaginationHelper:
                 else self.page.locator(self.content_selector)
             )
             input_locator.wait_for(state="visible")
-            content_locator.wait_for(state="visible")
+            content_locator.first.wait_for(state="visible")
+
             current_page = self._get_current_page(input_locator)
             total_pages = self._detect_total_pages(current_page)
             result["total_pages"] = total_pages
