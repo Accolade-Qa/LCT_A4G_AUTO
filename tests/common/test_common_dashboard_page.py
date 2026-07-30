@@ -10,7 +10,6 @@ logger = get_logger(__name__)
 @pytest.mark.dashboard
 @pytest.mark.regression
 @pytest.mark.usefixtures("project_config")
-@pytest.mark.atcu
 @pytest.mark.lct
 @pytest.mark.sampark
 @pytest.mark.swaraj
