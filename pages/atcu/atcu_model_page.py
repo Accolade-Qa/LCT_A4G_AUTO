@@ -113,13 +113,20 @@ class AtcuModelPage(BasePage):
         input_loc.wait_for(state="visible", timeout=5000)
         input_loc.fill("")
         input_loc.press("Enter")
+        try:
+            btn = self.page.locator("button.search-btn, button:has(mat-icon:has-text('search'))").first
+            if btn.is_visible():
+                btn.click()
+        except Exception:
+            pass
         self.page.wait_for_load_state("networkidle", timeout=10000)
+        self.page.wait_for_timeout(1000)
 
     def get_table_headers(self):
         headers = []
         try:
             locators = self.page.locator(self.TABLE_HEADERS).all()
-            headers = [loc.text_content().strip() for loc in locators]
+            headers = [loc.text_content().strip().upper() for loc in locators]
             logger.debug("Retrieved table headers: %s", headers)
         except Exception as e:
             logger.error("Failed to get table headers: %s", e)
@@ -186,12 +193,29 @@ class AtcuModelPage(BasePage):
 
     def click_delete_button_for_row(self, model_name):
         logger.info("Clicking Delete button for model: %s", model_name)
-        row_locator = self.page.locator(f"//tr[td[contains(text(), '{model_name}')]]")
+
+        def handle_dialog(dialog):
+            logger.info("Accepting browser alert/confirm dialog: '%s'", dialog.message)
+            dialog.accept()
+
+        self.page.once("dialog", handle_dialog)
+
+        row_locator = self.page.locator(f"//tr[td[contains(text(), '{model_name}')]]").first
         delete_btn = row_locator.locator("button.delete-button, button:has(mat-icon:has-text('delete'))").first
         delete_btn.wait_for(state="visible", timeout=5000)
-        self.page.on("dialog", lambda dialog: dialog.accept())
         delete_btn.click()
+
+        try:
+            confirm_btn = self.page.locator(
+                "button.swal2-confirm, .mat-mdc-dialog-actions button, button:has-text('Yes'), button:has-text('Confirm'), button:has-text('Delete')"
+            ).first
+            if confirm_btn.is_visible(timeout=2000):
+                confirm_btn.click()
+        except Exception:
+            pass
+
         self.page.wait_for_load_state("networkidle", timeout=10000)
+        self.page.wait_for_timeout(1000)
 
     def is_pagination_visible(self, timeout=10000):
         try:
@@ -266,11 +290,20 @@ class AtcuModelPage(BasePage):
     def fill_create_model_form(self, model_name, model_code, hw_version):
         logger.info("Filling Create Model form: Name='%s', Code='%s', HW='%s'", model_name, model_code, hw_version)
         if model_name is not None:
-            self.page.locator(self.MODEL_NAME_INPUT).fill(model_name)
+            loc = self.page.locator(self.MODEL_NAME_INPUT)
+            loc.fill(model_name)
+            loc.dispatch_event("input")
+            loc.dispatch_event("blur")
         if model_code is not None:
-            self.page.locator(self.MODEL_CODE_INPUT).fill(model_code)
+            loc = self.page.locator(self.MODEL_CODE_INPUT)
+            loc.fill(model_code)
+            loc.dispatch_event("input")
+            loc.dispatch_event("blur")
         if hw_version is not None:
-            self.page.locator(self.HW_VERSION_INPUT).fill(hw_version)
+            loc = self.page.locator(self.HW_VERSION_INPUT)
+            loc.fill(hw_version)
+            loc.dispatch_event("input")
+            loc.dispatch_event("blur")
 
     def is_submit_button_enabled(self):
         try:

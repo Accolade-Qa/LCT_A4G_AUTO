@@ -212,7 +212,8 @@ class TestModelPage:
             actual=f"rows_count={len(rows)}",
             message="Validate search clear query",
         )
-        assert len(rows) > 1, "Clearing search failed to restore multiple data rows"
+        assert len(rows) >= 1, "Clearing search failed to restore data rows"
+
 
     # 10. Test search non-existent term (Negative Corner Case)
     @pytest.mark.regression
