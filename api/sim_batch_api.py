@@ -2,6 +2,7 @@ import json
 
 from utils.logger import get_logger
 from .api_client import APIClient
+from .endpoints import GET_SIM_BATCH_DETAILS_BY_CSV, GET_SIM_BATCH_DETAILS_BY_ICCID
 from test_data.lct.device_data import DeviceData
 
 logger = get_logger(__name__)
@@ -23,7 +24,7 @@ class SIMBatchAPI(APIClient):
         Returns:
             dict: SIM batch details from API response.
         """
-        sim_details_endpoint = "/sensoriseSimData/getSimDetailsByIccidUsingCsv"
+        sim_details_endpoint = GET_SIM_BATCH_DETAILS_BY_CSV
 
         with open("./test_data/Sensorise_SIM_data_Details.xlsx", "rb") as f:
             file_content = f.read()
@@ -73,7 +74,7 @@ class SIMBatchAPI(APIClient):
         devices = DeviceData().get_device_data()
 
         iccid = devices.get("device_3")[1]
-        endpoint = "/sensoriseSimData/getSimDetailsByIccid"
+        endpoint = GET_SIM_BATCH_DETAILS_BY_ICCID
         payload = [iccid]
         logger.info("Fetching sim data details from %s", endpoint)
 

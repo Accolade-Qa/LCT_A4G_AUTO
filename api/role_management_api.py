@@ -1,5 +1,6 @@
 from utils.logger import get_logger
 from .api_client import APIClient
+from .endpoints import DELETE_ROLE, GET_ROLES
 from config.config import API_BASE_URL, API_USERNAME, API_PASSWORD
 
 logger = get_logger(__name__)
@@ -26,12 +27,10 @@ class RoleManagementAPI(APIClient):
         Returns:
             dict: API response payload containing roles data and totalItems count.
         """
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            endpoint = "/api/roles/getRoles?page=0&size=1000&search=&userRole="
-        else:
-            endpoint = "/roles/getRoles?page=0&size=1000&search=&userRole="
+        endpoint = APIClient.build_endpoint(
+            api_base_url,
+            GET_ROLES,
+        )
 
         logger.info("Fetching roles list from %s", endpoint)
         return APIClient.send_request(
@@ -63,12 +62,10 @@ class RoleManagementAPI(APIClient):
         Returns:
             dict: API response payload.
         """
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            endpoint = f"/api/roles/deleteRole?roleId={role_id}"
-        else:
-            endpoint = f"/roles/deleteRole?roleId={role_id}"
+        endpoint = APIClient.build_endpoint(
+            api_base_url,
+            DELETE_ROLE.format(role_id=role_id),
+        )
 
         logger.info("Sending DELETE request for role ID %s to %s", role_id, endpoint)
         return APIClient.send_request(

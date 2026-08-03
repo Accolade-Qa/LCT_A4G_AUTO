@@ -2,6 +2,7 @@ import json
 
 from utils.logger import get_logger
 from .api_client import APIClient
+from .endpoints import LOGIN
 
 logger = get_logger(__name__)
 
@@ -24,11 +25,7 @@ class LoginAPI(APIClient):
         Returns:
             dict: Login data from API response.
         """
-        # add check to ensure if project is sampark then user other endpoint for login
-        if "sampark-qa" in api_base_url:
-            login_endpoint = "/api/users/login"
-        else:
-            login_endpoint = "/users/login"
+        login_endpoint = APIClient.build_endpoint(api_base_url, LOGIN)
 
         logger.info("Attempting to log in user %s", username)
 

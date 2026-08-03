@@ -1,5 +1,6 @@
 from utils.logger import get_logger
 from .api_client import APIClient
+from .endpoints import GET_CUSTOMERS, SAVE_CUSTOMER
 from config.config import API_BASE_URL, API_USERNAME, API_PASSWORD
 from utils.helpers import Helpers
 import json
@@ -37,16 +38,10 @@ class CustomerAPI(APIClient):
         # else:
         #     login_endpoint = f"/users/getUserdetails?id={id}"
 
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            customer_endpoint = (
-                "/api/customerMaster/getCustomers?page=1&size=100000&search="
-            )
-        else:
-            customer_endpoint = (
-                "/customerMaster/getCustomers?page=1&size=100000&search="
-            )
+        customer_endpoint = APIClient.build_endpoint(
+            api_base_url,
+            GET_CUSTOMERS,
+        )
 
         logger.info("Fetching customer list from %s", customer_endpoint)
 
@@ -84,12 +79,10 @@ class CustomerAPI(APIClient):
             "id": 0,
             "customerName": customer_name,
         }
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            customer_endpoint = "/api/customerMaster/saveCustomer"
-        else:
-            customer_endpoint = "/customerMaster/saveCustomer"
+        customer_endpoint = APIClient.build_endpoint(
+            api_base_url,
+            SAVE_CUSTOMER,
+        )
 
         logger.info("Saving customer using %s", customer_endpoint)
 

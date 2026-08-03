@@ -10,6 +10,38 @@ class APIClient:
     """Client for authenticated API requests with centralized token management."""
 
     @staticmethod
+    def is_sampark_api(api_base_url):
+        """Return True when the configured API host is the sampark QA deployment."""
+        if not api_base_url:
+            return False
+
+        normalized_base_url = api_base_url.rstrip("/")
+        return "sampark-qa" in normalized_base_url or normalized_base_url.endswith(
+            "sampark-qa.accoladeelectronics.com"
+        )
+
+    @staticmethod
+    def build_endpoint(api_base_url, endpoint):
+        """Normalize an API endpoint for the active project.
+
+        Sampark APIs expose a common ``/api`` prefix while the remaining
+        projects use the unprefixed route name directly. This helper keeps the
+        prefixing decision in one place and allows the individual API modules to
+        stay focused on their business logic.
+        """
+        if not endpoint:
+            return endpoint
+
+        normalized_endpoint = endpoint if endpoint.startswith("/") else f"/{endpoint}"
+
+        if APIClient.is_sampark_api(api_base_url) and not normalized_endpoint.startswith(
+            "/api/"
+        ):
+            return f"/api{normalized_endpoint}"
+
+        return normalized_endpoint
+
+    @staticmethod
     def validate_credentials(api_username, api_password):
         """Validate that API credentials are configured.
 
@@ -44,16 +76,9 @@ class APIClient:
         """
         APIClient.validate_credentials(api_username, api_password)
 
-        # Some projects (e.g., sampark) expose the login endpoint under
-        # `/api/users/login` while others use `/users/login`. Choose the
-        # correct path based on the api_base_url so token retrieval works
-        # consistently across projects.
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            login_url = f"{api_base_url}/api/users/login"
-        else:
-            login_url = f"{api_base_url}/users/login"
+        login_url = (
+            f"{api_base_url}{APIClient.build_endpoint(api_base_url, '/users/login')}"
+        )
 
         login_payload = {
             "userEmail": api_username,

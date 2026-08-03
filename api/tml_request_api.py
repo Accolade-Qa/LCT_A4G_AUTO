@@ -1,6 +1,7 @@
 from utils.logger import get_logger
 from config.config import TICKET_BASE_URL, TICKET_USERNAME, TICKET_PASSWORD
 from utils.helpers import Helpers
+from api.endpoints import GENERATE_TICKET_TOKEN, GENERATE_TML_TICKET, GET_STATUS_UPDATE_LOGS
 
 import json
 
@@ -22,7 +23,7 @@ class TmlRequestAPI:
             "password": TICKET_PASSWORD,
         }
 
-        endpoint = "/api/crm/generateToken"
+        endpoint = GENERATE_TICKET_TOKEN
 
         logger.info("Fetching authentication token from %s", endpoint)
 
@@ -113,7 +114,7 @@ class TmlRequestAPI:
             }
         ]
 
-        endpoint = "/api/crm/generateTickets"
+        endpoint = GENERATE_TML_TICKET
 
         logger.info("Creating TML request ticket.")
 
@@ -181,7 +182,7 @@ class TmlRequestAPI:
         """
         Fetch ticket status update logs from CRM API for validation against UI table.
         """
-        endpoint = "/api/crm/getStatusUpdateLogs"
+        endpoint = GET_STATUS_UPDATE_LOGS
         if vin_no:
             endpoint += f"?vinNo={vin_no}"
 

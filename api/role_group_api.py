@@ -1,5 +1,6 @@
 from utils.logger import get_logger
 from .api_client import APIClient
+from .endpoints import DELETE_ROLE_GROUP, GET_ROLE_GROUPS
 from config.config import API_BASE_URL, API_USERNAME, API_PASSWORD
 
 logger = get_logger(__name__)
@@ -26,12 +27,10 @@ class RoleGroupAPI(APIClient):
         Returns:
             dict: API response payload containing role groups data and totalItems count.
         """
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            endpoint = "/api/roleGroup/getRolesGroup?page=0&size=1000&search="
-        else:
-            endpoint = "/roleGroup/getRolesGroup?page=0&size=1000&search="
+        endpoint = APIClient.build_endpoint(
+            api_base_url,
+            GET_ROLE_GROUPS,
+        )
 
         logger.info("Fetching role groups list from %s", endpoint)
         return APIClient.send_request(
@@ -63,12 +62,10 @@ class RoleGroupAPI(APIClient):
         Returns:
             dict: API response payload.
         """
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            endpoint = f"/api/roleGroup/deleteRoleGroup?id={group_id}"
-        else:
-            endpoint = f"/roleGroup/deleteRoleGroup?id={group_id}"
+        endpoint = APIClient.build_endpoint(
+            api_base_url,
+            DELETE_ROLE_GROUP.format(group_id=group_id),
+        )
 
         logger.info("Sending DELETE request for role group ID %s to %s", group_id, endpoint)
         return APIClient.send_request(

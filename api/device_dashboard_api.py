@@ -1,5 +1,11 @@
 from utils.logger import get_logger
 from .api_client import APIClient
+from .endpoints import (
+    GET_DISCARDED_DEVICE_COUNT,
+    GET_DISPATCHED_DEVICE_COUNT,
+    GET_INSTALLED_DEVICE_COUNT,
+    GET_PRODUCTION_DEVICE_COUNT,
+)
 from config.config import API_USERNAME, API_PASSWORD, API_BASE_URL
 
 logger = get_logger(__name__)
@@ -27,39 +33,16 @@ class DeviceDashboardAPI(APIClient):
             dict: Device status titles mapped to their counts.
         """
         device_count_endpoints = [
-            (
-                "TOTAL PRODUCTION DEVICES",
-                "/device/getProductionDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
-            ),
-            (
-                "TOTAL DISPATCHED DEVICES",
-                "/device/getDispatchDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
-            ),
-            (
-                "TOTAL INSTALLED DEVICES",
-                "/device/getInstalledDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
-            ),
-            (
-                "TOTAL DISCARDED DEVICES",
-                "/device/getDiscardedDeviceCount?selectedDeviceModelId=&selectedCustomerId=",
-            ),
+            ("TOTAL PRODUCTION DEVICES", GET_PRODUCTION_DEVICE_COUNT),
+            ("TOTAL DISPATCHED DEVICES", GET_DISPATCHED_DEVICE_COUNT),
+            ("TOTAL INSTALLED DEVICES", GET_INSTALLED_DEVICE_COUNT),
+            ("TOTAL DISCARDED DEVICES", GET_DISCARDED_DEVICE_COUNT),
         ]
 
         result = {}
 
-        # Some projects (e.g., sampark) expose API routes under an '/api' prefix.
-        # Use the same heuristic as APIClient.get_bearer_token to decide whether
-        # to prepend '/api' to the endpoints.
-        use_api_prefix = "sampark-qa" in api_base_url or api_base_url.rstrip(
-            "/"
-        ).endswith("sampark-qa.accoladeelectronics.com")
-
         for title, endpoint in device_count_endpoints:
-            full_endpoint = (
-                f"/api{endpoint}"
-                if use_api_prefix and not endpoint.startswith("/api")
-                else endpoint
-            )
+            full_endpoint = APIClient.build_endpoint(api_base_url, endpoint)
             try:
                 logger.info("Fetching %s from %s", title, full_endpoint)
                 data = APIClient.send_request(

@@ -1,5 +1,12 @@
 from api.api_client import APIClient
 from api.login_api import LoginAPI
+from api.endpoints import (
+    GET_ALL_FIRMWARES,
+    GET_ALL_STATE_SERVERS,
+    GET_FIRMWARES_NOT_ADDED_IN_STATE,
+    GET_STATE_FIRMWARES,
+    GET_STATE_SERVER_DETAILS,
+)
 from utils.logger import get_logger
 from config.config import (
     API_BASE_URL,
@@ -96,18 +103,10 @@ class GovtServerAPI(APIClient):
             page, api_base_url, api_username, api_password
         )
 
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            endpoint = (
-                "/api/stateServers/getAllStateServerList?"
-                f"page=0&size=1000&search=&userId={user_id}"
-            )
-        else:
-            endpoint = (
-                "/stateServers/getAllStateServerList?"
-                f"page=0&size=1000&search=&userId={user_id}"
-            )
+        endpoint = APIClient.build_endpoint(
+            api_base_url,
+            GET_ALL_STATE_SERVERS.format(user_id=user_id),
+        )
 
         servers = GovtServerAPI._send_get_request(
             page,
@@ -163,18 +162,10 @@ class GovtServerAPI(APIClient):
         """
         Fetch all firmware versions.
         """
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            endpoint = (
-                "/api/firmwareMaster/getAllFirmwareList?"
-                "page=0&size=1000&search=&firmwareType="
-            )
-        else:
-            endpoint = (
-                "/firmwareMaster/getAllFirmwareList?"
-                "page=0&size=1000&search=&firmwareType="
-            )
+        endpoint = APIClient.build_endpoint(
+            api_base_url,
+            GET_ALL_FIRMWARES,
+        )
 
         firmware_versions = GovtServerAPI._send_get_request(
             page,
@@ -229,27 +220,22 @@ class GovtServerAPI(APIClient):
             )
 
         if added_in_state:
-            if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-                "sampark-qa.accoladeelectronics.com"
-            ):
-                endpoint = f"/api/firmwareMaster/getStateFirmwares?page=0&size=1000&search=&firmwareType={firmware_type}&userId={user_id}&stateServerId={state_server_id}"
-            else:
-                endpoint = f"/firmwareMaster/getStateFirmwares?page=0&size=1000&search=&firmwareType={firmware_type}&userId={user_id}&stateServerId={state_server_id}"
+            endpoint = APIClient.build_endpoint(
+                api_base_url,
+                GET_STATE_FIRMWARES.format(
+                    firmware_type=firmware_type,
+                    user_id=user_id,
+                    state_server_id=state_server_id,
+                ),
+            )
         else:
-            if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-                "sampark-qa.accoladeelectronics.com"
-            ):
-                endpoint = (
-                    "/api/firmwareMaster/getFirmwaresListNotAddedInState?"
-                    f"page=0&size=1000&search=&firmwareType={firmware_type}"
-                    f"&stateServerId={state_server_id}"
-                )
-            else:
-                endpoint = (
-                    "/firmwareMaster/getFirmwaresListNotAddedInState?"
-                    f"page=0&size=1000&search=&firmwareType={firmware_type}"
-                    f"&stateServerId={state_server_id}"
-                )
+            endpoint = APIClient.build_endpoint(
+                api_base_url,
+                GET_FIRMWARES_NOT_ADDED_IN_STATE.format(
+                    firmware_type=firmware_type,
+                    state_server_id=state_server_id,
+                ),
+            )
 
         firmware_versions = GovtServerAPI._send_get_request(
             page,
@@ -354,6 +340,30 @@ class GovtServerAPI(APIClient):
         )
 
     @staticmethod
+    def _get_state_server_details_response(
+        page,
+        api_base_url,
+        api_username,
+        api_password,
+        server_id,
+        success_message,
+    ):
+        """Fetch a single state server detail payload and return the response."""
+        endpoint = APIClient.build_endpoint(
+            api_base_url,
+            GET_STATE_SERVER_DETAILS.format(server_id=server_id),
+        )
+
+        return GovtServerAPI._send_get_request(
+            page,
+            api_base_url,
+            api_username,
+            api_password,
+            endpoint,
+            success_message,
+        )
+
+    @staticmethod
     def get_state_server_details_by_id(
         page,
         api_base_url=API_BASE_URL,
@@ -364,23 +374,16 @@ class GovtServerAPI(APIClient):
         Fetch state server details by ID.
         """
 
-        _, server_id, user_id = GovtServerAPI._get_all_servers_list(
+        _, server_id, _ = GovtServerAPI._get_all_servers_list(
             page, api_base_url, api_username, api_password
         )
 
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            endpoint = f"/api/stateServers/getStateServerDetails?id={server_id}"
-        else:
-            endpoint = f"/stateServers/getStateServerDetails?id={server_id}"
-
-        response = GovtServerAPI._send_get_request(
+        response = GovtServerAPI._get_state_server_details_response(
             page,
             api_base_url,
             api_username,
             api_password,
-            endpoint,
+            server_id,
             "Successfully fetched state server details",
         )
 
@@ -424,19 +427,12 @@ class GovtServerAPI(APIClient):
 
         server_id = matched_server.get("id")
 
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            endpoint = f"/api/stateServers/getStateServerDetails?id={server_id}"
-        else:
-            endpoint = f"/stateServers/getStateServerDetails?id={server_id}"
-
-        response = GovtServerAPI._send_get_request(
+        response = GovtServerAPI._get_state_server_details_response(
             page,
             api_base_url,
             api_username,
             api_password,
-            endpoint,
+            server_id,
             f"Successfully fetched state server details for {state_name}",
         )
 

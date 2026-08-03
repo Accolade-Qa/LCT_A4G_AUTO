@@ -3,6 +3,7 @@ import json
 from utils.logger import get_logger
 from .api_client import APIClient
 from .login_api import LoginAPI
+from .endpoints import GET_USER_DETAILS
 from config.config import API_BASE_URL, API_USERNAME, API_PASSWORD, USERNAME, PASSWORD
 
 logger = get_logger(__name__)
@@ -40,13 +41,10 @@ class UserAPI(APIClient):
 
         id = login_data.get("id")
 
-        # Some projects expose user API under /api prefix (sampark).
-        if "sampark-qa" in api_base_url or api_base_url.rstrip("/").endswith(
-            "sampark-qa.accoladeelectronics.com"
-        ):
-            login_endpoint = f"/api/users/getUserdetails?id={id}"
-        else:
-            login_endpoint = f"/users/getUserdetails?id={id}"
+        login_endpoint = APIClient.build_endpoint(
+            api_base_url,
+            GET_USER_DETAILS.format(id=id),
+        )
 
         logger.info("Attempting to log in user %s", username)
 
