@@ -367,9 +367,10 @@ def page(browser, project_config):
     logger.info("New page opened")
 
     # Debugging listeners to log network errors and console issues
-    def log_console(msg):
-        if msg.type in ["error", "warning"]:
-            logger.warning(f"Browser console {msg.type}: {msg.text}")
+    # def log_console(msg):
+    #     if msg.type in ["error", "warning"]:
+    #         logger.warning(f"Browser console {msg.type}: {msg.text}")
+
 
     def log_response(response):
         if response.status >= 400:
@@ -379,8 +380,9 @@ def page(browser, project_config):
             except Exception:
                 pass
 
-    page.on("console", log_console)
+    # page.on("console", log_console)
     page.on("response", log_response)
+
 
     from pages.common_login_page import LoginPage
 
@@ -806,6 +808,31 @@ def atcu_dispatched_device_page(page, project_config):
     base.navigate_to(project_config["dispatched_device_url"])
     logger.info("ATCU Dispatched Devices page fixture ready")
     return dispatched_device_page
+
+
+@pytest.fixture
+def atcu_dashboard_page(page, project_config):
+    from pages.atcu.atcu_dashboard_page import AtcuDashboardPage
+
+    dashboard_page = AtcuDashboardPage(page)
+    base = BasePage(page)
+    dash_url = project_config.get("atcu_dashboard_url") or project_config.get("dashboard_url")
+    base.navigate_to(dash_url)
+    logger.info("ATCU Dashboard page fixture ready")
+    return dashboard_page
+
+
+@pytest.fixture
+def atcu_ticket_dashboard_page(page, project_config):
+    from pages.atcu.atcu_ticket_dashboard_page import AtcuTicketDashboardPage
+
+    ticket_dashboard_page = AtcuTicketDashboardPage(page)
+    base = BasePage(page)
+    base.navigate_to(project_config["ticket_dashboard_url"])
+    logger.info("ATCU Ticket Dashboard page fixture ready")
+    return ticket_dashboard_page
+
+
 
 
 

@@ -55,3 +55,5 @@ GET_SIM_BATCH_DETAILS_BY_ICCID = "/sensoriseSimData/getSimDetailsByIccid"
 GENERATE_TICKET_TOKEN = "/api/crm/generateToken"
 GENERATE_TML_TICKET = "/api/crm/generateTickets"
 GET_STATUS_UPDATE_LOGS = "/api/crm/getStatusUpdateLogs"
+GET_DASHBOARD_COUNTS = "/api/crm/getDashCounts"
+

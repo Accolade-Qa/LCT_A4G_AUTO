@@ -157,7 +157,7 @@ UPDATE_MODEL = _get(
 )
 TICKET_DASHBOARD_URL = _get(
     "TICKET_DASHBOARD_URL",
-    "http://lct-a4g-qa.accoladeelectronics.com/ticket-dashboard",
+    "https://aepl-tcu4g-qa.accoladeelectronics.com/ticket-dashboard-page",
 )
 MY_AIS_TICKET_URL = _get(
     "MY_AIS_TICKET_URL",

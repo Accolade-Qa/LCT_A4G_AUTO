@@ -1,7 +1,13 @@
 from utils.logger import get_logger
 from config.config import TICKET_BASE_URL, TICKET_USERNAME, TICKET_PASSWORD
 from utils.helpers import Helpers
-from api.endpoints import GENERATE_TICKET_TOKEN, GENERATE_TML_TICKET, GET_STATUS_UPDATE_LOGS
+from api.endpoints import (
+    GENERATE_TICKET_TOKEN,
+    GENERATE_TML_TICKET,
+    GET_STATUS_UPDATE_LOGS,
+    GET_DASHBOARD_COUNTS,
+)
+
 
 import json
 
@@ -216,7 +222,51 @@ class TmlRequestAPI:
             logger.error("Failed to fetch status update logs API: %s", str(e))
             return {}
 
+    @staticmethod
+    def get_dash_counts(
+        page=None,
+        api_base_url=TICKET_BASE_URL,
+        params=None,
+    ):
+        """
+        Fetch ticket dashboard KPI counts from CRM API endpoint:
+        /api/crm/getDashCounts?state=&dealer=&toDate=&fromDate=&assignTo=&initiatedBy=&ticketStatusFilter=&deviceType=&search=&id=&ticketCompletedAtFromDate=&ticketCompletedAtToDate=&tatType=
+        """
+        endpoint = GET_DASHBOARD_COUNTS
+        if not params:
+            params = "state=&dealer=&toDate=&fromDate=&assignTo=&initiatedBy=&ticketStatusFilter=&deviceType=&search=&id=&ticketCompletedAtFromDate=&ticketCompletedAtToDate=&tatType="
+
+        full_url = f"{api_base_url}{endpoint}?{params}"
+        logger.info("Fetching dashboard counts from %s", full_url)
+
+        try:
+            token = TmlRequestAPI.get_token(api_base_url=api_base_url)
+
+            import urllib.request
+            import ssl
+
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+
+            headers = {
+                "token": token,
+                "Content-Type": "application/json",
+            }
+            req = urllib.request.Request(full_url, headers=headers, method="GET")
+
+            with urllib.request.urlopen(req, context=ctx) as response:
+                counts_data = json.loads(response.read().decode("utf-8"))
+
+            logger.info("Successfully fetched dashboard counts API data: %s", counts_data)
+            return counts_data
+
+        except Exception as e:
+            logger.error("Failed to fetch dashboard counts API: %s", str(e))
+            return {}
+
 
 TmlRequestApi = TmlRequestAPI
+
 
 
