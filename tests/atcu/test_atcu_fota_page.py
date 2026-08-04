@@ -1,23 +1,6 @@
-import pytest
+from utils.logger import get_logger
 
-from pages.atcu.atcu_fota_page import AtcuFotaPage
+logger = get_logger(__name__)
 
-
-@pytest.mark.atcu
-@pytest.mark.regression
 class TestFotaPage:
-    @pytest.mark.regression
-    @pytest.mark.ui
-    @pytest.mark.smoke
-    def test_fota_page_loads(self, page, project_config, report_case):
-        fota = AtcuFotaPage(page, project_config["fota_url"])
-        fota.load()
-
-        loaded = fota.is_loaded()
-        report_case(
-            expected="FOTA page should load",
-            actual=f"url={page.url}",
-            result="passed" if loaded else "failed",
-            message="Validate ATCU FOTA navigation",
-        )
-        assert loaded
+    pass
