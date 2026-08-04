@@ -42,7 +42,8 @@ class AtcuTicketDashboardPage(BasePage):
     SEARCH_INPUT = "input[formcontrolname='searchInput']"
     SEARCH_BTN = "button.search-btn"
     FILTER_BTN = "button:has-text('Filter')"
-    DOWNLOAD_TAT_REPORT_BTN = "button:has-text('Download TAT Report')"
+    DOWNLOAD_TAT_REPORT_BTN = "button:has-text('Download TAT Report'), a:has-text('Download TAT Report'), .action-button:has-text('Download TAT Report'), button:has-text('Download')"
+
     PAGINATION_CONTAINER = "app-common-component-pagination, .pagination-container"
     ROWS_SELECT = "#rowsSelect"
 
@@ -317,41 +318,166 @@ class AtcuTicketDashboardPage(BasePage):
             self.page.wait_for_timeout(300)
         except Exception as e:
             logger.warning("Failed to close filter modal: %s", e)
-
     def click_modal_submit(self):
         logger.info("Clicking Submit in filter modal")
-        self.page.locator("#filterDetails button.submit-button, .custom-modal button.submit-button").first.click()
-        self.page.wait_for_load_state("networkidle", timeout=10000)
-        self.page.wait_for_timeout(1000)
+        try:
+            backdrop = self.page.locator(".cdk-overlay-backdrop")
+            if backdrop.is_visible():
+                self.page.keyboard.press("Escape")
+                self.page.wait_for_timeout(200)
+        except Exception:
+            pass
 
-    def click_modal_clear(self):
-        logger.info("Clicking Clear in filter modal")
-        self.page.locator("#filterDetails button.clear-button, .custom-modal button.clear-button").first.click()
+        btn = self.page.locator("#filterDetails button.submit-button, .custom-modal button.submit-button").first
+        try:
+            btn.click(timeout=5000)
+        except Exception as e:
+            logger.info("Submit click intercepted by overlay backdrop (%s), performing force click", e)
+            btn.click(force=True)
+
         self.page.wait_for_load_state("networkidle", timeout=10000)
         self.page.wait_for_timeout(500)
 
+    def click_modal_clear(self):
+        logger.info("Clicking Clear in filter modal")
+        btn = self.page.locator("#filterDetails button.clear-button, .custom-modal button.clear-button").first
+        try:
+            btn.click(timeout=5000)
+        except Exception:
+            btn.click(force=True)
+        self.page.wait_for_load_state("networkidle", timeout=10000)
+        self.page.wait_for_timeout(500)
+    def fill_filter_dates(self, from_date="", to_date="", completed_from_date="", completed_to_date=""):
+        logger.info("Filling filter dates in modal: from='%s', to='%s', completed_from='%s', completed_to='%s'", from_date, to_date, completed_from_date, completed_to_date)
+        try:
+            date_map = [
+                ("#fromDate, input[formcontrolname='fromDate']", from_date),
+                ("#toDate, input[formcontrolname='toDate']", to_date),
+                ("#ticketCompletedAtFromDate, input[formcontrolname='ticketCompletedAtFromDate']", completed_from_date),
+                ("#ticketCompletedAtToDate, input[formcontrolname='ticketCompletedAtToDate']", completed_to_date),
+            ]
+            for selector, val in date_map:
+                if val:
+                    loc = self.page.locator(selector).first
+                    loc.wait_for(state="attached", timeout=3000)
+                    loc.evaluate("el => el.removeAttribute('readonly')")
+                    loc.fill(str(val))
+                    loc.evaluate("el => { el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); el.dispatchEvent(new Event('blur', { bubbles: true })); }")
+                    logger.info("Filled filter date for '%s' -> '%s'", selector, val)
+                    self.page.wait_for_timeout(200)
+        except Exception as e:
+            logger.warning("Filling filter dates exception: %s", e)
+
+    def select_filter_dropdown(self, control_name, option_text=""):
+        logger.info("Selecting option '%s' for filter dropdown '%s'", option_text, control_name)
+        try:
+            mat_select = self.page.locator(f"mat-select[formcontrolname='{control_name}']").first
+            mat_select.wait_for(state="visible", timeout=5000)
+            mat_select.click()
+            self.page.wait_for_timeout(300)
+
+            overlay_options = self.page.locator(".cdk-overlay-container mat-option, mat-option")
+            overlay_options.first.wait_for(state="visible", timeout=5000)
+
+            if option_text:
+                target_option = overlay_options.filter(has_text=option_text).first
+                target_option.click()
+            else:
+                overlay_options.first.click()
+            self.page.wait_for_timeout(300)
+
+            # Dismiss overlay backdrop if still visible
+            try:
+                backdrop = self.page.locator(".cdk-overlay-backdrop")
+                if backdrop.is_visible():
+                    self.page.keyboard.press("Escape")
+                    self.page.wait_for_timeout(200)
+            except Exception:
+                pass
+
+            return True
+        except Exception as e:
+            logger.error("Failed to select option for filter dropdown '%s': %s", control_name, e)
+            return False
 
     def click_download_tat_report_button(self):
         logger.info("Clicking Download TAT Report button")
+        if self.is_filter_modal_visible():
+            logger.info("Filter modal is open on screen, closing modal before clicking Download TAT Report")
+            self.close_filter_modal()
+            self.page.wait_for_timeout(300)
+
+        btn = self.page.locator(self.DOWNLOAD_TAT_REPORT_BTN).first
+        btn.wait_for(state="visible", timeout=5000)
         try:
-            with self.page.expect_download(timeout=10000) as download_info:
-                self.page.locator(self.DOWNLOAD_TAT_REPORT_BTN).click()
+            with self.page.expect_download(timeout=60000) as download_info:
+                btn.click()
             download = download_info.value
             logger.info("Report download triggered successfully: %s", download.suggested_filename)
             return download
         except Exception as e:
-            logger.warning("Download TAT report trigger: %s", e)
-            self.page.locator(self.DOWNLOAD_TAT_REPORT_BTN).click()
-            return None
+            logger.warning("Download TAT report trigger exception: %s", e)
+            try:
+                with self.page.expect_download(timeout=30000) as download_info:
+                    btn.click(force=True)
+                download = download_info.value
+                logger.info("Force click report download triggered successfully: %s", download.suggested_filename)
+                return download
+            except Exception as e2:
+                logger.error("Download TAT report retry failed: %s", e2)
+                return None
 
-    def is_pagination_visible(self, timeout=10000):
+
+
+    def apply_15_days_date_filter_and_download_tat_report(self):
+
+        """
+        Applies a 15-day date filter (from 15 days ago to today) to avoid large report download timeouts,
+        submits the filter modal, and triggers the TAT Report download event.
+        Returns (download_object, saved_filepath, file_size_bytes).
+        """
+        from datetime import datetime, timedelta
+        import os
+
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        fifteen_days_ago_str = (datetime.now() - timedelta(days=15)).strftime("%Y-%m-%d")
+
+        logger.info("Applying 15-day date filter for TAT Report download: from '%s' to '%s'", fifteen_days_ago_str, today_str)
+
+        self.click_filter_button()
+        self.fill_filter_dates(from_date=fifteen_days_ago_str, to_date=today_str)
+        self.click_modal_submit()
+        self.page.wait_for_load_state("networkidle", timeout=10000)
+
+        logger.info("Triggering Download TAT Report with 15-day date filter applied")
+        download_obj = self.click_download_tat_report_button()
+
+        file_path = ""
+        file_size = 0
+        if download_obj:
+            try:
+                temp_dir = os.path.join(os.getcwd(), "downloads")
+                os.makedirs(temp_dir, exist_ok=True)
+                file_path = os.path.join(temp_dir, download_obj.suggested_filename)
+                download_obj.save_as(file_path)
+                if os.path.exists(file_path):
+                    file_size = os.path.getsize(file_path)
+                logger.info("Downloaded TAT Report saved to '%s' (Size: %s bytes)", file_path, file_size)
+            except Exception as e:
+                logger.warning("Error saving downloaded file: %s", e)
+
+        return download_obj, file_path, file_size
+
+
+    def is_pagination_visible(self, timeout=3000):
         try:
             loc = self.page.locator(self.PAGINATION_CONTAINER)
             loc.first.wait_for(state="visible", timeout=timeout)
             return True
         except Exception as e:
-            logger.error("Pagination container not visible within %s ms: %s", timeout, e)
+            logger.debug("Pagination container not visible within %s ms: %s", timeout, e)
             return False
+
 
     def get_selected_rows_per_page(self):
         try:

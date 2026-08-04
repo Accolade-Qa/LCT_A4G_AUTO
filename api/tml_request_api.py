@@ -156,10 +156,20 @@ class TmlRequestAPI:
             else:
                 data = {}
 
-            ticket_number = data.get("TICKET_NO")
-            VIN = data.get("VIN_NO")
-            UIN = data.get("UIN_NO")
-            ICCID = data.get("ICCID")
+            ticket_number = (
+                data.get("TICKET_NO")
+                or data.get("ticketNo")
+                or data.get("ticket_no")
+                or data.get("TICKET_NUMBER")
+                or tml_request_log_data.get("TICKET_NO")
+                or tml_request_log_data.get("ticketNo")
+                or tml_request_log_data.get("TICKET_NUMBER")
+                or ""
+            )
+            VIN = data.get("VIN_NO") or data.get("vinNo") or (payload[0].get("VIN_NO") if payload else "")
+            UIN = data.get("UIN_NO") or data.get("uinNo") or (payload[0].get("UIN_NO") if payload else "")
+            ICCID = data.get("ICCID") or data.get("iccid") or (payload[0].get("ICCID") if payload else "")
+
 
             logger.info(
                 "Successfully created TML request. Ticket Number: %s",
