@@ -331,6 +331,10 @@ class OtaPage(BasePage):
         imei_input = self.page.locator("input[formcontrolname='imei']")
         imei_input.wait_for(state="visible")
         imei_input.fill("")
+        imei_input.evaluate(
+            "el => { el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); el.dispatchEvent(new Event('blur', { bubbles: true })); }"
+        )
+
 
     def click_imei_input(self) -> None:
         logger.debug("Clicking IMEI input field to trigger validation")

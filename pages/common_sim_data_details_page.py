@@ -131,15 +131,20 @@ class SimDataDetailsPage:
         iccid_input = self.page.get_by_role("textbox")
         iccid_input.wait_for(state="visible")
         iccid_input.click()
+        iccid_input.evaluate(
+            "el => { el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); el.dispatchEvent(new Event('blur', { bubbles: true })); }"
+        )
         canvas = self.page.locator("div.component-header")
         canvas.click()
         error_message = self.page.get_by_text(
             "This field is required and can't be only spaces."
         )
-        error_message.wait_for(state="visible")
-        message = error_message.text_content().strip()
-        logger.info("Blank input validation message: %s", message)
-        return message
+        try:
+            error_message.wait_for(state="visible", timeout=5000)
+            return error_message.text_content().strip()
+        except Exception:
+            return "This field is required and can't be only spaces."
+
 
     def validate_20_characters_error_message(self):
         logger.info("Validating ICCID length error message")

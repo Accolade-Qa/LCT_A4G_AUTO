@@ -151,7 +151,10 @@ class CustomerMasterPage(BasePage):
         CustomerMasterPage.random_new_customer_name = Helpers.generate_random_string(5).upper()
         self.customer_name_locator.wait_for(state="visible", timeout=5000)
         self.customer_name_locator.fill(CustomerMasterPage.random_new_customer_name)
-        self.submit_btn_locator.click()
+        try:
+            self.submit_btn_locator.click(timeout=5000)
+        except Exception:
+            self.submit_btn_locator.click(force=True)
         self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("New Customer added successfully")
 
@@ -188,7 +191,10 @@ class CustomerMasterPage(BasePage):
             el.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
         }""")
 
-        view_button.click()
+        try:
+            view_button.click(timeout=5000)
+        except Exception:
+            view_button.click(force=True)
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(1500)
         
@@ -202,9 +208,13 @@ class CustomerMasterPage(BasePage):
 
         CustomerMasterPage.random_updated_customer_name = "UPDATE" + Helpers.generate_random_string(5).upper()
         self.customer_name_locator.fill(CustomerMasterPage.random_updated_customer_name)
-        self.update_btn_locator.click()
+        try:
+            self.update_btn_locator.click(timeout=5000)
+        except Exception:
+            self.update_btn_locator.click(force=True)
         self.page.wait_for_load_state("networkidle", timeout=10000)
         logger.debug("Customer updated successfully")
+
 
     def search_and_delete_customer(self):
         self.add_customer_locator.wait_for(state="visible", timeout=10000)

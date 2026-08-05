@@ -69,10 +69,16 @@ class SearchHelper:
             # Assertion: Verify entered value
             expect(search_input).to_have_value(query)
 
+            # Dispatch Angular input/change events to trigger client-side filtering
+            search_input.evaluate(
+                "el => { el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }"
+            )
+
             # waiting for whole page content to load
             self.page.wait_for_load_state("load")
 
             search_input.press("Enter")
+            self.page.wait_for_timeout(500)
 
             # Wait for either result rows to appear or the 'No Data Found' indicator.
             try:
@@ -119,16 +125,19 @@ class SearchHelper:
             # Get stable count once rows are present
             row_count = rows.count()
 
-            # Read all row texts in a single DOM evaluation to avoid per-row timeouts
+            # Read all visible row texts in a single DOM evaluation to avoid hidden rows
             try:
-                row_texts = rows.evaluate_all("nodes => nodes.map(n => n.innerText)")
+                row_texts = rows.evaluate_all(
+                    "nodes => nodes.filter(n => n.offsetHeight > 0 && window.getComputedStyle(n).display !== 'none').map(n => n.innerText)"
+                )
             except Exception:
-                # Fallback to per-row reading if evaluate_all is not supported for some reason
+                # Fallback to per-row reading if evaluate_all is not supported
                 row_texts = []
                 for i in range(row_count):
                     try:
-                        rows.nth(i).wait_for(state="visible", timeout=2000)
-                        row_texts.append(rows.nth(i).inner_text())
+                        row_loc = rows.nth(i)
+                        if row_loc.is_visible():
+                            row_texts.append(row_loc.inner_text())
                     except Exception:
                         logger.warning("Failed to read row %s text via fallback", i)
 
@@ -142,6 +151,7 @@ class SearchHelper:
 
             result["results_found"] = len(result["results"])
             logger.info("%s rows found for query '%s'", result["results_found"], query)
+
 
         except Exception as exc:
             logger.exception(

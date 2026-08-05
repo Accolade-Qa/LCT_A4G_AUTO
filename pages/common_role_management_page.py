@@ -245,9 +245,15 @@ class RoleManagementPage:
         search_box = self.page.get_by_placeholder("Search and Press Enter")
         logger.debug("Filling search box with role name: %s", role_name)
         search_box.fill(role_name)
+        search_box.evaluate(
+            "el => { el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }"
+        )
         logger.debug("Pressing Enter to execute search")
         search_box.press("Enter")
+        self.page.wait_for_load_state("networkidle", timeout=5000)
+        self.page.wait_for_timeout(500)
         logger.info("Search for role '%s' executed", role_name)
+
 
     def is_role_in_table(self, role_name):
         logger.info("Checking if role '%s' is present in the table", role_name)

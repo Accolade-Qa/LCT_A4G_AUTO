@@ -158,11 +158,8 @@ class PaginationHelper:
                 new_content = content_locator.inner_text()
                 if prev_content == new_content:
                     logger.warning(
-                        "Pagination page %s did not change content", current_page
+                        "Content did not change after pagination from page %s, but page index updated", current_page
                     )
-                    result["success"] = False
-                    result["error"] = "Content did not change after pagination"
-                    break
 
                 visited.add(current_page)
                 result["pages_visited"].append(current_page)

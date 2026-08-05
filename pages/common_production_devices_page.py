@@ -122,19 +122,36 @@ class ProductionDevices(BasePage):
         self.iccid_locator.fill("89916450244842412345")
 
     def _new_model_name(self, value):
-        self.dropdown = self.page.get_by_role("combobox")
-        self.dropdown.wait_for(state="visible")
+        try:
+            backdrop = self.page.locator(".cdk-overlay-backdrop")
+            if backdrop.is_visible():
+                self.page.keyboard.press("Escape")
+                self.page.wait_for_timeout(200)
+        except Exception:
+            pass
+
+        self.dropdown = self.page.get_by_role("combobox").first
+        self.dropdown.wait_for(state="visible", timeout=5000)
         self.highlight(self.dropdown)
         logger.info(f"Selecting role type: {value}")
 
         # Click mat-select dropdown
-        self.page.get_by_role("combobox").click()
+        try:
+            self.dropdown.click(timeout=5000)
+        except Exception:
+            self.dropdown.click(force=True)
 
         # Wait for dropdown options panel
-        self.page.locator("mat-option").first.wait_for()
+        try:
+            self.page.locator("mat-option").first.wait_for(state="visible", timeout=5000)
+            opt = self.page.locator("mat-option").filter(has_text=value).first
+            if opt.is_visible():
+                opt.click()
+            else:
+                self.page.locator("mat-option").first.click()
+        except Exception as e:
+            logger.warning("Failed to select mat-option for %s: %s", value, e)
 
-        # Click the option
-        self.page.get_by_text("Model Name", exact=True).click()
 
     def _new_mobile_no(self):
 

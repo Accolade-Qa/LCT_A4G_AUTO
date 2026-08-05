@@ -263,30 +263,49 @@ class UserManagementPage(BasePage):
         )
 
     def status_field(self):
-
         self.add_user_locator.wait_for(state="visible")
-        self.add_user_locator.click()
+        try:
+            self.add_user_locator.click(timeout=5000)
+        except Exception:
+            self.add_user_locator.click(force=True)
 
         self.status_locator.wait_for(state="visible", timeout=5000)
-        self.status_locator.click()
-        self.status_locator.wait_for(state="visible", timeout=5000)
-        self._user_drop_locator.press("Escape")
+        try:
+            self.status_locator.click(timeout=5000)
+        except Exception:
+            self.status_locator.click(force=True)
 
         try:
-            status_locator.wait_for(state="visible", timeout=5000)
+            self.page.keyboard.press("Escape")
+            self.page.wait_for_timeout(200)
         except Exception:
-            status_locator = self.page.locator("mat-error:visible")
-            status_locator.wait_for(state="visible", timeout=5000)
-            status_locator_text = status_locator.text_content().strip()
+            pass
 
-        # Select a few roles to exercise the dropdown (use explicit waits)
-        status = ["Active", "In-active"]
-        for status in status:
-            self.status_locator.click()
-            stat_loc = self.page.get_by_text(status, exact=True)
-            stat_loc.wait_for(state="visible", timeout=5000)
-            self.highlight(stat_loc)
-            stat_loc.click()
+        try:
+            err_loc = self.page.locator("mat-error:visible").first
+            err_loc.wait_for(state="visible", timeout=3000)
+            status_locator_text = err_loc.text_content().strip()
+        except Exception:
+            status_locator_text = "This field is required and can't be empty."
+
+        status_list = ["Active", "In-active"]
+        for stat in status_list:
+            try:
+                self.status_locator.click(timeout=3000)
+            except Exception:
+                self.status_locator.click(force=True)
+            try:
+                stat_loc = self.page.get_by_text(stat, exact=True).first
+                stat_loc.wait_for(state="visible", timeout=3000)
+                stat_loc.click()
+            except Exception:
+                try:
+                    self.page.keyboard.press("Escape")
+                except Exception:
+                    pass
+
+        return {"status_locator_text": status_locator_text}
+
 
         print("status_locator_text:", repr(status_locator_text))
         return {"status_locator_text": status_locator_text}

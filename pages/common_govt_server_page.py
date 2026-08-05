@@ -1062,13 +1062,18 @@ class GovtServerPage(BasePage):
     def get_firmware_master_table_headers(self):
         """Get headers of the table on Firmware Master page"""
 
+        try:
+            self.page.locator("table thead th, th").first.wait_for(state="attached", timeout=5000)
+        except Exception:
+            pass
+
         table = TableSection(self.page)
-
-        if table.has_no_data():
-            logger.warning("Firmware Master table has no data, cannot retrieve headers")
-            return []
-
         headers = table.get_headers()
+
+        if not headers:
+            # Fallback direct locator
+            header_locs = self.page.locator("table thead th, th").all()
+            headers = [loc.inner_text() for loc in header_locs if loc.inner_text().strip()]
 
         # Normalize headers: uppercase, collapse whitespace and replace newlines
         normalized = []
@@ -1083,6 +1088,7 @@ class GovtServerPage(BasePage):
         )
 
         return normalized
+
 
     def is_add_firmware_button_visible_and_enabled(self):
         """Check if the 'Add Firmware' button is visible and enabled on Firmware Master page"""

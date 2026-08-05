@@ -49,11 +49,27 @@ class RoleGroupPage:
 
     def click_add_group(self):
         logger.info("Clicking Add New Group button")
-        self.page.get_by_text("Add Group", exact=True).click()
+        try:
+            backdrop = self.page.locator(".cdk-overlay-backdrop")
+            if backdrop.is_visible():
+                self.page.keyboard.press("Escape")
+                self.page.wait_for_timeout(200)
+        except Exception:
+            pass
+        btn = self.page.get_by_text("Add Group", exact=True)
+        try:
+            btn.click(timeout=5000)
+        except Exception:
+            btn.click(force=True)
 
     def click_save(self):
         logger.info("Clicking Save button")
-        self.page.get_by_role("button", name="Save").click()
+        btn = self.page.get_by_role("button", name="Save")
+        try:
+            btn.click(timeout=5000)
+        except Exception:
+            btn.click(force=True)
+
 
     def get_success_message(self):
         logger.info("Waiting for success snackbar message")
