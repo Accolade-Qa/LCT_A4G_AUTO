@@ -102,26 +102,17 @@ class DeviceModel(BasePage):
         return title_text
 
     def _submit_button(self):
-        # model_button_locator = self.page.get_by_text(
-        #     "Add Device Model open_in_new", exact=True
-        # )
-        # model_button_locator.click()
-
         logger.debug("Checking submit button status")
         submit_button_locator = self.page.locator(".submit-button.ng-star-inserted")
         logger.debug("Waiting for submit button to be visible")
         submit_button_locator.wait_for(state="visible")
         logger.debug("Highlighting submit button")
         self.highlight(submit_button_locator)
-        is_disabled = not submit_button_locator.is_enabled()
-        logger.info("Submit button disabled: %s", is_disabled)
-        return is_disabled
+        is_enabled = submit_button_locator.is_enabled()
+        logger.info("Submit button enabled: %s", is_enabled)
+        return is_enabled
 
     def _model_code(self, code):
-        model_button_locator = self.page.get_by_text(
-            "Add Device Model open_in_new", exact=True
-        )
-        model_button_locator.click()
         logger.info("Filling model code: %s", code)
         logger.debug("Getting model code field locator")
         model_code_locator = self.page.get_by_label("Model Code")
@@ -190,13 +181,11 @@ class DeviceModel(BasePage):
 
     def _submit_button_click(self):
 
-        model_button_locator = self.page.get_by_text(
-            "Add Device Model open_in_new", exact=True
-        )
-        model_button_locator.click()
         logger.info("Clicking submit button")
         logger.debug("Getting submit button locator")
-        submit_button_locator = self.page.get_by_role("button")
+        submit_button_locator = self.page.locator(
+            ".submit-button.ng-star-inserted, button.submit-button"
+        ).first
         logger.debug("Waiting for submit button to be visible")
         submit_button_locator.wait_for(state="visible")
         logger.debug("Highlighting submit button")
@@ -210,41 +199,13 @@ class DeviceModel(BasePage):
             logger.error("Submit button is not enabled")
             raise AssertionError("Submit button not enabled")
 
-    def _search_model(self, model):
-        model_button_locator = self.page.get_by_text(
-            "Add Device Model open_in_new", exact=True
-        )
-        model_button_locator.click()
-        logger.info("Searching for model: %s", model)
-        logger.debug("Getting search field and button locators")
-        search_field_locator = self.page.locator(
-            "//input[@placeholder='Search and Press Enter']"
-        )
-        search_button_locator = self.page.locator(
-            "button[class='search-btn'] mat-icon[role='img']"
-        )
-        logger.debug("Waiting for search field to be visible")
-        search_field_locator.wait_for(state="visible")
-        logger.debug("Highlighting search button")
-        self.highlight(search_button_locator)
-        if search_field_locator.is_enabled():
-            logger.debug("Search field is enabled, filling with: %s", model)
-            search_field_locator.fill(model)
-            logger.debug("Clicking search button")
-            search_button_locator.click()
-            logger.info("Model search executed successfully")
-        else:
-            logger.error("Search field not enabled")
-            raise AssertionError("Search field not enabled")
-        search_button_locator.click()
-
     def view_icon(self):
 
         logger.info("Clicking view icon")
         logger.debug("Getting view icon locator")
         view_icon_locator = self.page.locator(
-            "//tbody/tr[1]/td[5]/div[1]/button[1]/mat-icon[1]"
-        )
+            "//tbody/tr[1]/td[5]/div[1]/button[1]/mat-icon[1], table tbody tr button.view-button, table tbody tr mat-icon:has-text('visibility')"
+        ).first
         logger.debug("Waiting for view icon to be visible")
         view_icon_locator.wait_for(state="visible")
         logger.debug("Highlighting view icon")

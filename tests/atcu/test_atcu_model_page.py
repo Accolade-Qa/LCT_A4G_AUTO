@@ -656,5 +656,7 @@ class TestModelPage:
             message="Validate add new model and verify entry in list",
         )
         assert (
-            row_details.get("Model Name") == new_model_name or new_model_name in str(row_details)
+            row_details.get("MODEL NAME") == new_model_name
+            or row_details.get("Model Name") == new_model_name
+            or new_model_name in str(row_details)
         ), f"Model Name mismatched in list row: {row_details}"
